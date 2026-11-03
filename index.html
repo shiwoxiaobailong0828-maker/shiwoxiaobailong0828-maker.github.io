@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>是我小白龙 · 作品集</title>
+<style>
+  :root{
+    --ink:#131a2a; --sub:#5b6b8c; --dim:#93a1bd; --line:#e6ebf5;
+    --sky:#2f9dff; --violet:#7c6cf0; --pink:#ff8fab; --mint:#2fd08c; --gold:#f5a623;
+    --card:#ffffff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:#fbfcfe;color:var(--ink);font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  /* 柔和的彩色光斑背景 */
+  .blob{position:fixed;border-radius:50%;filter:blur(70px);opacity:.5;z-index:0;pointer-events:none}
+  .b1{width:520px;height:520px;background:#cfe8ff;top:-160px;right:-120px;animation:drift 16s ease-in-out infinite alternate}
+  .b2{width:420px;height:420px;background:#ffe0ea;bottom:-140px;left:-120px;animation:drift 20s ease-in-out infinite alternate-reverse}
+  .b3{width:300px;height:300px;background:#e4fbee;top:44%;left:58%;animation:drift 24s ease-in-out infinite alternate}
+  @keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(-40px,36px) scale(1.08)}}
+  #glow{position:fixed;width:340px;height:340px;border-radius:50%;pointer-events:none;z-index:0;background:radial-gradient(closest-side,rgba(124,108,240,.13),transparent);transform:translate(-50%,-50%);left:-500px;top:-500px}
+  .wrap{position:relative;z-index:1;max-width:1160px;margin:0 auto;padding:0 24px}
+  /* 导航 */
+  nav{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+  .nav-in{max-width:1160px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:12px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px}
+  .logo .face{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#dff2ff,#ffe9f1);border:1.5px solid var(--line);display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+  .logo .face img{width:34px;height:34px;object-fit:cover;object-position:top}
+  .nav-links{margin-left:auto;display:flex;gap:26px;font-size:14.5px}
+  .nav-links a{color:var(--sub);text-decoration:none;font-weight:600}
+  .nav-links a:hover{color:var(--ink)}
+  /* 首屏 */
+  .hero{display:grid;grid-template-columns:1.02fr .98fr;gap:30px;align-items:center;padding:64px 0 30px;min-height:560px}
+  .kicker{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--sky);border:1px solid #cfe7ff;background:#f0f8ff;padding:6px 13px;border-radius:999px;font-weight:700;letter-spacing:.6px}
+  .kicker i{width:7px;height:7px;border-radius:50%;background:var(--mint)}
+  h1{font-size:66px;line-height:1.12;font-weight:900;margin:20px 0 4px;letter-spacing:1px}
+  h1 .grad{background:linear-gradient(92deg,#2f9dff,#7c6cf0 55%,#ff8fab);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero-sub{font-size:18.5px;color:var(--sub);line-height:1.8;margin:14px 0 26px;max-width:500px}
+  .cta{display:flex;gap:13px;flex-wrap:wrap}
+  .btn{padding:13px 26px;border-radius:999px;font-size:15.5px;font-weight:800;text-decoration:none;display:inline-block;transition:.2s}
+  .btn-p{background:linear-gradient(92deg,#2f9dff,#7c6cf0);color:#fff;box-shadow:0 12px 26px rgba(80,120,255,.32)}
+  .btn-p:hover{transform:translateY(-2px)}
+  .btn-g{border:1.5px solid var(--line);color:var(--ink);background:#fff}
+  .btn-g:hover{border-color:#c6d4ee}
+  .stats{display:flex;gap:12px;margin-top:32px;flex-wrap:wrap}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px 18px;font-size:13px;color:var(--sub);box-shadow:0 6px 18px rgba(30,50,100,.05)}
+  .stat b{display:block;font-size:22px;color:var(--ink)}
+  /* 小白龙互动区 */
+  .dragon-zone{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-height:480px}
+  .bubble{position:absolute;top:6px;left:50%;transform:translateX(-50%) scale(.8);background:#131a2a;color:#fff;font-size:15px;font-weight:700;padding:11px 18px;border-radius:18px;opacity:0;transition:.25s;white-space:nowrap;z-index:3;box-shadow:0 14px 30px rgba(19,26,42,.25)}
+  .bubble::after{content:"";position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);border:8px solid transparent;border-top-color:#131a2a;border-bottom:0}
+  .bubble.show{opacity:1;transform:translateX(-50%) scale(1)}
+  .dragon-wrap{position:relative;cursor:pointer;transform-origin:50% 90%;transition:transform .18s ease-out}
+  .dragon-bob{animation:alive 6s ease-in-out infinite;transform-origin:50% 92%}
+  .dragon-bob img{width:280px;max-width:72vw;display:block;filter:drop-shadow(0 22px 26px rgba(50,80,140,.25))}
+  @keyframes alive{0%,100%{transform:translateY(0) rotate(-1.1deg) scale(1,1)}25%{transform:translateY(-7px) rotate(.5deg) scale(1.008,1.016)}50%{transform:translateY(-12px) rotate(1.2deg) scale(1,1)}75%{transform:translateY(-6px) rotate(-.4deg) scale(1.012,1.009)}}
+  .dragon-wrap.jump{animation:jump .55s ease}
+  @keyframes jump{0%{transform:translateY(0) scale(1,1)}30%{transform:translateY(-46px) scale(.96,1.05)}55%{transform:translateY(0) scale(1.06,.92)}75%{transform:translateY(-12px) scale(.99,1.01)}100%{transform:translateY(0) scale(1,1)}}
+  .dragon-shadow{width:185px;height:28px;border-radius:50%;background:radial-gradient(closest-side,rgba(40,70,130,.28),transparent);margin-top:2px;animation:shadowp 6s ease-in-out infinite}
+  @keyframes shadowp{0%,100%{transform:scaleX(1);opacity:.8}50%{transform:scaleX(.85);opacity:.55}}
+  .dragon-hint{margin-top:14px;font-size:13px;color:var(--dim);background:#fff;border:1px dashed #ccd9f2;padding:6px 14px;border-radius:999px}
+  .spark{position:absolute;font-size:19px;pointer-events:none;z-index:4;animation:sparkfly .85s ease-out forwards}
+  @keyframes sparkfly{from{opacity:1;transform:translate(0,0) scale(1)}to{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.5) rotate(40deg)}}
+  /* 跑马灯 */
+  .marquee{margin:36px 0 6px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden;padding:13px 0;background:#fff}
+  .mq-track{display:flex;gap:44px;white-space:nowrap;animation:mq 26s linear infinite;font-weight:800;font-size:15px;color:#8494b5;width:max-content}
+  .mq-track span b{color:var(--sky)}
+  @keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  /* 区块 */
+  section{padding:46px 0 6px}
+  .sec-head{display:flex;align-items:baseline;gap:13px;margin-bottom:6px}
+  .sec-head .no{font-family:ui-monospace,Menlo,monospace;color:var(--sky);font-weight:800;font-size:15px}
+  .sec-head h2{font-size:30px;font-weight:900}
+  .sec-head span{color:var(--dim);font-size:14px}
+  .sec-desc{color:var(--sub);font-size:15px;margin-bottom:24px;line-height:1.7}
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
+  .reveal.on{opacity:1;transform:none}
+  /* 筛选 */
+  .tabs{display:flex;gap:10px;margin-bottom:22px;flex-wrap:wrap}
+  .tab{border:1.5px solid var(--line);background:#fff;color:var(--sub);font-size:14px;font-weight:700;padding:8px 18px;border-radius:999px;cursor:pointer;transition:.2s;font-family:inherit}
+  .tab:hover{border-color:#c6d4ee;color:var(--ink)}
+  .tab.act{background:#131a2a;color:#fff;border-color:#131a2a}
+  /* 作品墙 */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .work{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;cursor:pointer;position:relative;overflow:hidden;transition:box-shadow .25s,border-color .25s,opacity .35s,transform .35s;transform-style:preserve-3d;will-change:transform}
+  .work:hover{box-shadow:0 24px 48px rgba(35,60,120,.14);border-color:#d3e2fb}
+  .work.hide{display:none}
+  .work .shine{position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(120,170,255,.13) 48%,transparent 62%);transform:translateX(-120%);transition:transform .7s;pointer-events:none}
+  .work:hover .shine{transform:translateX(120%)}
+  .work .thumb{height:116px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:46px;margin-bottom:17px}
+  .t1{background:linear-gradient(135deg,#e3f3ff,#bfe3ff)}
+  .t2{background:linear-gradient(135deg,#efeaff,#ddd0ff)}
+  .t3{background:linear-gradient(135deg,#e2fbee,#bdf0d4)}
+  .t4{background:linear-gradient(135deg,#fff4dc,#ffe3ae)}
+  .t5{background:linear-gradient(135deg,#ffeef3,#ffd3df)}
+  .t6{background:linear-gradient(135deg,#e6ebff,#c9d6ff)}
+  .work h3{font-size:20px;margin-bottom:7px}
+  .work p{color:var(--sub);font-size:14px;line-height:1.65;min-height:46px}
+  .row{display:flex;align-items:center;gap:10px;margin-top:15px}
+  .badge{font-size:12px;padding:4.5px 11px;border-radius:999px;font-weight:800}
+  .b-score{color:#b97a0e;background:#fff3d6}
+  .b-live{color:#0d8a58;background:#dcf7ea}
+  .b-wip{color:#d6336c;background:#ffe0ea}
+  .enter{margin-left:auto;font-size:14px;color:var(--sky);font-weight:800}
+  /* 放映厅 */
+  .vgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+  .video{background:#fff;border:1px solid var(--line);border-radius:22px;overflow:hidden;cursor:pointer;transition:.25s}
+  .video:hover{transform:translateY(-5px);box-shadow:0 24px 48px rgba(35,60,120,.15)}
+  .poster{height:192px;position:relative;display:flex;align-items:center;justify-content:center}
+  .p1{background:linear-gradient(130deg,#dbeafe,#93c5fd 60%,#60a5fa)}
+  .p2{background:linear-gradient(130deg,#fef3c7,#fcd34d 60%,#f59e0b)}
+  .p3{background:linear-gradient(130deg,#cffafe,#67e8f9 60%,#22d3ee)}
+  .p4{background:linear-gradient(130deg,#dcfce7,#86efac 60%,#4ade80)}
+  .play{width:62px;height:62px;border-radius:50%;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;box-shadow:0 12px 28px rgba(0,0,0,.22);transition:.2s}
+  .video:hover .play{transform:scale(1.1)}
+  .play::after{content:"";border-left:19px solid #131a2a;border-top:11px solid transparent;border-bottom:11px solid transparent;margin-left:5px}
+  .poster .dur{position:absolute;right:14px;bottom:12px;background:rgba(19,26,42,.72);color:#fff;font-size:12.5px;padding:4px 9px;border-radius:8px}
+  .vmeta{padding:17px 21px 19px}
+  .vmeta h3{font-size:18px;margin-bottom:5px}
+  .vmeta p{color:var(--sub);font-size:13.5px;line-height:1.6}
+  /* GitHub */
+  .repos{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .repo{border:1px solid var(--line);background:#fff;border-radius:18px;padding:20px;transition:.2s}
+  .repo:hover{transform:translateY(-4px);box-shadow:0 16px 34px rgba(35,60,120,.12)}
+  .repo .rn{font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--sky);font-size:15.5px;font-weight:700}
+  .repo p{color:var(--sub);font-size:13.5px;line-height:1.65;margin-top:8px;min-height:44px}
+  .repo .lang{margin-top:12px;font-size:12.5px;color:var(--dim)}
+  .repo .lang i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+  footer{margin-top:66px;border-top:1px solid var(--line);padding:28px 0 40px;color:var(--dim);font-size:13.5px;display:flex;gap:14px;flex-wrap:wrap}
+  footer b{color:var(--sub)}
+  footer .r{margin-left:auto}
+  /* 弹窗 */
+  .modal{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:20px}
+  .modal.open{display:flex}
+  .modal .mask{position:absolute;inset:0;background:rgba(19,26,42,.45);backdrop-filter:blur(4px)}
+  .modal .box{position:relative;background:#fff;border-radius:26px;max-width:620px;width:100%;padding:32px;box-shadow:0 40px 90px rgba(10,20,50,.35);animation:pop .3s ease}
+  @keyframes pop{from{transform:scale(.92) translateY(14px);opacity:0}to{transform:none;opacity:1}}
+  .modal .x{position:absolute;top:16px;right:18px;border:0;background:#f1f5fb;width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer;color:var(--sub)}
+  .modal .mthumb{height:150px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:58px;margin-bottom:18px}
+  .modal h3{font-size:25px;margin-bottom:4px}
+  .modal .mdesc{color:var(--sub);line-height:1.75;font-size:15px;margin:10px 0 14px}
+  .modal ul{list-style:none;margin:0 0 20px}
+  .modal li{color:var(--sub);font-size:14.5px;padding:5px 0 5px 22px;position:relative;line-height:1.6}
+  .modal li::before{content:"✦";position:absolute;left:2px;color:var(--sky)}
+  .modal .mbtns{display:flex;gap:12px;flex-wrap:wrap}
+  .vplayer{height:300px;border-radius:18px;background:linear-gradient(130deg,#1c2a4a,#31497e);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#dbe7ff;gap:12px;margin-bottom:16px;text-align:center;padding:20px}
+  @media (max-width:900px){
+    .hero{grid-template-columns:1fr;padding-top:40px;min-height:0}
+    h1{font-size:44px}
+    .grid,.repos{grid-template-columns:1fr 1fr}
+    .vgrid{grid-template-columns:1fr}
+    .nav-links{display:none}
+    .dragon-bob img{width:225px}
+  }
+  @media (max-width:560px){.grid,.repos{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+<div id="glow"></div>
+
+<nav>
+  <div class="nav-in">
+    <div class="logo"><span class="face"><img src="assets/xiaobailong-cutout.png" alt="小白龙"></span>是我小白龙</div>
+    <div class="nav-links"><a href="#works">作品墙</a><a href="#cinema">放映厅</a><a href="#github">GitHub</a><a href="#contact">联系</a></div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <span class="kicker"><i></i>shiwoxiaobailong.me · 个人作品站</span>
+      <h1>是我<span class="grad">小白龙</span></h1>
+      <p class="hero-sub">一条爱折腾的小白龙。这里放着我做的 AI 智能体、科普短视频，和一些正在慢慢长大的小作品——点开就能玩，点开就能看。</p>
+      <div class="cta">
+        <a class="btn btn-p" href="#works">逛逛作品墙</a>
+        <a class="btn btn-g" href="#cinema">去放映厅看片</a>
+      </div>
+      <div class="stats">
+        <div class="stat"><b><span class="count" data-n="6">0</span></b>个 AI 智能体</div>
+        <div class="stat"><b><span class="count" data-n="4">0</span></b>部科普短片</div>
+        <div class="stat"><b><span class="count" data-n="0">0</span> 元</b>全站免费打开</div>
+      </div>
+    </div>
+    <div class="dragon-zone">
+      <div class="bubble" id="bubble">嗨，我是小白龙！</div>
+      <div class="dragon-wrap" id="dragon" title="点我试试">
+        <div class="dragon-bob"><img src="assets/xiaobailong-cutout.png" alt="小白龙"></div>
+      </div>
+      <div class="dragon-shadow"></div>
+      <div class="dragon-hint">👆 点一点小白龙试试</div>
+    </div>
+  </div>
+
+  <div class="marquee"><div class="mq-track" id="mq"></div></div>
+
+  <section id="works">
+    <div class="sec-head"><span class="no">01</span><h2>作品墙 · 小智家族</h2><span>AI 智能体系列</span></div>
+    <p class="sec-desc">每一个小智都是一个能直接打开使用的智能体作品。点任意一张卡片，看它的详细介绍和讲解视频。</p>
+    <div class="tabs">
+      <button class="tab act" data-f="all">全部作品</button>
+      <button class="tab" data-f="live">已发布</button>
+      <button class="tab" data-f="score">评分中</button>
+      <button class="tab" data-f="wip">制作中</button>
+    </div>
+    <div class="grid" id="workGrid"></div>
+  </section>
+
+  <section id="cinema">
+    <div class="sec-head"><span class="no">02</span><h2>放映厅</h2><span>AI 科普短视频</span></div>
+    <p class="sec-desc">全部由代码和 AI 一起做出来的科普小片。点开就能直接在网页里看，不用下载。（新片《37% 法则》正在制作中，敬请期待）</p>
+    <div class="vgrid" id="videoGrid"></div>
+  </section>
+
+  <section id="github">
+    <div class="sec-head"><span class="no">03</span><h2>GitHub</h2><span>代码仓库 · 自动同步</span></div>
+    <p class="sec-desc">我的公开代码仓库，新作品会自动出现在这里。</p>
+    <div class="repos" id="repoGrid">
+      <div class="repo reveal"><div class="rn">guiyang-travel-guide</div><p>贵阳旅行攻略：把一次旅行查到的吃住行，整理成一份能直接照着走的指南。</p><div class="lang"><i style="background:#f1e05a"></i>JavaScript</div></div>
+      <div class="repo reveal"><div class="rn">qiuzhiwangzhan</div><p>求职网站练手项目：一边学一边搭的个人求职小站。</p><div class="lang"><i style="background:#e34c26"></i>HTML</div></div>
+      <div class="repo reveal"><div class="rn">autumn-recruit</div><p>秋招季的资料与代码整理仓库。</p><div class="lang"><i style="background:#3572A5"></i>Python</div></div>
+    </div>
+  </section>
+
+  <footer id="contact">
+    <span><b>是我小白龙</b> · shiwoxiaobailong.me</span>
+    <span>联系：shiwoxiaobailong0828@gmail.com</span>
+    <span class="r">© 2026 小白龙和他的作品们</span>
+  </footer>
+</div>
+
+<!-- 作品详情弹窗 -->
+<div class="modal" id="workModal">
+  <div class="mask" data-close></div>
+  <div class="box">
+    <button class="x" data-close>✕</button>
+    <div class="mthumb" id="mThumb">💧</div>
+    <h3 id="mName">水保小智</h3>
+    <span class="badge" id="mBadge">评分中</span>
+    <p class="mdesc" id="mDesc"></p>
+    <ul id="mFeats"></ul>
+    <div class="mbtns">
+      <a class="btn btn-p" id="mOpen" href="#" target="_blank" rel="noopener">打开作品 →</a>
+      <a class="btn btn-g" href="#" id="mVideo">看讲解视频</a>
+    </div>
+  </div>
+</div>
+
+<!-- 视频弹窗 -->
+<div class="modal" id="videoModal">
+  <div class="mask" data-close></div>
+  <div class="box">
+    <button class="x" data-close>✕</button>
+    <video id="vPlayer" controls playsinline preload="none" style="width:100%;max-height:72vh;object-fit:contain;border-radius:18px;background:#0d1528;display:block"></video>
+    <h3 id="vTitle" style="font-size:21px;margin:16px 0 4px"></h3>
+    <p class="mdesc" id="vDesc"></p>
+  </div>
+</div>
+
+<script>
+const WORKS = [
+ {slug:"shuibao",name:"水保小智",icon:"💧",cls:"t1",status:"score",badge:"评分中",bcls:"b-score",
+  desc:"土壤侵蚀诊断助手：输入坡度、降雨、地貌，它帮你判断侵蚀风险并给出水土保持方案。",
+  long:"把专业的水土保持知识做成了一个人人能用的诊断工具：回答几个问题，它就能算出侵蚀风险等级，再给出对应的治理建议和一份小报告。",
+  feats:["17 项指标打分，自动算出低 / 中 / 高 / 极高四档风险","47 条专业知识随时问答","一键生成诊断小报告"]},
+ {slug:"xinglv",name:"行旅小智",icon:"🧭",cls:"t2",status:"live",badge:"已发布",bcls:"b-live",
+  desc:"旅行规划助手：想去哪儿玩，它帮你排路线、算预算、避开人挤人的坑。",
+  long:"出门旅行前的参谋：告诉它想去的城市和天数，它帮你把景点、路线和预算一次排明白。",
+  feats:["按天生成行程路线","预算心里有数，不花冤枉钱","小众玩法避开人潮"]},
+ {slug:"tansuo",name:"碳索小智",icon:"🌱",cls:"t3",status:"live",badge:"已发布",bcls:"b-live",
+  desc:"碳排放探索助手：把双碳、碳足迹这些听着很大的词，讲成日常生活里的小账。",
+  long:"一本会算账的双碳小词典：你每天的吃穿住行排了多少碳，它算给你看，也告诉你怎么减。",
+  feats:["日常生活碳足迹估算","双碳概念大白话讲解","减排小建议清单"]},
+ {slug:"nongqing",name:"农情小智",icon:"🌾",cls:"t4",status:"live",badge:"已上架",bcls:"b-live",
+  desc:"农情助手：盯着田里的墒情和长势，给种地这件事多添一双眼睛。",
+  long:"给田地请的哨兵：墒情、长势、天气风险，它帮着一起盯，让种地的人心里更有底。",
+  feats:["土壤墒情解读","作物长势提醒","农时建议参考"]},
+ {slug:"tiheng",name:"体衡小智",icon:"🏃",cls:"t5",status:"live",badge:"已上架",bcls:"b-live",
+  desc:"运动健康助手：体测、锻炼、身体状态，它陪你把健康这件小事坚持下去。",
+  long:"陪你运动的小伙伴：体测成绩怎么看、接下来练什么，它都给你安排得明明白白。",
+  feats:["体测项目解读","循序渐进的锻炼建议","身体状态小记录"]},
+ {slug:"xingye",name:"星野小智",icon:"✨",cls:"t6",status:"wip",badge:"制作中",bcls:"b-wip",
+  desc:"星空探索助手：今晚看什么星、往哪儿看，它带你抬头认识头顶的那片天。",
+  long:"正在孵化中的观星向导：等它上线，今晚出门抬头看什么，它都会提前告诉你。",
+  feats:["今晚可见星体推荐","观星地点与时间建议","星座故事慢慢讲"]},
+];
+const VIDEOS = [
+ {title:"闪电为什么是锯齿形",cls:"p1",file:"film-lightning",dur:"1:02",line:"闪电为什么不走直线？一分钟看懂空气里的“分叉之路”。"},
+ {title:"十二生肖为什么没有猫",cls:"p2",file:"film-zodiac",dur:"2:01",line:"猫到底错过了什么，才没挤进十二生肖？一个流传很久的小问题。"},
+ {title:"一滴雨搬走一座山",cls:"p3",file:"film-rain",dur:"1:25",line:"一滴雨的力量小得可笑，可亿万滴雨，真的能搬走一座山。"},
+ {title:"雨后土香从哪来",cls:"p4",file:"film-petrichor",dur:"1:20",line:"下过雨的泥土为什么香？这股味道，其实等了你很久。"},
+];
+/* 作品墙渲染 */
+const grid = document.getElementById('workGrid');
+WORKS.forEach((w,i)=>{
+  const el = document.createElement('div');
+  el.className = 'work reveal'; el.dataset.status = w.status; el.dataset.idx = i;
+  el.innerHTML = `<div class="shine"></div><div class="thumb ${w.cls}">${w.icon}</div><h3>${w.name}</h3><p>${w.desc}</p><div class="row"><span class="badge ${w.bcls}">${w.badge}</span><span class="enter">看看 →</span></div>`;
+  el.addEventListener('click',()=>openWork(i));
+  grid.appendChild(el);
+});
+/* 视频渲染 */
+const vg = document.getElementById('videoGrid');
+function playVideo(src,title,desc){
+  const p = document.getElementById('vPlayer');
+  document.getElementById('vTitle').textContent = title;
+  document.getElementById('vDesc').textContent = desc;
+  p.src = src; openModal('videoModal');
+  p.play().catch(()=>{});
+}
+VIDEOS.forEach((v,i)=>{
+  const el = document.createElement('div');
+  el.className = 'video reveal';
+  el.innerHTML = `<div class="poster ${v.cls}" style="background-image:url('posters/${v.file}.jpg');background-size:cover;background-position:center"><div class="play"></div><span class="dur">${v.dur}</span></div><div class="vmeta"><h3>${v.title}</h3><p>${v.line}</p></div>`;
+  el.addEventListener('click',()=>playVideo('videos/'+v.file+'.mp4', v.title, v.line));
+  vg.appendChild(el);
+});
+/* 筛选 */
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('act'));
+    t.classList.add('act');
+    const f = t.dataset.f;
+    document.querySelectorAll('.work').forEach(w=>{
+      w.classList.toggle('hide', f!=='all' && w.dataset.status!==f);
+    });
+  });
+});
+/* 卡片 3D 倾斜 */
+document.querySelectorAll('.work').forEach(card=>{
+  card.addEventListener('mousemove',e=>{
+    const r = card.getBoundingClientRect();
+    const x = (e.clientX-r.left)/r.width-.5, y = (e.clientY-r.top)/r.height-.5;
+    card.style.transform = `perspective(800px) rotateY(${x*9}deg) rotateX(${-y*9}deg) translateY(-4px)`;
+  });
+  card.addEventListener('mouseleave',()=>{ card.style.transform=''; });
+});
+/* 弹窗 */
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModals(){
+  document.querySelectorAll('.modal').forEach(m=>m.classList.remove('open'));
+  const p = document.getElementById('vPlayer'); p.pause(); p.removeAttribute('src'); p.load();
+}
+let curWork = 0;
+function openWork(i){
+  const w = WORKS[i]; curWork = i;
+  const mt = document.getElementById('mThumb');
+  mt.className = 'mthumb '+w.cls; mt.textContent = '';
+  mt.style.backgroundImage = `url('posters/${w.slug}-intro.jpg')`;
+  mt.style.backgroundSize = 'cover'; mt.style.backgroundPosition = 'center';
+  document.getElementById('mName').textContent = w.name;
+  const b = document.getElementById('mBadge'); b.textContent = w.badge; b.className = 'badge '+w.bcls;
+  document.getElementById('mDesc').textContent = w.long;
+  document.getElementById('mFeats').innerHTML = w.feats.map(f=>`<li>${f}</li>`).join('');
+  document.getElementById('mOpen').href = 'works/'+w.slug+'/';
+  openModal('workModal');
+}
+document.getElementById('mVideo').addEventListener('click',e=>{
+  e.preventDefault();
+  const w = WORKS[curWork];
+  playVideo('videos/'+w.slug+'-intro.mp4', w.name+' · 讲解视频', w.desc);
+});
+document.querySelectorAll('[data-close]').forEach(el=>el.addEventListener('click',closeModals));
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModals(); });
+/* 小白龙互动 */
+const LINES = ["嗨，我是小白龙！","我的作品都在下面，慢慢逛～","别光看我，去玩玩水保小智","嘿嘿，被你点到了","今天也要元气满满！","放映厅有好看的科普片哦"];
+const dragon = document.getElementById('dragon'), bubble = document.getElementById('bubble');
+let li = 0, bubbleTimer;
+dragon.addEventListener('click',e=>{
+  dragon.classList.remove('jump'); void dragon.offsetWidth; dragon.classList.add('jump');
+  bubble.textContent = LINES[li++ % LINES.length];
+  bubble.classList.add('show');
+  clearTimeout(bubbleTimer); bubbleTimer = setTimeout(()=>bubble.classList.remove('show'), 2100);
+  const zone = dragon.parentElement, zr = zone.getBoundingClientRect();
+  for(let k=0;k<7;k++){
+    const s = document.createElement('span'); s.className='spark'; s.textContent = ['✦','★','✧'][k%3];
+    s.style.color = ['#2f9dff','#ff8fab','#f5a623','#7c6cf0'][k%4];
+    s.style.left = (e.clientX-zr.left-8)+'px'; s.style.top = (e.clientY-zr.top-10)+'px';
+    s.style.setProperty('--dx', (Math.random()*170-85)+'px');
+    s.style.setProperty('--dy', (Math.random()*-130-30)+'px');
+    zone.appendChild(s); setTimeout(()=>s.remove(), 900);
+  }
+});
+/* 小白龙自己也会动：隔一会儿冒句话、闪颗小星星 */
+let autoTimer = setInterval(()=>{
+  if(document.hidden) return;
+  bubble.textContent = LINES[li++ % LINES.length];
+  bubble.classList.add('show');
+  setTimeout(()=>bubble.classList.remove('show'), 2300);
+}, 13000);
+setInterval(()=>{
+  if(document.hidden) return;
+  const zr = zone.getBoundingClientRect();
+  const s = document.createElement('span'); s.className='spark'; s.textContent = '✦';
+  s.style.color = ['#2f9dff','#ff8fab','#f5a623'][Math.floor(Math.random()*3)];
+  s.style.left = (zr.width*.28 + Math.random()*zr.width*.44)+'px';
+  s.style.top = (30 + Math.random()*90)+'px';
+  s.style.setProperty('--dx', (Math.random()*50-25)+'px');
+  s.style.setProperty('--dy', (-40-Math.random()*40)+'px');
+  zone.appendChild(s); setTimeout(()=>s.remove(), 900);
+}, 3600);
+/* 龙跟着鼠标轻轻转头 */
+const zone = document.querySelector('.dragon-zone');
+document.querySelector('.hero').addEventListener('mousemove',e=>{
+  const r = zone.getBoundingClientRect();
+  const x = (e.clientX-(r.left+r.width/2))/r.width, y = (e.clientY-(r.top+r.height/2))/r.height;
+  dragon.style.transform = `perspective(900px) rotateY(${x*10}deg) rotateX(${-y*6}deg)`;
+});
+document.querySelector('.hero').addEventListener('mouseleave',()=>{ dragon.style.transform=''; });
+/* 跑马灯 */
+const words = ["AI 智能体","科普短视频","点开就能玩","小智家族","持续更新中","是我小白龙"];
+const seq = words.map(w=>`<span>✦ <b>${w}</b></span>`).join('');
+document.getElementById('mq').innerHTML = seq + seq;
+/* GitHub 仓库实时拉取（拉不到就保留上面的静态兜底） */
+(async()=>{
+  try{
+    const r = await fetch('https://api.github.com/users/shiwoxiaobailong0828-maker/repos?per_page=100&sort=updated');
+    if(!r.ok) return;
+    const repos = (await r.json()).filter(x=>!x.name.endsWith('.github.io')).slice(0,6);
+    if(!repos.length) return;
+    const LC = {JavaScript:'#f1e05a',HTML:'#e34c26',Python:'#3572A5',TypeScript:'#3178c6',CSS:'#563d7c',Vue:'#41b883'};
+    document.getElementById('repoGrid').innerHTML = repos.map(x=>
+      `<a class="repo reveal on" href="${x.html_url}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="rn">${x.name}</div><p>${x.description||'一个正在长大的小仓库，点开看看。'}</p><div class="lang"><i style="background:${LC[x.language]||'#8b98ad'}"></i>${x.language||'杂货铺'}</div></a>`
+    ).join('');
+  }catch(e){}
+})();
+/* 数字滚动 */
+const io = new IntersectionObserver(es=>es.forEach(en=>{
+  if(en.isIntersecting){ en.target.classList.add('on'); io.unobserve(en.target); }
+}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+document.querySelectorAll('.count').forEach(el=>{
+  const target = +el.dataset.n; let cur = 0;
+  const t = setInterval(()=>{ cur += 1; if(cur>=target){ cur = target; clearInterval(t);} el.textContent = cur; }, 110);
+});
+/* 鼠标光晕 */
+const glow = document.getElementById('glow');
+document.addEventListener('mousemove',e=>{ glow.style.left = e.clientX+'px'; glow.style.top = e.clientY+'px'; });
+</script>
+</body>
+</html>
