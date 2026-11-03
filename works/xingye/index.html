@@ -1,0 +1,3431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0C1220">
+<title>星野小智 · 天文观测与夜空实践台</title>
+<style>
+  :root{
+    --ink:#0C1220;
+    --surface:#141D33;
+    --text:#E9EEF7;
+    --gold:#E8B34B;
+    --silver:#A8C0E8;
+    --muted:#8FA0C2;
+    --line:rgba(168,192,232,.14);
+    --line-strong:rgba(168,192,232,.3);
+    --card:linear-gradient(155deg, rgba(24,34,58,.92), rgba(14,21,38,.88));
+    --shadow:0 18px 50px rgba(3,7,18,.45);
+    --radius:18px;
+    --font:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    min-height:100vh;
+    padding-bottom:72px;
+    color:var(--text);
+    font-family:var(--font);
+    background:
+      radial-gradient(1100px 760px at 82% -12%, rgba(78,105,174,.24), transparent 62%),
+      radial-gradient(900px 640px at -12% 26%, rgba(48,78,132,.18), transparent 60%),
+      radial-gradient(700px 560px at 50% 112%, rgba(232,179,75,.07), transparent 62%),
+      var(--ink);
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  button,input,select,textarea{font:inherit;color:inherit}
+  button{cursor:pointer}
+  a{color:inherit}
+  ::selection{background:rgba(232,179,75,.28)}
+
+  /* ---------- 品牌栏 ---------- */
+  .brandbar{
+    display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+    padding:20px clamp(16px,4vw,42px) 16px;
+    border-bottom:1px solid rgba(168,192,232,.08);
+  }
+  .brand-left{display:flex;align-items:center;gap:12px;min-width:0}
+  .brand-mark{width:44px;height:44px;flex:0 0 auto;filter:drop-shadow(0 0 12px rgba(232,179,75,.35))}
+  .brand-name{margin:0;font-size:19px;font-weight:750;letter-spacing:.14em}
+  .brand-sub{margin:2px 0 0;font-size:11.5px;color:var(--muted);letter-spacing:.12em}
+  .brand-tagline{
+    margin:0;font-size:13px;color:var(--silver);letter-spacing:.08em;
+    padding-left:18px;border-left:1px solid var(--line-strong);
+  }
+  .offline-badge{
+    margin-left:auto;display:inline-flex;align-items:center;gap:7px;
+    padding:7px 12px;border:1px solid rgba(232,179,75,.34);border-radius:999px;
+    background:rgba(232,179,75,.07);color:var(--gold);font-size:11.5px;letter-spacing:.08em;
+    white-space:nowrap;
+  }
+  .offline-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px var(--gold);animation:pulse 2.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+  /* ---------- 页签栏 ---------- */
+  .tabbar{
+    position:sticky;top:0;z-index:40;
+    background:rgba(10,16,30,.86);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);
+  }
+  .tab-scroll{
+    display:flex;gap:6px;padding:9px clamp(10px,3vw,34px);
+    overflow-x:auto;overflow-y:hidden;
+    scrollbar-width:none;overscroll-behavior-x:contain;
+  }
+  .tab-scroll::-webkit-scrollbar{display:none}
+  .tab{
+    flex:0 0 auto;border:1px solid transparent;border-radius:999px;
+    background:transparent;color:var(--muted);
+    padding:9px 15px;font-size:13px;letter-spacing:.05em;
+    transition:color .2s,background .2s,border-color .2s,transform .16s;
+    white-space:nowrap;
+  }
+  .tab:hover{color:var(--text);background:rgba(168,192,232,.06)}
+  .tab.is-active{
+    color:var(--ink);font-weight:700;
+    background:linear-gradient(135deg,#F2C76B,var(--gold));
+    border-color:rgba(232,179,75,.6);
+    box-shadow:0 6px 18px rgba(232,179,75,.22);
+  }
+  .tab:focus-visible,.guide-card:focus-visible,.date-btn:focus-visible,.cal-nav:focus-visible{
+    outline:2px solid var(--gold);outline-offset:2px;
+  }
+
+  /* ---------- 页面容器 ---------- */
+  main{position:relative;z-index:1}
+  .panel{display:none;padding:clamp(18px,4vw,40px) clamp(16px,4.6vw,52px) 38px;animation:panelIn .42s ease}
+  .panel.is-active{display:block}
+  @keyframes panelIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:0 0 18px}
+  .section-head h2{
+    margin:0;font-size:clamp(22px,3.2vw,32px);font-weight:780;letter-spacing:.04em;
+  }
+  .section-head h2::before{
+    content:"";display:inline-block;width:7px;height:7px;border-radius:50%;
+    background:var(--gold);box-shadow:0 0 10px var(--gold);margin-right:11px;vertical-align:middle;
+  }
+  .section-head p{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.7;letter-spacing:.03em}
+  .note{
+    margin:18px 0 0;color:var(--muted);font-size:12px;line-height:1.8;
+    padding-left:12px;border-left:2px solid rgba(232,179,75,.4);
+  }
+
+  /* ---------- 首页 Hero ---------- */
+  .hero{
+    position:relative;overflow:hidden;border-radius:26px;
+    min-height:clamp(430px,62vh,620px);
+    border:1px solid rgba(168,192,232,.13);
+    background:
+      radial-gradient(760px 420px at 78% 8%, rgba(70,102,178,.34), transparent 66%),
+      radial-gradient(520px 360px at 12% 90%, rgba(232,179,75,.1), transparent 66%),
+      linear-gradient(168deg,#0B1324 0%,#0A1120 55%,#070C17 100%);
+    box-shadow:var(--shadow);
+    display:flex;align-items:center;
+  }
+  #skyCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .hero::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(90deg,rgba(7,12,23,.72) 0%,rgba(7,12,23,.28) 48%,rgba(7,12,23,.05) 100%);
+  }
+  .hero-content{position:relative;z-index:2;padding:clamp(26px,5vw,64px);max-width:760px}
+  .eyebrow{
+    margin:0 0 16px;font-size:10.5px;letter-spacing:.36em;color:var(--silver);
+    text-transform:uppercase;
+  }
+  .hero-title{
+    margin:0;font-size:clamp(3.1rem,9vw,6.4rem);line-height:.98;font-weight:820;
+    letter-spacing:.04em;
+    background:linear-gradient(120deg,#FFF3D2 0%,#E8B34B 38%,#C99736 68%,#F4D085 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 40px rgba(232,179,75,.16);
+  }
+  .hero-line{
+    margin:18px 0 0;font-size:clamp(14px,1.9vw,18px);color:var(--text);
+    letter-spacing:.12em;line-height:1.7;
+  }
+  .hero-line strong{color:var(--gold);font-weight:650}
+  .hero-chips{display:flex;gap:9px;flex-wrap:wrap;margin-top:26px}
+  .hero-chip{
+    padding:7px 12px;border-radius:999px;font-size:11.5px;letter-spacing:.06em;
+    border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--silver);
+  }
+  .hero-chip b{color:var(--gold);font-weight:650}
+
+  /* ---------- 卡片通用 ---------- */
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);
+  }
+
+  /* ---------- 今夜速览 ---------- */
+  .block-title{
+    display:flex;align-items:center;gap:10px;margin:30px 0 14px;
+    font-size:12px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;
+  }
+  .block-title::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+  .tonight-card{padding:clamp(16px,2.6vw,24px);display:grid;gap:18px}
+  .tonight-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .stat{
+    position:relative;padding:16px 16px 14px;border-radius:14px;
+    background:rgba(168,192,232,.045);border:1px solid rgba(168,192,232,.09);
+    overflow:hidden;
+  }
+  .stat::after{
+    content:"";position:absolute;right:-22px;bottom:-30px;width:78px;height:78px;border-radius:50%;
+    background:radial-gradient(circle,rgba(232,179,75,.14),transparent 68%);
+  }
+  .stat-label{display:block;font-size:11px;letter-spacing:.14em;color:var(--muted)}
+  .stat-value{
+    display:inline-block;margin-top:8px;font-size:clamp(26px,4.4vw,42px);font-weight:760;
+    font-variant-numeric:tabular-nums;letter-spacing:.01em;line-height:1;
+  }
+  .stat-value.is-text{font-size:clamp(18px,2.6vw,24px);letter-spacing:.06em}
+  .stat-unit{font-size:12px;color:var(--muted);margin-left:4px}
+  .stat-sub{display:block;margin-top:7px;font-size:11px;color:var(--muted)}
+  .next-meteor-row{
+    display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;
+    padding:16px 18px;border-radius:14px;
+    background:linear-gradient(100deg,rgba(232,179,75,.09),rgba(232,179,75,.02));
+    border:1px solid rgba(232,179,75,.2);
+  }
+  .next-meteor-row .label{display:block;font-size:11px;letter-spacing:.16em;color:var(--gold);margin-bottom:5px}
+  .next-meteor-row strong{font-size:clamp(16px,2.4vw,20px);font-weight:700;letter-spacing:.05em}
+  .countdown{
+    font-size:clamp(18px,2.8vw,24px);font-weight:760;color:var(--gold);
+    font-variant-numeric:tabular-nums;white-space:nowrap;
+  }
+  .countdown small{font-size:11px;color:var(--muted);font-weight:500;margin-left:4px}
+
+  /* ---------- 八页签导览 ---------- */
+  .guide-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+  .guide-card{
+    position:relative;text-align:left;padding:17px 17px 15px;border-radius:16px;
+    background:var(--card);border:1px solid var(--line);
+    transition:transform .2s,border-color .2s,box-shadow .2s;
+    display:flex;flex-direction:column;gap:7px;min-height:118px;
+  }
+  .guide-card:hover{transform:translateY(-3px);border-color:rgba(232,179,75,.4);box-shadow:0 16px 34px rgba(3,7,18,.5)}
+  .guide-num{font-size:10.5px;letter-spacing:.2em;color:var(--gold);font-variant-numeric:tabular-nums}
+  .guide-name{font-size:16px;font-weight:720;letter-spacing:.05em}
+  .guide-desc{font-size:12px;line-height:1.65;color:var(--muted)}
+  .guide-arrow{position:absolute;right:16px;top:16px;color:var(--muted);transition:transform .2s,color .2s}
+  .guide-card:hover .guide-arrow{transform:translateX(3px);color:var(--gold)}
+
+  /* ---------- 月相实验室 ---------- */
+  .date-control{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .date-input{
+    background:rgba(168,192,232,.06);border:1px solid var(--line-strong);border-radius:11px;
+    padding:9px 12px;font-size:13px;color:var(--text);
+    color-scheme:dark;min-width:150px;
+  }
+  .date-input:focus{outline:2px solid rgba(232,179,75,.55);outline-offset:1px}
+  .date-btn{
+    background:rgba(232,179,75,.1);border:1px solid rgba(232,179,75,.38);color:var(--gold);
+    padding:9px 14px;border-radius:11px;font-size:12.5px;letter-spacing:.06em;
+    transition:background .2s;
+  }
+  .date-btn:hover{background:rgba(232,179,75,.2)}
+  .moon-lab-grid{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:16px;align-items:stretch}
+  .moon-detail{padding:clamp(18px,3vw,28px);display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(16px,3vw,30px);align-items:center;min-width:0}
+  .moon-stage{position:relative;display:grid;place-items:center;min-width:150px}
+  .moon-stage::before{
+    content:"";position:absolute;width:88%;aspect-ratio:1;border-radius:50%;
+    background:radial-gradient(circle,rgba(168,192,232,.2),transparent 66%);
+    filter:blur(16px);
+  }
+  #moonBig{position:relative;width:clamp(150px,22vw,212px);height:auto;filter:drop-shadow(0 0 26px rgba(168,192,232,.24))}
+  #moonBig svg{display:block;width:100%;height:auto}
+  .moon-readouts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
+  .readout{padding:12px 13px;border-radius:12px;background:rgba(168,192,232,.04);border:1px solid rgba(168,192,232,.08)}
+  .readout .k{display:block;font-size:10.5px;letter-spacing:.13em;color:var(--muted)}
+  .readout .v{margin-top:6px;font-size:clamp(21px,3.3vw,30px);font-weight:760;font-variant-numeric:tabular-nums;line-height:1}
+  .readout .v small{font-size:11px;font-weight:500;color:var(--muted);margin-left:3px}
+  .readout .v.phase{font-size:clamp(17px,2.4vw,22px);letter-spacing:.05em}
+  .readout .v .mini{display:block;font-size:11px;font-weight:500;color:var(--muted);margin-top:4px;letter-spacing:.02em}
+  .readout .v.dual{margin-top:7px;display:flex;flex-direction:column;gap:2px;font-size:12px}
+  .dual-line{display:flex;align-items:baseline;gap:6px;color:var(--muted);font-size:11px;letter-spacing:.04em}
+  .dual-line b{color:var(--text);font-size:clamp(18px,2.6vw,23px);font-weight:760;font-variant-numeric:tabular-nums;line-height:1.1}
+  .dual-line em{font-style:normal;color:var(--gold);font-size:clamp(18px,2.6vw,23px);font-weight:760;line-height:1.1}
+  .phase-panel{padding:18px 16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+  .phase-panel h3,.cal-card h3{margin:0;font-size:12px;letter-spacing:.18em;color:var(--muted);font-weight:600}
+  .phase-strip{display:flex;gap:7px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:thin;min-width:0}
+  .phase-strip::-webkit-scrollbar{height:5px}
+  .phase-strip::-webkit-scrollbar-thumb{background:rgba(168,192,232,.2);border-radius:99px}
+  .phase-item{
+    flex:1 0 60px;display:flex;flex-direction:column;align-items:center;gap:6px;
+    padding:9px 5px 8px;border-radius:12px;border:1px solid transparent;
+    transition:border-color .2s,background .2s;
+  }
+  .phase-item.is-current{border-color:rgba(232,179,75,.5);background:rgba(232,179,75,.09)}
+  .phase-item svg{width:38px;height:38px}
+  .phase-item span{font-size:10px;color:var(--muted);white-space:nowrap}
+  .phase-item.is-current span{color:var(--gold)}
+  .phase-hint{margin:0;font-size:11px;line-height:1.7;color:var(--muted)}
+  .cal-card{margin-top:16px;padding:clamp(15px,2.6vw,22px)}
+  .cal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+  .cal-title{font-size:15px;font-weight:700;letter-spacing:.08em}
+  .cal-nav{
+    width:34px;height:34px;border-radius:10px;border:1px solid var(--line-strong);
+    background:rgba(168,192,232,.05);color:var(--text);display:grid;place-items:center;
+    transition:background .2s,border-color .2s;
+  }
+  .cal-nav:hover{background:rgba(232,179,75,.12);border-color:rgba(232,179,75,.4)}
+  .cal-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-bottom:5px}
+  .cal-week span{text-align:center;font-size:10.5px;color:var(--muted);letter-spacing:.08em;padding:2px 0}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+  .cal-cell{
+    position:relative;border:1px solid transparent;border-radius:9px;
+    background:rgba(168,192,232,.035);padding:8px 2px 6px;min-height:clamp(64px,6vw,86px);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    transition:background .16s,border-color .16s,transform .16s;
+  }
+  .cal-cell:hover{background:rgba(168,192,232,.1);transform:translateY(-1px)}
+  .cal-cell.is-selected{border-color:var(--gold);background:rgba(232,179,75,.12);box-shadow:0 0 0 1px rgba(232,179,75,.18) inset}
+  .cal-cell.is-empty{background:transparent;border-color:transparent;pointer-events:none}
+  .cal-cell .d{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;line-height:1.1}
+  .cal-cell.is-selected .d{color:var(--gold);font-weight:700}
+  .cal-cell svg{width:clamp(24px,2.5vw,38px);height:auto;flex:0 0 auto}
+  .cal-cell .pct{font-size:9px;color:var(--muted);line-height:1;font-variant-numeric:tabular-nums}
+  .cal-cell.is-selected .pct{color:var(--gold)}
+
+  /* ---------- 流星雨年历 ---------- */
+  .next-banner{
+    display:grid;grid-template-columns:minmax(0,1.6fr) repeat(3,minmax(0,.8fr));
+    gap:16px;align-items:center;margin-bottom:16px;
+    padding:clamp(16px,2.6vw,24px);
+    background:linear-gradient(110deg,rgba(232,179,75,.1),rgba(24,34,58,.9) 58%);
+    border-color:rgba(232,179,75,.3);
+  }
+  .nb-lead{display:flex;align-items:center;gap:14px;min-width:0}
+  .nb-icon{width:58px;height:58px;flex:0 0 auto;filter:drop-shadow(0 0 14px rgba(232,179,75,.2))}
+  .nb-text{display:flex;flex-direction:column;gap:5px;min-width:0}
+  .nb-kicker{font-size:10px;letter-spacing:.26em;color:var(--gold)}
+  .nb-lead strong{font-size:clamp(20px,3vw,28px);font-weight:760;letter-spacing:.05em;line-height:1.25;overflow-wrap:anywhere}
+  .nb-sub{font-size:11.5px;color:var(--muted);line-height:1.6}
+  .nb-cell{border-left:1px solid rgba(168,192,232,.16);padding-left:14px;min-width:0}
+  .nb-cell span{display:block;font-size:10.5px;letter-spacing:.12em;color:var(--muted)}
+  .nb-cell b{display:block;margin-top:5px;font-size:clamp(15px,2.2vw,20px);font-weight:720;font-variant-numeric:tabular-nums;line-height:1.3;overflow-wrap:anywhere}
+  .nb-cell b.gold{color:var(--gold)}
+  .meteor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px}
+  .meteor-card{
+    position:relative;padding:18px;border-radius:16px;background:var(--card);
+    border:1px solid var(--line);display:flex;flex-direction:column;gap:11px;min-width:0;
+    transition:transform .2s,border-color .2s,box-shadow .2s;
+  }
+  .meteor-card:hover{transform:translateY(-2px);border-color:rgba(168,192,232,.32)}
+  .meteor-card.is-next{border-color:rgba(232,179,75,.55);box-shadow:0 0 0 1px rgba(232,179,75,.16) inset,0 18px 40px rgba(3,7,18,.5)}
+  .mc-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding-right:4px}
+  .mc-num{font-size:10px;letter-spacing:.18em;color:var(--muted);font-variant-numeric:tabular-nums}
+  .mc-name{font-size:16px;font-weight:730;letter-spacing:.04em;line-height:1.35;overflow-wrap:anywhere}
+  .mc-next{margin-left:auto;font-size:9.5px;letter-spacing:.1em;padding:3px 8px;border-radius:99px;background:rgba(232,179,75,.14);border:1px solid rgba(232,179,75,.4);color:var(--gold);white-space:nowrap}
+  .mc-peak{display:flex;align-items:baseline;gap:3px;color:var(--gold)}
+  .mc-peak b{font-size:clamp(34px,4.6vw,44px);font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+  .mc-peak span{font-size:11px;color:var(--muted);margin-right:5px}
+  .mc-peak em{font-style:normal;font-size:9.5px;letter-spacing:.2em;color:var(--muted);margin-left:auto;align-self:center}
+  .mc-facts{display:grid;gap:5px;margin:0;font-size:11.5px}
+  .mc-facts > div{display:grid;grid-template-columns:52px minmax(0,1fr);gap:8px}
+  .mc-facts dt{color:var(--muted)}
+  .mc-facts dd{margin:0;color:var(--text);overflow-wrap:anywhere}
+  .mc-tip{margin:0;padding:9px 11px;border-radius:10px;background:rgba(232,179,75,.06);border-left:2px solid rgba(232,179,75,.55);font-size:11.5px;line-height:1.7;color:var(--silver)}
+  .zhr{display:flex;flex-direction:column;gap:6px;margin-top:auto}
+  .zhr-head{display:flex;align-items:baseline;gap:5px;font-size:10.5px;color:var(--muted)}
+  .zhr-head b{font-size:19px;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1}
+  .zhr-head b.unstable{font-size:13px;color:var(--silver)}
+  .zhr-head em{font-style:normal;font-size:10px;color:var(--muted)}
+  .zhr-bar{height:7px;border-radius:99px;background:rgba(168,192,232,.12);overflow:hidden}
+  .zhr-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#C99736,var(--gold),#F4D085);transition:width .5s ease}
+  .zhr-bar.is-unstable i{width:100%!important;background:repeating-linear-gradient(45deg,rgba(232,179,75,.45) 0 5px,rgba(232,179,75,.12) 5px 10px)}
+
+  /* ---------- 观测规划 ---------- */
+  .plan-grid{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:16px;align-items:stretch}
+  .plan-controls{padding:clamp(18px,2.6vw,24px);display:flex;flex-direction:column;gap:19px;min-width:0}
+  .card-h3{margin:0;font-size:12px;letter-spacing:.18em;color:var(--muted);font-weight:600}
+  .ctrl{display:flex;flex-direction:column;gap:9px;min-width:0}
+  .ctrl-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--text)}
+  .ctrl-head b{color:var(--gold);font-size:14px;font-variant-numeric:tabular-nums}
+  #cloudRange{
+    -webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:99px;
+    background:linear-gradient(90deg,var(--gold) 0%,var(--gold) var(--fill,20%),rgba(168,192,232,.14) var(--fill,20%),rgba(168,192,232,.14) 100%);
+    outline:none;margin:3px 0 1px;cursor:pointer;
+  }
+  #cloudRange::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;
+    background:#FFF3D2;border:3px solid var(--gold);box-shadow:0 0 0 4px rgba(232,179,75,.16);
+  }
+  #cloudRange::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:#FFF3D2;border:3px solid var(--gold);box-shadow:0 0 0 4px rgba(232,179,75,.16)}
+  .range-scale{display:flex;justify-content:space-between;font-size:9.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .seg{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:4px}
+  .seg button{
+    min-width:0;padding:8px 0;border:1px solid var(--line);border-radius:8px;
+    background:rgba(168,192,232,.04);color:var(--muted);font-size:12px;
+    font-variant-numeric:tabular-nums;transition:background .16s,border-color .16s,color .16s;
+  }
+  .seg button:hover{background:rgba(168,192,232,.1);color:var(--text)}
+  .seg button.is-active{background:rgba(232,179,75,.16);border-color:rgba(232,179,75,.55);color:var(--gold);font-weight:700}
+  .seg-seeing{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .seg-seeing button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px}
+  .seg-seeing button b{font-size:13px;line-height:1.2}
+  .seg-seeing button small{font-size:9px;color:var(--muted);line-height:1.2}
+  .seg-seeing button.is-active small{color:var(--gold)}
+  .seg-current{margin:0;font-size:11.5px;color:var(--silver);line-height:1.6}
+  .seg-note{margin:0;font-size:10.5px;line-height:1.7;color:var(--muted)}
+  .seg-note b{color:var(--gold);font-weight:650}
+  .plan-moon{margin-top:auto;padding:10px 12px;border-radius:10px;background:rgba(168,192,232,.04);border:1px solid rgba(168,192,232,.08);font-size:11px;color:var(--muted);line-height:1.65}
+  .plan-moon b{color:var(--text)}
+  .plan-result{padding:clamp(18px,2.6vw,24px);display:grid;grid-template-columns:168px minmax(0,1fr);gap:clamp(14px,2.4vw,26px);align-items:center;min-width:0}
+  .score-box{position:relative;display:grid;place-items:center;width:100%;max-width:190px;justify-self:center}
+  .score-ring{width:100%;height:auto;display:block;filter:drop-shadow(0 0 16px rgba(232,179,75,.12))}
+  .score-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+  .score-center b{font-size:clamp(38px,4.8vw,54px);font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+  .score-center span{font-size:9.5px;letter-spacing:.18em;color:var(--muted);white-space:nowrap}
+  .score-panel{display:flex;flex-direction:column;gap:14px;min-width:0}
+  .score-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .grade-badge{padding:5px 12px;border-radius:99px;font-size:12px;font-weight:700;letter-spacing:.08em;border:1px solid transparent}
+  .grade-badge.g-excellent{color:#F4D085;border-color:rgba(232,179,75,.55);background:rgba(232,179,75,.12)}
+  .grade-badge.g-good{color:#A8C0E8;border-color:rgba(168,192,232,.5);background:rgba(168,192,232,.1)}
+  .grade-badge.g-fair{color:#B6C4DC;border-color:rgba(182,196,220,.32);background:rgba(182,196,220,.08)}
+  .grade-badge.g-poor{color:#E08976;border-color:rgba(224,137,118,.4);background:rgba(224,137,118,.1)}
+  .score-moon{font-size:11px;color:var(--muted);line-height:1.6}
+  .score-moon b{color:var(--text);font-variant-numeric:tabular-nums}
+  .metrics{display:grid;gap:10px}
+  .metric-top{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;color:var(--muted);margin-bottom:5px}
+  .metric-top b{color:var(--text);font-variant-numeric:tabular-nums;font-size:13px}
+  .bar{height:7px;border-radius:99px;background:rgba(168,192,232,.12);overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:99px;transition:width .4s ease}
+  .metric-cloud .bar i{background:linear-gradient(90deg,#C99736,var(--gold))}
+  .metric-light .bar i{background:linear-gradient(90deg,#7C6BD6,#A78BFA)}
+  .metric-moon .bar i{background:linear-gradient(90deg,#7E9AC8,#A8C0E8)}
+  .metric-seeing .bar i{background:linear-gradient(90deg,#4FB6C9,#6FE3FF)}
+  .target-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  .target-card{
+    position:relative;padding:18px;border-radius:16px;background:var(--card);
+    border:1px solid var(--line);min-width:0;display:flex;flex-direction:column;gap:10px;overflow:hidden;
+  }
+  .target-card::after{
+    content:"";position:absolute;right:-34px;top:-34px;width:104px;height:104px;border-radius:50%;
+    background:radial-gradient(circle,rgba(232,179,75,.13),transparent 68%);pointer-events:none;
+  }
+  .target-head{display:flex;align-items:center;gap:10px;min-width:0;padding-right:26px}
+  .target-icon{width:40px;height:40px;flex:0 0 auto;filter:drop-shadow(0 0 10px rgba(168,192,232,.2))}
+  .target-card h4{margin:0;font-size:15.5px;font-weight:730;letter-spacing:.03em;line-height:1.45;overflow-wrap:anywhere}
+  .target-idx{position:absolute;right:14px;top:12px;font-size:9.5px;letter-spacing:.2em;color:var(--muted);font-variant-numeric:tabular-nums}
+  .target-tag{align-self:flex-start;padding:3px 9px;border-radius:99px;font-size:9.5px;letter-spacing:.1em;color:var(--gold);border:1px solid rgba(232,179,75,.32);background:rgba(232,179,75,.07)}
+  .target-reason{margin:0;font-size:12px;line-height:1.78;color:var(--muted)}
+  .formula-card{margin-top:16px;padding:clamp(16px,2.6vw,22px);display:flex;flex-direction:column;gap:10px}
+  .formula-card h3{margin:0;font-size:12px;letter-spacing:.18em;color:var(--muted);font-weight:600}
+  .formula-card code{
+    display:block;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:12px;line-height:1.9;color:var(--silver);
+    background:rgba(168,192,232,.05);border:1px solid rgba(168,192,232,.1);border-radius:10px;
+    padding:10px 12px;overflow-wrap:anywhere;word-break:break-word;
+  }
+  .formula-card p{margin:0;font-size:11.5px;line-height:1.8;color:var(--muted)}
+
+  /* ---------- 星座学堂 ---------- */
+  .const-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  .const-card{
+    position:relative;padding:14px;border-radius:16px;background:var(--card);
+    border:1px solid var(--line);display:flex;flex-direction:column;gap:12px;min-width:0;
+    text-align:left;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s;
+  }
+  .const-card:hover{transform:translateY(-3px);border-color:rgba(232,179,75,.4);box-shadow:0 18px 40px rgba(3,7,18,.5)}
+  .const-card:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  .const-chart{
+    position:relative;aspect-ratio:1.25;border-radius:12px;overflow:hidden;
+    background:
+      radial-gradient(1.2px 1.2px at 16% 22%,rgba(233,238,247,.5),transparent 60%),
+      radial-gradient(1px 1px at 76% 16%,rgba(233,238,247,.35),transparent 60%),
+      radial-gradient(1px 1px at 88% 66%,rgba(168,192,232,.45),transparent 60%),
+      radial-gradient(1px 1px at 28% 84%,rgba(233,238,247,.32),transparent 60%),
+      radial-gradient(1px 1px at 55% 48%,rgba(168,192,232,.25),transparent 60%),
+      linear-gradient(160deg,#0B1324,#101A30);
+    border:1px solid rgba(168,192,232,.1);
+  }
+  .const-svg{display:block;width:100%;height:100%}
+  .const-svg .const-line{stroke:#A8C0E8;stroke-opacity:.58;stroke-width:.72;stroke-linecap:round}
+  .const-svg .star-sub{fill:#E9EEF7;opacity:.92}
+  .const-svg .star-main{fill:#E8B34B}
+  .const-svg .star-halo{fill:#E8B34B;opacity:.14}
+  .chart-note{position:absolute;left:10px;bottom:7px;font-size:9px;letter-spacing:.1em;color:var(--muted);pointer-events:none}
+  .chart-note.is-static{position:static;display:inline-block;margin-top:6px;font-size:10px}
+  .chart-zoom{
+    position:absolute;right:10px;top:8px;font-size:9px;letter-spacing:.08em;color:var(--silver);
+    padding:2px 7px;border-radius:99px;background:rgba(8,13,24,.55);
+    border:1px solid rgba(168,192,232,.18);pointer-events:none;
+  }
+  .const-top{display:flex;align-items:center;gap:8px}
+  .const-top h3{margin:0;font-size:17px;font-weight:750;letter-spacing:.04em;line-height:1.35}
+  .season-pill{margin-left:auto;flex:0 0 auto;padding:2px 9px;border-radius:99px;font-size:10px;letter-spacing:.12em;color:var(--gold);border:1px solid rgba(232,179,75,.3);background:rgba(232,179,75,.07)}
+  .const-star{margin:0;font-size:11px;letter-spacing:.08em;color:var(--gold)}
+  .const-intro{margin:0;font-size:12.5px;line-height:1.75;color:var(--text)}
+  .const-find{margin:0;font-size:11.5px;line-height:1.7;color:var(--muted);padding-top:8px;border-top:1px dashed rgba(168,192,232,.14)}
+  .const-find b{display:block;font-size:9.5px;letter-spacing:.14em;color:var(--silver);font-weight:600;margin-bottom:3px}
+
+  .season-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+  .season-card{
+    position:relative;display:flex;align-items:center;gap:20px;padding:18px 20px;border-radius:16px;
+    background:var(--card);border:1px solid var(--line);min-width:0;overflow:hidden;
+  }
+  .season-card::after{
+    content:"";position:absolute;right:-40px;bottom:-60px;width:150px;height:150px;border-radius:50%;
+    background:radial-gradient(circle,rgba(168,192,232,.1),transparent 68%);pointer-events:none;
+  }
+  .season-big{
+    flex:0 0 auto;font-size:clamp(46px,5.6vw,68px);font-weight:820;line-height:1;
+    background:linear-gradient(160deg,#FFF3D2,#E8B34B 62%,#C99736);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 28px rgba(232,179,75,.12);
+  }
+  .season-info{min-width:0}
+  .season-sub{display:block;font-size:10px;letter-spacing:.24em;color:var(--muted);margin-bottom:7px}
+  .season-points{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+  .season-points li{position:relative;padding-left:14px;font-size:12.5px;color:var(--silver);line-height:1.55}
+  .season-points li::before{content:"";position:absolute;left:0;top:.62em;width:5px;height:5px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px rgba(232,179,75,.5)}
+
+  .planet-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+  .planet-card{padding:16px;border-radius:16px;background:var(--card);border:1px solid var(--line);min-width:0;display:flex;flex-direction:column;gap:10px}
+  .planet-head{display:flex;align-items:center;gap:9px;min-width:0}
+  .planet-orb{width:42px;height:42px;flex:0 0 auto;filter:drop-shadow(0 0 10px rgba(168,192,232,.15))}
+  .planet-head h4{margin:0;font-size:17px;font-weight:750;letter-spacing:.05em}
+  .planet-line{margin:0;padding:8px 10px;border-radius:9px;background:rgba(232,179,75,.06);border-left:2px solid rgba(232,179,75,.55);font-size:11px;line-height:1.7;color:var(--silver)}
+  .planet-facts{display:grid;gap:9px;margin:0}
+  .planet-facts dt{font-size:9.5px;letter-spacing:.14em;color:var(--gold);margin-bottom:2px}
+  .planet-facts dd{margin:0;font-size:11px;line-height:1.68;color:var(--muted)}
+
+  .lightbox{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:clamp(10px,3vw,30px)}
+  .lightbox[hidden]{display:none}
+  .lb-backdrop{position:absolute;inset:0;background:rgba(4,8,16,.84);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
+  .lb-dialog{
+    position:relative;width:min(940px,96vw);max-height:92vh;overflow:auto;
+    background:linear-gradient(155deg,rgba(24,34,58,.98),rgba(12,18,32,.98));
+    border:1px solid rgba(168,192,232,.24);border-radius:22px;
+    padding:clamp(16px,2.6vw,26px);display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:24px;
+    box-shadow:0 30px 80px rgba(0,0,0,.6);
+  }
+  .lb-close{
+    position:absolute;right:12px;top:12px;z-index:2;width:36px;height:36px;border-radius:50%;
+    border:1px solid rgba(168,192,232,.24);background:rgba(8,13,24,.6);color:var(--text);
+    font-size:20px;line-height:1;display:grid;place-items:center;
+  }
+  .lb-close:hover{background:rgba(232,179,75,.16);border-color:rgba(232,179,75,.5);color:var(--gold)}
+  .lb-chart{
+    position:relative;display:grid;place-items:center;border-radius:16px;overflow:hidden;
+    background:
+      radial-gradient(1.4px 1.4px at 14% 20%,rgba(233,238,247,.55),transparent 60%),
+      radial-gradient(1px 1px at 80% 14%,rgba(233,238,247,.4),transparent 60%),
+      radial-gradient(1px 1px at 90% 72%,rgba(168,192,232,.5),transparent 60%),
+      radial-gradient(1px 1px at 22% 80%,rgba(233,238,247,.35),transparent 60%),
+      linear-gradient(160deg,#0A1120,#0E1830);
+    border:1px solid rgba(168,192,232,.12);padding:10px;min-height:0;
+  }
+  .lb-chart svg{display:block;width:100%;height:auto;max-height:64vh}
+  .lb-chart .const-line{stroke-width:.5}
+  .lb-info{display:flex;flex-direction:column;gap:10px;justify-content:center;min-width:0;padding:6px 4px}
+  .lb-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .lb-head h3{margin:0;font-size:clamp(24px,3.2vw,34px);font-weight:800;letter-spacing:.04em}
+  .lb-season{padding:3px 10px;border-radius:99px;font-size:10.5px;letter-spacing:.12em;color:var(--gold);border:1px solid rgba(232,179,75,.32);background:rgba(232,179,75,.07)}
+  .lb-star{margin:0;font-size:12px;letter-spacing:.08em;color:var(--gold)}
+  .lb-intro{margin:0;font-size:15px;line-height:1.8;color:var(--text)}
+  .lb-find{margin:0;font-size:12.5px;line-height:1.8;color:var(--muted);padding-top:10px;border-top:1px dashed rgba(168,192,232,.16)}
+
+  @media (max-width:1200px){
+    .planet-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  }
+  @media (max-width:1000px){
+    .const-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media (max-width:760px){
+    .const-grid{grid-template-columns:minmax(0,1fr)}
+    .season-grid{grid-template-columns:minmax(0,1fr)}
+    .planet-grid{grid-template-columns:minmax(0,1fr)}
+    .lb-dialog{grid-template-columns:minmax(0,1fr);max-height:94vh}
+    .lb-chart svg{max-height:44vh}
+    .lb-info{padding:2px}
+  }
+
+  /* ---------- 知识卡 ---------- */
+  .know-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .search-box{display:flex;align-items:center;gap:8px;flex:1 1 240px;min-width:0;padding:0 12px;height:40px;border-radius:11px;background:rgba(168,192,232,.05);border:1px solid var(--line-strong);transition:border-color .2s,box-shadow .2s}
+  .search-box svg{width:16px;height:16px;color:var(--muted);flex:0 0 auto}
+  .search-box input{flex:1;min-width:0;border:0;background:transparent;outline:none;font-size:13px;color:var(--text)}
+  .search-box input::placeholder{color:var(--muted)}
+  .search-box:focus-within{border-color:rgba(232,179,75,.5);box-shadow:0 0 0 3px rgba(232,179,75,.08)}
+  .cat-tabs{display:flex;gap:5px;overflow-x:auto;max-width:100%;padding-bottom:2px;scrollbar-width:none}
+  .cat-tabs::-webkit-scrollbar{display:none}
+  .cat-tab{flex:0 0 auto;padding:8px 12px;border-radius:99px;border:1px solid var(--line);background:rgba(168,192,232,.04);color:var(--muted);font-size:12px;white-space:nowrap;transition:background .16s,border-color .16s,color .16s}
+  .cat-tab:hover{background:rgba(168,192,232,.1);color:var(--text)}
+  .cat-tab.is-active{color:var(--gold);border-color:rgba(232,179,75,.5);background:rgba(232,179,75,.12);font-weight:700}
+  .cat-tab b{color:var(--muted);font-weight:500;font-size:10px;margin-left:3px}
+  .cat-tab.is-active b{color:var(--gold)}
+  .fav-filter{display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border-radius:99px;border:1px solid var(--line);background:rgba(168,192,232,.04);color:var(--muted);font-size:12px;flex:0 0 auto;transition:background .16s,border-color .16s,color .16s}
+  .fav-filter .star-ico{color:var(--gold);font-size:14px;line-height:1}
+  .fav-filter.is-active{border-color:rgba(232,179,75,.5);background:rgba(232,179,75,.12);color:var(--gold)}
+  .fav-num{padding:1px 6px;border-radius:99px;background:rgba(168,192,232,.1);font-size:10px;color:var(--text)}
+  .know-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:12px}
+  .know-hint{font-size:10.5px}
+  .know-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
+  .know-card{position:relative;border-radius:14px;background:var(--card);border:1px solid var(--line);overflow:hidden;transition:border-color .2s,box-shadow .2s}
+  .know-card:hover{border-color:rgba(168,192,232,.28)}
+  .know-card.is-open{border-color:rgba(232,179,75,.35);box-shadow:0 12px 30px rgba(3,7,18,.4)}
+  .know-card.is-fav{border-color:rgba(232,179,75,.25)}
+  .know-main{display:flex;align-items:flex-start;gap:11px;width:100%;padding:14px 46px 14px 14px;border:0;background:transparent;text-align:left;color:var(--text)}
+  .know-idx{flex:0 0 auto;font-size:10px;letter-spacing:.16em;color:var(--gold);padding-top:3px;font-variant-numeric:tabular-nums}
+  .know-text{display:flex;flex-direction:column;gap:4px;min-width:0}
+  .know-title{font-size:14px;font-weight:720;letter-spacing:.03em;line-height:1.4}
+  .know-conclusion{font-size:11.5px;line-height:1.65;color:var(--muted)}
+  .know-caret{position:absolute;right:40px;top:16px;width:16px;height:16px;color:var(--muted);transition:transform .2s,color .2s}
+  .know-card.is-open .know-caret{transform:rotate(180deg);color:var(--gold)}
+  .know-fav{position:absolute;right:10px;top:10px;width:26px;height:26px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--muted);font-size:15px;line-height:1;display:grid;place-items:center}
+  .know-fav:hover{background:rgba(232,179,75,.1);color:var(--gold)}
+  .know-fav[aria-pressed="true"]{color:var(--gold)}
+  .know-more{padding:0 14px 14px;border-top:1px dashed rgba(168,192,232,.14)}
+  .know-more[hidden]{display:none}
+  .know-row{display:grid;grid-template-columns:52px minmax(0,1fr);gap:9px;padding-top:10px}
+  .know-row span{font-size:9.5px;letter-spacing:.12em;color:var(--gold);padding-top:2px}
+  .know-row p{margin:0;font-size:11.5px;line-height:1.7;color:var(--silver)}
+  .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:46px 20px;border:1px dashed rgba(168,192,232,.2);border-radius:16px;color:var(--muted);text-align:center}
+  .empty-state span{font-size:26px;color:var(--gold)}
+  .empty-state p{margin:0;font-size:12px}
+
+  /* ---------- 知识测验 ---------- */
+  .limit-switch{display:inline-flex;align-items:center;gap:9px;cursor:pointer;user-select:none;padding:7px 12px;border-radius:99px;border:1px solid var(--line);background:rgba(168,192,232,.04);position:relative}
+  .limit-switch input{position:absolute;opacity:0;width:0;height:0}
+  .switch-track{width:34px;height:18px;border-radius:99px;background:rgba(168,192,232,.16);position:relative;transition:background .2s;flex:0 0 auto}
+  .switch-track::after{content:"";position:absolute;left:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#C7D3E8;transition:transform .2s,background .2s}
+  .limit-switch input:checked + .switch-track{background:rgba(232,179,75,.55)}
+  .limit-switch input:checked + .switch-track::after{transform:translateX(16px);background:#FFF3D2}
+  .limit-switch input:focus-visible + .switch-track{outline:2px solid var(--gold);outline-offset:2px}
+  .switch-label{font-size:12px;color:var(--silver);line-height:1.3}
+  .switch-label small{display:block;font-size:9.5px;color:var(--muted)}
+  .quiz-shell{padding:clamp(18px,3vw,30px);min-height:420px}
+  .quiz-start{display:flex;flex-direction:column;align-items:center;text-align:center;padding:22px 0 10px}
+  .quiz-hero{width:clamp(92px,12vw,124px);height:auto;filter:drop-shadow(0 0 20px rgba(232,179,75,.2));margin-bottom:12px}
+  .q-kicker{margin:0 0 8px;font-size:10px;letter-spacing:.3em;color:var(--gold)}
+  .quiz-start h3{margin:0 0 10px;font-size:clamp(20px,3vw,26px);font-weight:780;letter-spacing:.04em}
+  .quiz-rule{max-width:560px;margin:0;font-size:12.5px;line-height:1.9;color:var(--muted)}
+  .quiz-start-meta{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;margin:18px 0 20px;font-size:11px;color:var(--muted)}
+  .quiz-start-meta b{color:var(--gold);font-size:15px;margin-left:2px}
+  .btn-primary{padding:11px 22px;border-radius:11px;border:1px solid rgba(232,179,75,.55);background:linear-gradient(135deg,#F2C76B,var(--gold));color:var(--ink);font-size:13.5px;font-weight:750;letter-spacing:.06em;transition:transform .16s,box-shadow .2s}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(232,179,75,.25)}
+  .quiz-play{display:flex;flex-direction:column;gap:14px}
+  .quiz-play[hidden],.quiz-result[hidden],.quiz-start[hidden]{display:none}
+  .quiz-top{display:flex;flex-direction:column;gap:8px}
+  .quiz-progress-text{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .quiz-timer{color:var(--gold);font-weight:700;font-size:13px;padding:2px 9px;border-radius:99px;background:rgba(232,179,75,.1);border:1px solid rgba(232,179,75,.3)}
+  .quiz-timer[hidden]{display:none}
+  .quiz-timer.is-urgent{color:#E08976;border-color:rgba(224,137,118,.5);background:rgba(224,137,118,.12);animation:timerPulse .8s ease-in-out infinite}
+  @keyframes timerPulse{0%,100%{opacity:1}50%{opacity:.55}}
+  .quiz-progress{height:6px;border-radius:99px;background:rgba(168,192,232,.12);overflow:hidden}
+  .quiz-progress i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#C99736,var(--gold));transition:width .35s ease}
+  .quiz-qmeta{display:flex;justify-content:space-between;gap:10px;align-items:center}
+  .q-type{padding:3px 9px;border-radius:99px;font-size:10px;letter-spacing:.1em;color:var(--gold);border:1px solid rgba(232,179,75,.3);background:rgba(232,179,75,.07)}
+  .q-type.is-judge{color:var(--silver);border-color:rgba(168,192,232,.3);background:rgba(168,192,232,.07)}
+  .q-score{font-size:11px;color:var(--muted)}
+  .quiz-question{margin:0;font-size:clamp(17px,2.6vw,22px);font-weight:700;line-height:1.6;letter-spacing:.02em}
+  .quiz-options{display:grid;gap:9px}
+  .quiz-option{display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;padding:12px 14px;border-radius:11px;border:1px solid var(--line);background:rgba(168,192,232,.04);color:var(--text);font-size:13px;line-height:1.6;transition:background .16s,border-color .16s,transform .16s}
+  .quiz-option:hover:not(:disabled){background:rgba(168,192,232,.09);border-color:rgba(168,192,232,.3);transform:translateX(2px)}
+  .quiz-option b{flex:0 0 auto;color:var(--gold);font-variant-numeric:tabular-nums}
+  .quiz-option span{min-width:0}
+  .quiz-option:disabled{cursor:default}
+  .quiz-option.is-locked{opacity:.72}
+  .quiz-option.is-correct{opacity:1;border-color:rgba(111,227,168,.6);background:rgba(111,227,168,.1);color:#CFF7E2}
+  .quiz-option.is-wrong{opacity:1;border-color:rgba(224,137,118,.6);background:rgba(224,137,118,.1);color:#F6D3CB}
+  .quiz-explain{padding:12px 14px;border-radius:11px;background:rgba(168,192,232,.05);border-left:3px solid var(--silver);font-size:12px;line-height:1.8;color:var(--silver)}
+  .quiz-explain[hidden]{display:none}
+  .quiz-explain b.exp-ok{color:#6FE3A8}
+  .quiz-explain b.exp-bad{color:#E08976}
+  .quiz-explain p{margin:4px 0 0}
+  .quiz-explain strong{color:var(--gold)}
+  .quiz-actions{display:flex;justify-content:flex-end}
+  .quiz-actions .btn-primary[hidden]{display:none}
+  .result-head{display:grid;grid-template-columns:190px minmax(0,1fr);gap:24px;align-items:center;margin-bottom:22px}
+  .result-ring{position:relative;display:grid;place-items:center;width:100%;max-width:190px;justify-self:center}
+  .result-ring svg{width:100%;height:auto;display:block}
+  .result-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+  .result-center b{font-size:52px;font-weight:820;line-height:1;font-variant-numeric:tabular-nums;color:var(--gold)}
+  .result-center span{font-size:9.5px;letter-spacing:.14em;color:var(--muted)}
+  .result-stats h3{margin:0 0 10px;font-size:12px;letter-spacing:.18em;color:var(--muted);font-weight:600}
+  .stat-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px dashed rgba(168,192,232,.12);font-size:12px;color:var(--muted)}
+  .stat-row:last-child{border-bottom:0}
+  .stat-row b{color:var(--text);font-variant-numeric:tabular-nums;font-size:16px}
+  .result-section{margin-top:20px}
+  .result-title{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .result-title h3{margin:0;font-size:13px;letter-spacing:.1em;color:var(--silver);font-weight:650}
+  .result-title span{font-size:11px;color:var(--muted)}
+  .link-btn{margin-left:auto;padding:3px 9px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:10.5px}
+  .link-btn:hover{color:var(--gold);border-color:rgba(232,179,75,.4)}
+  .wrong-list{display:grid;gap:8px}
+  .wrong-item{border:1px solid rgba(224,137,118,.22);border-radius:11px;background:rgba(224,137,118,.05);overflow:hidden}
+  .wrong-item summary{display:flex;align-items:center;gap:10px;padding:11px 13px;cursor:pointer;list-style:none;font-size:12px;color:var(--text)}
+  .wrong-item summary::-webkit-details-marker{display:none}
+  .wi-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .wi-tag{flex:0 0 auto;font-size:10px;color:#E08976}
+  .wi-body{padding:10px 13px 12px;border-top:1px dashed rgba(224,137,118,.2);font-size:11.5px;line-height:1.8;color:var(--muted)}
+  .wi-body p{margin:2px 0}
+  .wi-body strong{color:var(--gold)}
+  .wrong-book{display:grid;gap:8px}
+  .wrong-entry{padding:11px 13px;border-radius:11px;border:1px solid var(--line);background:rgba(168,192,232,.04)}
+  .we-head{display:flex;align-items:flex-start;gap:10px}
+  .we-q{flex:1;min-width:0;font-size:12px;line-height:1.6;color:var(--text)}
+  .we-remove{flex:0 0 auto;padding:2px 8px;border-radius:7px;border:1px solid rgba(224,137,118,.35);background:transparent;color:#E08976;font-size:10px}
+  .we-remove:hover{background:rgba(224,137,118,.12)}
+  .we-meta{margin-top:5px;font-size:10.5px;color:var(--muted)}
+  .we-exp{margin:5px 0 0;font-size:11px;line-height:1.75;color:var(--silver)}
+  .clean{margin:0;padding:14px;border-radius:10px;border:1px dashed rgba(168,192,232,.18);font-size:11.5px;color:var(--muted);text-align:center}
+  .result-actions{display:flex;justify-content:center;margin-top:22px}
+
+  @media (max-width:860px){
+    .know-grid{grid-template-columns:minmax(0,1fr)}
+    .result-head{grid-template-columns:minmax(0,1fr);gap:16px}
+    .result-ring{max-width:170px}
+  }
+
+  /* ---------- 观测手记 ---------- */
+  .journal-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:16px;align-items:start}
+  .log-form-card,.log-list-card{padding:clamp(16px,2.6vw,22px);min-width:0}
+  .log-form-card h3,.log-list-head h3,.report-tools h3{margin:0;font-size:12px;letter-spacing:.18em;color:var(--muted);font-weight:600}
+  .log-form-card form{display:grid;gap:12px;margin-top:14px}
+  .field{display:flex;flex-direction:column;gap:5px;min-width:0}
+  .field label{font-size:11px;letter-spacing:.06em;color:var(--silver);display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .label-hint{font-size:9.5px;color:var(--muted);letter-spacing:.08em}
+  .log-input{width:100%;border:1px solid var(--line-strong);border-radius:9px;background:rgba(168,192,232,.05);color:var(--text);padding:9px 11px;font-size:12.5px;outline:none;color-scheme:dark}
+  .log-input::placeholder{color:var(--muted);opacity:.8}
+  .log-input:focus{border-color:rgba(232,179,75,.5);box-shadow:0 0 0 3px rgba(232,179,75,.08)}
+  .log-textarea{resize:vertical;min-height:90px;line-height:1.7}
+  .index-row{display:flex;gap:7px;align-items:stretch}
+  .index-row .log-input{flex:1;min-width:0}
+  .btn-ghost{padding:8px 12px;border-radius:9px;border:1px solid rgba(168,192,232,.28);background:rgba(168,192,232,.05);color:var(--silver);font-size:11.5px;letter-spacing:.04em;white-space:nowrap;transition:background .16s,border-color .16s,color .16s}
+  .btn-ghost:hover{background:rgba(232,179,75,.1);border-color:rgba(232,179,75,.4);color:var(--gold)}
+  .btn-ghost:disabled{opacity:.5;cursor:default}
+  .field-hint{font-size:9.5px;line-height:1.6;color:var(--muted)}
+  .log-save{justify-self:end;margin-top:2px}
+  .log-list-head{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:12px}
+  .log-count{padding:2px 8px;border-radius:99px;background:rgba(168,192,232,.08);font-size:10px;color:var(--muted)}
+  .log-list-actions{margin-left:auto;display:flex;gap:6px}
+  .link-btn.danger{color:#E08976;border-color:rgba(224,137,118,.3)}
+  .link-btn.danger:hover{background:rgba(224,137,118,.1);color:#F6D3CB;border-color:rgba(224,137,118,.5)}
+  .log-list{display:grid;gap:9px}
+  .log-item{position:relative;padding:12px 13px;border-radius:11px;border:1px solid var(--line);background:rgba(168,192,232,.04);display:grid;gap:5px}
+  .log-item-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .log-check{width:15px;height:15px;accent-color:var(--gold);flex:0 0 auto;cursor:pointer}
+  .log-date{font-size:12.5px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums;letter-spacing:.03em}
+  .log-target{font-size:12.5px;font-weight:650;color:var(--text);overflow-wrap:anywhere}
+  .log-index{margin-left:auto;padding:2px 8px;border-radius:99px;background:rgba(232,179,75,.08);border:1px solid rgba(232,179,75,.22);font-size:9.5px;color:var(--gold);white-space:nowrap}
+  .log-del{padding:2px 7px;border-radius:6px;border:1px solid rgba(224,137,118,.3);background:transparent;color:#E08976;font-size:9.5px}
+  .log-del:hover{background:rgba(224,137,118,.12)}
+  .log-place{font-size:10.5px;color:var(--muted)}
+  .log-excerpt{margin:2px 0 0;font-size:11.5px;line-height:1.7;color:var(--silver);overflow-wrap:anywhere}
+  .log-feeling{margin:0;font-size:10.5px;color:var(--muted);font-style:italic}
+  .log-empty{padding:30px 14px;text-align:center;border:1px dashed rgba(168,192,232,.18);border-radius:11px;color:var(--muted);font-size:11.5px}
+  .report-wrap{margin-top:16px;padding:clamp(16px,2.6vw,22px);min-width:0}
+  .report-tools{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+  .report-tools h3{margin-bottom:5px}
+  .report-tools p{margin:0;font-size:11px;line-height:1.65;color:var(--muted)}
+  .report-actions{display:flex;gap:7px;flex-wrap:wrap}
+  .report-pre{
+    margin:0;padding:clamp(12px,2vw,18px);border-radius:11px;
+    background:rgba(8,13,24,.55);border:1px solid rgba(168,192,232,.12);
+    color:var(--silver);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:11.5px;line-height:1.85;white-space:pre-wrap;word-break:break-word;
+    max-height:430px;overflow:auto;
+  }
+  .mission-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  .mission-card{position:relative;padding:17px;border-radius:16px;background:var(--card);border:1px solid var(--line);min-width:0;display:flex;flex-direction:column;gap:9px;overflow:hidden}
+  .mission-card::after{content:"";position:absolute;right:-30px;top:-34px;width:96px;height:96px;border-radius:50%;background:radial-gradient(circle,rgba(168,192,232,.1),transparent 68%);pointer-events:none}
+  .mission-head{display:flex;align-items:center;gap:10px;min-width:0}
+  .mission-icon{width:38px;height:38px;flex:0 0 auto;filter:drop-shadow(0 0 9px rgba(168,192,232,.18))}
+  .mission-card h4{margin:0;font-size:15px;font-weight:730;letter-spacing:.04em;line-height:1.4}
+  .mission-num{position:absolute;right:13px;top:11px;font-size:9px;letter-spacing:.18em;color:var(--muted)}
+  .mission-label{display:block;font-size:9.5px;letter-spacing:.12em;color:var(--gold);margin-bottom:2px}
+  .mission-goal,.mission-done{margin:0;font-size:11.5px;line-height:1.75;color:var(--muted)}
+  .mission-goal b,.mission-done b{color:var(--text);font-weight:600}
+  .toast{
+    position:fixed;left:50%;bottom:82px;transform:translateX(-50%);z-index:200;
+    padding:10px 18px;border-radius:999px;background:rgba(20,29,51,.96);
+    border:1px solid rgba(232,179,75,.4);color:var(--text);font-size:12px;
+    box-shadow:0 12px 30px rgba(0,0,0,.5);animation:toastIn .24s ease;
+  }
+  @keyframes toastIn{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+
+  @media (max-width:900px){
+    .journal-grid{grid-template-columns:minmax(0,1fr)}
+    .mission-grid{grid-template-columns:minmax(0,1fr)}
+  }
+  @media (max-width:560px){
+    .log-form-card,.log-list-card,.report-wrap{padding:14px}
+    .index-row{flex-direction:column}
+    .btn-ghost{width:100%}
+    .log-save{justify-self:stretch}
+    .report-pre{font-size:10.5px;max-height:360px}
+  }
+
+  /* ================= 视觉与可读性升级 ================= */
+  :root{
+    --muted:#A2B4D4;
+    --space-1:8px;
+    --space-2:14px;
+    --space-3:22px;
+    --space-4:34px;
+  }
+  .section-head{margin:0 0 var(--space-3)}
+  .section-head h2{font-size:clamp(24px,3.2vw,34px);letter-spacing:.03em}
+  .block-title{margin:var(--space-4) 0 var(--space-2);font-size:12px}
+  .card{border-radius:18px}
+
+  .section-head p,.guide-desc,.note,.hero-line,.const-intro,.const-find,.planet-facts dd,
+  .planet-line,.season-points li,.target-reason,.formula-card p,.quiz-rule,.quiz-option,
+  .quiz-explain,.we-exp,.wi-body,.log-input,.log-excerpt,.log-feeling,.report-tools p,
+  .mission-goal,.mission-done,.know-conclusion,.know-row p,.mc-facts,.mc-tip,.log-empty,
+  .clean,.empty-state p{font-size:14px;line-height:1.75}
+  .phase-hint,.seg-note{font-size:14px;line-height:1.75}
+  .seg-current,.plan-moon,.score-moon{font-size:13px;line-height:1.65}
+  .nb-sub,.log-place,.const-star{font-size:12.5px}
+  .stat-sub,.field-hint,.know-hint{font-size:11.5px}
+  .report-pre{font-size:14px;line-height:1.8}
+  .know-row{grid-template-columns:60px minmax(0,1fr)}
+  .quiz-option{padding:13px 15px}
+  .log-input{padding:11px 12px}
+  .note{line-height:1.85}
+
+  .tab{min-height:40px;display:inline-flex;align-items:center;padding:0 16px}
+  .date-input,.date-btn{min-height:40px}
+  .date-btn{display:inline-flex;align-items:center}
+  .cal-nav{width:40px;height:40px}
+  .cat-tab{min-height:40px;display:inline-flex;align-items:center}
+  .fav-filter{min-height:40px}
+  .btn-primary,.btn-ghost{min-height:40px;display:inline-flex;align-items:center;justify-content:center}
+  .link-btn{min-height:40px;display:inline-flex;align-items:center;justify-content:center;padding:0 10px;font-size:12px}
+  .we-remove{min-height:40px;display:inline-flex;align-items:center;padding:0 10px;font-size:12px}
+  .log-del{min-height:40px;display:inline-flex;align-items:center;padding:0 10px;font-size:11.5px}
+  .lb-close{width:40px;height:40px}
+  .seg button{min-height:40px}
+  .know-fav{width:40px;height:40px;right:2px;top:2px;border-radius:10px}
+  .know-main{padding-right:70px}
+  .know-caret{right:50px;top:22px}
+  .log-check-wrap{width:40px;height:40px;display:grid;place-items:center;flex:0 0 auto;cursor:pointer}
+  .log-check{width:20px;height:20px;margin:0}
+
+  .head-scene{width:46px;height:46px;flex:0 0 auto;opacity:.92;align-self:center;filter:drop-shadow(0 0 10px rgba(168,192,232,.14))}
+  .title-scene{width:32px;height:32px;flex:0 0 auto;margin-left:auto;opacity:.9}
+  .hero-art{
+    position:absolute;right:clamp(16px,4vw,42px);top:clamp(16px,4vw,30px);
+    width:clamp(54px,7vw,78px);height:auto;z-index:2;opacity:.9;
+    filter:drop-shadow(0 0 18px rgba(232,179,75,.14));pointer-events:none;
+  }
+  .scene-svg{display:block;width:100%;height:100%}
+  .scene-svg .s-line{stroke:#A8C0E8;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;fill:none}
+  .scene-svg .s-soft{stroke:#A8C0E8;stroke-opacity:.42;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round;fill:none}
+  .scene-svg .s-gold{fill:#E8B34B}
+  .scene-svg .s-gold-line{stroke:#E8B34B;stroke-width:1.4;stroke-linecap:round;fill:none}
+
+  .const-svg .const-line{animation:sceneFade .55s ease both}
+  .const-svg .star-main,.const-svg .star-sub,.const-svg .star-halo{animation:sceneFade .45s ease both}
+  @keyframes sceneFade{from{opacity:0}}
+  .const-svg .star-halo{opacity:.14}
+  .const-svg .star-halo-sub{opacity:.08}
+
+  .bar i{transition:width .55s cubic-bezier(.22,.8,.3,1)}
+  .cal-cell svg{filter:drop-shadow(0 0 4px rgba(168,192,232,.3))}
+  .cal-cell .pct{font-size:9.5px}
+
+  @media (max-width:560px){
+    .tab{min-height:40px;padding:0 14px}
+    .section-head{gap:12px}
+    .head-scene{width:40px;height:40px}
+    .title-scene{width:28px;height:28px}
+    .hero-art{width:52px}
+    .seg{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .seg-seeing{grid-template-columns:repeat(5,minmax(0,1fr))}
+    .cal-cell{min-height:60px}
+    .cal-cell svg{width:26px;height:auto}
+    .report-pre{font-size:13.5px}
+  }
+  @media (max-width:360px){
+    .panel{padding-left:8px;padding-right:8px}
+    #panel-moon{padding-left:6px;padding-right:6px}
+    .cal-card{padding:4px}
+    .cal-grid,.cal-week{gap:1px}
+    .cal-cell{min-width:40px;min-height:54px}
+    .cal-cell svg{width:23px}
+    .section-head h2{font-size:23px}
+    .head-scene{width:36px;height:36px}
+    .hero-content{padding:24px 18px}
+    .hero-art{width:46px;right:12px;top:12px}
+  }
+
+  @media print{
+    @page{margin:16mm}
+    html,body{background:#fff !important;color:#000 !important}
+    body{padding:0 !important}
+    .brandbar,.tabbar,.fixed-note,.panel:not(#panel-journal){display:none !important}
+    #panel-journal{display:block !important;padding:0 !important;animation:none !important}
+    #panel-journal > *:not(#reportWrap){display:none !important}
+    #reportWrap{display:block !important;margin:0 !important;padding:0 !important;border:0 !important;box-shadow:none !important;background:#fff !important}
+    .report-tools{display:none !important}
+    .report-pre{
+      display:block !important;max-height:none !important;overflow:visible !important;
+      background:#fff !important;border:0 !important;color:#000 !important;
+      padding:0 !important;font-size:10.5pt !important;line-height:1.65 !important;
+      white-space:pre-wrap !important;
+    }
+    .toast{display:none !important}
+  }
+
+  /* ---------- 占位页 ---------- */
+  .placeholder{
+    min-height:clamp(340px,56vh,520px);display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:40px 22px;border-radius:22px;
+    border:1px dashed rgba(168,192,232,.22);
+    background:radial-gradient(520px 320px at 50% 32%,rgba(168,192,232,.07),transparent 66%),rgba(20,29,51,.28);
+  }
+  .ph-visual{width:clamp(120px,18vw,168px);height:auto;color:var(--silver);opacity:.9;margin-bottom:20px;filter:drop-shadow(0 0 18px rgba(168,192,232,.22))}
+  .ph-kicker{margin:0 0 8px;font-size:10.5px;letter-spacing:.3em;color:var(--gold)}
+  .placeholder h3{margin:0 0 10px;font-size:clamp(19px,3vw,25px);font-weight:700;letter-spacing:.06em}
+  .placeholder p{max-width:460px;margin:0;font-size:13px;line-height:1.9;color:var(--muted)}
+
+  /* ---------- 底部固定说明 ---------- */
+  .fixed-note{
+    position:fixed;left:0;right:0;bottom:0;z-index:60;
+    padding:9px 18px calc(9px + env(safe-area-inset-bottom));
+    text-align:center;font-size:clamp(10px,2.7vw,12px);line-height:1.55;letter-spacing:.04em;
+    color:var(--muted);background:rgba(8,13,24,.9);
+    border-top:1px solid rgba(168,192,232,.12);
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  }
+  .fixed-note b{color:var(--silver);font-weight:600}
+
+  @media (max-width:900px){
+    .plan-grid{grid-template-columns:minmax(0,1fr)}
+    .plan-result{grid-template-columns:150px minmax(0,1fr)}
+    .target-grid{grid-template-columns:minmax(0,1fr)}
+  }
+  @media (max-width:720px){
+    .next-banner{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .nb-lead{grid-column:1/-1;margin-bottom:2px}
+    .nb-cell:nth-child(2){border-left:0;padding-left:0}
+  }
+  @media (max-width:1000px){
+    .guide-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media (max-width:920px){
+    .moon-lab-grid{grid-template-columns:minmax(0,1fr)}
+    .moon-detail{grid-template-columns:minmax(0,1fr);justify-items:center;text-align:center}
+    .moon-readouts{width:100%;text-align:left}
+    .phase-panel{align-items:stretch}
+  }
+  @media (max-width:560px){
+    .brandbar{padding:14px 16px 12px;gap:10px}
+    .brand-mark{width:38px;height:38px}
+    .brand-name{font-size:17px}
+    .brand-tagline{order:3;flex:1 0 100%;padding-left:0;border-left:0;font-size:11.5px}
+    .offline-badge{padding:6px 10px;font-size:10.5px}
+    .tab{padding:8px 13px;font-size:12.5px}
+    .hero{min-height:450px;border-radius:20px}
+    .hero-content{padding:28px 22px}
+    .tonight-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .tonight-stats .stat:nth-child(3){grid-column:1/-1}
+    .stat{padding:13px 12px}
+    .moon-stage{min-width:0}
+    #moonBig{width:150px}
+    .moon-readouts{gap:8px}
+    .readout{padding:10px}
+    .cal-card{padding:12px}
+    .cal-cell{min-height:58px;border-radius:7px;padding:4px 1px 3px}
+    .cal-cell svg{width:23px;height:23px}
+    .cal-cell .pct{font-size:7.5px}
+    .cal-grid,.cal-week{gap:3px}
+    .plan-result{grid-template-columns:minmax(0,1fr);justify-items:center;gap:16px}
+    .score-box{max-width:168px}
+    .score-panel{width:100%}
+    .target-grid{gap:11px}
+    .target-card{padding:15px}
+    .formula-card code{font-size:11px}
+    .seg button{padding:7px 0;font-size:11.5px}
+    .meteor-card{padding:16px}
+    .const-card{padding:12px}
+    .const-chart{aspect-ratio:1.55}
+    .season-card{gap:14px;padding:16px}
+    .planet-card{padding:14px}
+    .know-tools{gap:8px}
+    .search-box{flex:1 1 100%}
+    .fav-filter{padding:8px 11px;font-size:11.5px}
+    .know-hint{display:none}
+    .know-row{grid-template-columns:44px minmax(0,1fr)}
+    .quiz-shell{padding:14px}
+    .quiz-hero{width:88px}
+    .result-ring{max-width:160px}
+    .result-center b{font-size:44px}
+    .wi-tag{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+  }
+@media (max-width:560px){
+    .cal-cell{min-height:60px}
+    .cal-cell svg{width:26px;height:auto}
+  }
+  @media (max-width:360px){
+    #panel-moon{padding-left:6px;padding-right:6px}
+    .cal-card{padding:4px}
+    .cal-grid,.cal-week{gap:1px}
+    .cal-cell{min-width:40px;min-height:54px}
+    .cal-cell svg{width:23px}
+  }
+</style>
+</head>
+<body>
+
+<header class="brandbar">
+  <div class="brand-left">
+    <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true">
+      <circle cx="24" cy="24" r="20" fill="none" stroke="#E8B34B" stroke-opacity=".35" stroke-width="1"/>
+      <ellipse cx="24" cy="24" rx="22" ry="8" fill="none" stroke="#A8C0E8" stroke-opacity=".45" stroke-width="1" transform="rotate(-24 24 24)"/>
+      <path d="M24 7 L27.4 20.6 L41 24 L27.4 27.4 L24 41 L20.6 27.4 L7 24 L20.6 20.6 Z" fill="#E8B34B"/>
+      <circle cx="24" cy="24" r="3.2" fill="#FFF3D2"/>
+    </svg>
+    <div>
+      <h1 class="brand-name">星野小智</h1>
+      <p class="brand-sub">天文观测与夜空实践台</p>
+    </div>
+  </div>
+  <p class="brand-tagline">抬起头，今晚的星空有安排</p>
+  <span class="offline-badge"><span class="offline-dot"></span>离线可用</span>
+</header>
+
+<nav class="tabbar" aria-label="主导航">
+  <div class="tab-scroll" role="tablist">
+    <button class="tab is-active" role="tab" aria-selected="true" data-tab="home">首页</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="moon">月相实验室</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="meteor">流星雨年历</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="plan">观测规划</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="constellation">星座学堂</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="cards">知识卡</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="quiz">知识测验</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="journal">观测手记</button>
+  </div>
+</nav>
+
+<main>
+  <!-- ================= 首页 ================= -->
+  <section id="panel-home" class="panel is-active" role="tabpanel" aria-label="首页">
+    <div class="hero">
+      <canvas id="skyCanvas" aria-hidden="true"></canvas>
+      <div class="hero-content">
+        <p class="eyebrow">Xingye Xiaozhi · Night Sky Practice</p>
+        <h2 class="hero-title">星野小智</h2>
+        <p class="hero-line">抬起头，<strong>今晚的星空有安排</strong>。</p>
+        <div class="hero-chips">
+          <span class="hero-chip">今夜日期 <b id="heroDate">—</b></span>
+          <span class="hero-chip">月相模型 <b>实时计算</b></span>
+          <span class="hero-chip">星图 <b>示意 · 认星训练</b></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="block-title">今夜速览 · Tonight</div>
+    <div class="tonight-card card">
+      <div class="tonight-stats">
+        <div class="stat">
+          <span class="stat-label">月龄</span>
+          <strong class="stat-value" id="homeAge">—</strong><span class="stat-unit">天</span>
+          <span class="stat-sub">朔望月 29.53059 天</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">照亮比</span>
+          <strong class="stat-value" id="homeIllum">—</strong><span class="stat-unit">%</span>
+          <span class="stat-sub">月面被太阳照亮比例</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">月相</span>
+          <strong class="stat-value is-text" id="homePhase">—</strong>
+          <span class="stat-sub" id="homePhaseSub">—</span>
+        </div>
+      </div>
+      <div class="next-meteor-row">
+        <div>
+          <span class="label">下一场流星雨</span>
+          <strong id="homeMeteor">—</strong>
+        </div>
+        <div class="countdown" id="homeMeteorDays">—</div>
+      </div>
+    </div>
+
+    <div class="block-title">八页签导览 · Explore</div>
+    <div class="guide-grid" id="guideGrid"></div>
+  </section>
+
+  <!-- ================= 月相实验室 ================= -->
+  <section id="panel-moon" class="panel" role="tabpanel" aria-label="月相实验室">
+    <div class="section-head">
+      <div>
+        <h2>月相实验室</h2>
+        <p>拨动日期，看清月亮的盈亏、照亮比与下一次满月。</p>
+      </div>
+      <div class="date-control">
+        <input class="date-input" type="date" id="moonDate" aria-label="选择观测日期">
+        <button class="date-btn" id="moonToday" type="button">回到今天</button>
+      </div>
+    </div>
+
+    <div class="moon-lab-grid">
+      <div class="card moon-detail">
+        <div class="moon-stage">
+          <div id="moonBig" role="img" aria-label="当前月相示意图"></div>
+        </div>
+        <div class="moon-readouts">
+          <div class="readout">
+            <span class="k">月龄</span>
+            <span class="v" id="moonAge">—<small>天</small></span>
+          </div>
+          <div class="readout">
+            <span class="k">照亮比</span>
+            <span class="v" id="moonIllum">—<small>%</small></span>
+          </div>
+          <div class="readout">
+            <span class="k">月相</span>
+            <span class="v phase" id="moonPhase">—</span>
+          </div>
+          <div class="readout">
+            <span class="k">下次满月 / 新月</span>
+            <span class="v dual" id="moonNextDual">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card phase-panel">
+        <h3>八相速览</h3>
+        <div class="phase-strip" id="phaseStrip"></div>
+        <p class="phase-hint">按年龄顺序排列的八个代表月相。当前日期最接近的一相会以金色高亮。</p>
+      </div>
+    </div>
+
+    <div class="card cal-card">
+      <div class="cal-head">
+        <button class="cal-nav" id="calPrev" type="button" aria-label="上一个月">‹</button>
+        <h3 class="cal-title" id="calTitle">—</h3>
+        <button class="cal-nav" id="calNext" type="button" aria-label="下一个月">›</button>
+      </div>
+      <div class="cal-week" aria-hidden="true">
+        <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+      </div>
+      <div class="cal-grid" id="moonCalendar"></div>
+    </div>
+    <p class="note">月龄按所选日期 12:00 UTC 的儒略日计算，保留 1 位小数；照亮比取整数百分比。月亮图为示意图形，用于理解盈亏方向，不作精密月面导航。</p>
+  </section>
+
+  <!-- ================= 流星雨年历 ================= -->
+  <section id="panel-meteor" class="panel" role="tabpanel" aria-label="流星雨年历">
+    <div class="section-head">
+      <div>
+        <h2>流星雨年历</h2>
+        <p>12 场流星雨按极大日期排序；ZHR 比例条以 120 颗/小时为满格。</p>
+      </div>
+      <div class="date-control">
+        <input class="date-input" type="date" id="meteorDate" aria-label="选择查询日期">
+        <button class="date-btn" id="meteorToday" type="button">回到今天</button>
+      </div>
+    </div>
+
+    <div class="next-banner card" id="nextBanner">
+      <div class="nb-lead">
+        <svg class="nb-icon" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <circle cx="50" cy="13" r="8" stroke="#E8B34B" stroke-opacity=".3"/>
+          <path d="M5 59 L40 24" stroke="#E8B34B" stroke-width="2.6" stroke-linecap="round"/>
+          <path d="M17 57 L48 29" stroke="#A8C0E8" stroke-opacity=".42" stroke-width="1.4"/>
+          <circle cx="40" cy="24" r="3.4" fill="#FFF3D2"/>
+          <circle cx="12" cy="17" r="1.2" fill="#E9EEF7"/><circle cx="25" cy="9" r="1" fill="#A8C0E8"/>
+          <circle cx="55" cy="42" r="1.1" fill="#E9EEF7"/>
+        </svg>
+        <div class="nb-text">
+          <span class="nb-kicker">下一场</span>
+          <strong id="nbName">—</strong>
+          <span class="nb-sub" id="nbSub">—</span>
+        </div>
+      </div>
+      <div class="nb-cell"><span id="nbPeakLabel">极大日期</span><b id="nbPeak">—</b></div>
+      <div class="nb-cell"><span>倒计时</span><b class="gold" id="nbDays">—</b></div>
+      <div class="nb-cell"><span>ZHR</span><b id="nbZhr">—</b></div>
+    </div>
+
+    <div class="meteor-grid" id="meteorGrid"></div>
+    <p class="note">ZHR 为理想条件下每小时天顶流量，实际可见数量通常低于标称值；「不稳定」条目按 0–100 区间标注。日期均为极大日期，星图与天象数据用于教学训练。</p>
+  </section>
+
+  <!-- ================= 观测规划 ================= -->
+  <section id="panel-plan" class="panel" role="tabpanel" aria-label="观测规划">
+    <div class="section-head">
+      <div>
+        <h2>观测规划</h2>
+        <p>综合云量、光污染、月光与通透度，给今晚打分并推荐目标。</p>
+      </div>
+      <div class="date-control">
+        <input class="date-input" type="date" id="planDate" aria-label="选择规划日期">
+        <button class="date-btn" id="planToday" type="button">回到今天</button>
+      </div>
+    </div>
+
+    <div class="plan-grid">
+      <div class="card plan-controls">
+        <h3 class="card-h3">观测条件</h3>
+
+        <div class="ctrl">
+          <div class="ctrl-head"><label for="cloudRange">云量</label><b id="cloudVal">20%</b></div>
+          <input type="range" id="cloudRange" min="0" max="100" step="1" value="20" aria-label="云量百分比">
+          <div class="range-scale"><span>0%</span><span>50%</span><span>100%</span></div>
+        </div>
+
+        <div class="ctrl">
+          <div class="ctrl-head"><span>光污染 Bortle</span><b id="bortleVal">4 级</b></div>
+          <div class="seg" id="bortleSeg" role="group" aria-label="Bortle 光污染等级">
+            <button data-v="1" type="button">1</button>
+            <button data-v="2" type="button">2</button>
+            <button data-v="3" type="button">3</button>
+            <button class="is-active" data-v="4" type="button">4</button>
+            <button data-v="5" type="button">5</button>
+            <button data-v="6" type="button">6</button>
+            <button data-v="7" type="button">7</button>
+            <button data-v="8" type="button">8</button>
+            <button data-v="9" type="button">9</button>
+          </div>
+          <p class="seg-current" id="bortleHint">当前 4 级 · 城乡交界</p>
+          <p class="seg-note"><b>1</b> 银河投影可见 · <b>4</b> 城乡交界 · <b>9</b> 市中心仅见月与亮行星</p>
+        </div>
+
+        <div class="ctrl">
+          <div class="ctrl-head"><span>空气通透度</span><b id="seeingVal">4 / 5</b></div>
+          <div class="seg seg-seeing" id="seeingSeg" role="group" aria-label="空气通透度">
+            <button data-v="1" type="button"><b>1</b><small>很差</small></button>
+            <button data-v="2" type="button"><b>2</b><small>较差</small></button>
+            <button data-v="3" type="button"><b>3</b><small>一般</small></button>
+            <button class="is-active" data-v="4" type="button"><b>4</b><small>良好</small></button>
+            <button data-v="5" type="button"><b>5</b><small>极佳</small></button>
+          </div>
+        </div>
+
+        <div class="plan-moon" id="planMoonRef">月光依据：月龄 — 天 · 照亮比 —%</div>
+      </div>
+
+      <div class="card plan-result">
+        <div class="score-box">
+          <svg viewBox="0 0 140 140" class="score-ring" aria-hidden="true">
+            <circle cx="70" cy="70" r="56" fill="none" stroke="rgba(168,192,232,.13)" stroke-width="10"/>
+            <circle id="scoreArc" cx="70" cy="70" r="56" fill="none" stroke="#E8B34B" stroke-width="10" stroke-linecap="round" stroke-dasharray="351.86" stroke-dashoffset="351.86" transform="rotate(-90 70 70)"/>
+          </svg>
+          <div class="score-center"><b id="scoreNum">—</b><span>观测指数</span></div>
+        </div>
+        <div class="score-panel">
+          <div class="score-top">
+            <span class="grade-badge" id="gradeBadge">—</span>
+            <span class="score-moon" id="scoreMoon">—</span>
+          </div>
+          <div class="metrics">
+            <div class="metric metric-cloud">
+              <div class="metric-top"><span>云量</span><span><b id="mCloud">—</b> / 30</span></div>
+              <div class="bar"><i id="bCloud"></i></div>
+            </div>
+            <div class="metric metric-light">
+              <div class="metric-top"><span>光污染</span><span><b id="mLight">—</b> / 25</span></div>
+              <div class="bar"><i id="bLight"></i></div>
+            </div>
+            <div class="metric metric-moon">
+              <div class="metric-top"><span>月光</span><span><b id="mMoon">—</b> / 25</span></div>
+              <div class="bar"><i id="bMoon"></i></div>
+            </div>
+            <div class="metric metric-seeing">
+              <div class="metric-top"><span>通透</span><span><b id="mSeeing">—</b> / 20</span></div>
+              <div class="bar"><i id="bSeeing"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="block-title">推荐目标 · Targets</div>
+    <div class="target-grid" id="targetGrid"></div>
+
+    <div class="card formula-card">
+      <h3>公式原文</h3>
+      <code>观测指数 = round( 30×(1 − 云量/100) + 25×(9 − Bortle)/8 + 25×(1 − 照亮比/100) + 20×通透度/5 )</code>
+      <p>分档：≥80 绝佳｜60–79 良好｜40–59 一般｜＜40 较差。分项满分：云量 30、光污染 25、月光 25、通透 20；分项保留 1 位，总分按未舍入值取整。</p>
+    </div>
+  </section>
+
+  <!-- ================= 星座学堂 ================= -->
+  <section id="panel-constellation" class="panel" role="tabpanel" aria-label="星座学堂">
+    <div class="section-head">
+      <div>
+        <h2>星座学堂</h2>
+        <p>12 张示意星图，点卡片可放大查看连线；星点按主次分两档。</p>
+      </div>
+    </div>
+
+    <div class="const-grid" id="constGrid"></div>
+
+    <div class="block-title">四季导览 · Seasons</div>
+    <div class="season-grid" id="seasonGrid"></div>
+
+    <div class="block-title">行星访客 · Planets</div>
+    <div class="planet-grid" id="planetGrid"></div>
+
+    <p class="note">全部星图为示意星图，点位与连线用于认星训练，不代表真实天球坐标；行星卡为概念教学，不提供实时星历。</p>
+  </section>
+
+  <!-- ================= 知识卡 ================= -->
+  <section id="panel-cards" class="panel" role="tabpanel" aria-label="知识卡">
+    <div class="section-head">
+      <div>
+        <h2>知识卡</h2>
+        <p>30 条观星常识，五类各 6 条；点卡片展开要点、易混点与验证方法。</p>
+      </div>
+    </div>
+
+    <div class="know-tools">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+        <input id="cardSearch" type="search" placeholder="搜索条目、结论、要点…" aria-label="搜索知识卡">
+      </div>
+      <div class="cat-tabs" id="catTabs" role="group" aria-label="知识卡分类"></div>
+      <button class="fav-filter" id="favOnly" type="button" aria-pressed="false">
+        <span class="star-ico">★</span> 只看收藏 <span class="fav-num" id="favCount">0</span>
+      </button>
+    </div>
+    <div class="know-meta"><span id="cardCount">30 / 30 条</span><span class="know-hint">点击卡片展开详情，点右上星标收藏</span></div>
+
+    <div class="know-grid" id="cardGrid"></div>
+    <div class="empty-state" id="cardEmpty" hidden>
+      <span>☆</span>
+      <p>没有匹配的知识卡，换个关键词或分类试试。</p>
+    </div>
+  </section>
+
+  <!-- ================= 知识测验 ================= -->
+  <section id="panel-quiz" class="panel" role="tabpanel" aria-label="知识测验">
+    <div class="section-head">
+      <div>
+        <h2>知识测验</h2>
+        <p>30 题题库，每轮随机 10 题；即时判分与解析。</p>
+      </div>
+      <label class="limit-switch">
+        <input type="checkbox" id="quizLimit">
+        <span class="switch-track" aria-hidden="true"></span>
+        <span class="switch-label">限时模式 <small>每题 30 秒</small></span>
+      </label>
+    </div>
+
+    <div class="quiz-shell card">
+      <div class="quiz-start" id="quizStart">
+        <svg class="quiz-hero" viewBox="0 0 120 120" aria-hidden="true">
+          <circle cx="60" cy="60" r="44" fill="none" stroke="#A8C0E8" stroke-opacity=".18"/>
+          <circle cx="60" cy="60" r="30" fill="none" stroke="#E8B34B" stroke-opacity=".25" stroke-dasharray="4 7"/>
+          <path d="M60 22 L66 52 L98 60 L66 68 L60 98 L54 68 L22 60 L54 52 Z" fill="#E8B34B" fill-opacity=".9"/>
+          <circle cx="60" cy="60" r="5" fill="#FFF3D2"/>
+        </svg>
+        <p class="q-kicker">QUIZ · 30 QUESTIONS</p>
+        <h3>一轮 10 题，随机抽题</h3>
+        <p class="quiz-rule">题库 30 题（21 单选 + 9 判断）。每轮随机抽取 10 题，题序与选项序都会打乱；每题即时判分并给出解析。开启限时模式后，每题 30 秒，超时判错。</p>
+        <div class="quiz-start-meta"><span>题库 <b>30</b></span><span>每轮 <b>10</b></span><span>错题本 <b id="startWrongCount">0</b></span></div>
+        <button class="btn-primary" id="quizStartBtn" type="button">开始一轮</button>
+      </div>
+
+      <div class="quiz-play" id="quizPlay" hidden data-qid="">
+        <div class="quiz-top">
+          <div class="quiz-progress-text"><span id="quizProgressText">第 1 / 10 题</span><span class="quiz-timer" id="quizTimer" hidden>30s</span></div>
+          <div class="quiz-progress"><i id="quizProgressBar"></i></div>
+        </div>
+        <div class="quiz-qmeta"><span class="q-type" id="qType">单选题</span><span class="q-score" id="qScore">已答对 0</span></div>
+        <h3 class="quiz-question" id="qText">—</h3>
+        <div class="quiz-options" id="qOptions"></div>
+        <div class="quiz-explain" id="qExplain" hidden></div>
+        <div class="quiz-actions"><button class="btn-primary" id="quizNext" type="button" hidden>下一题</button></div>
+      </div>
+
+      <div class="quiz-result" id="quizResult" hidden>
+        <div class="result-head">
+          <div class="result-ring">
+            <svg viewBox="0 0 140 140" aria-hidden="true">
+              <circle cx="70" cy="70" r="54" fill="none" stroke="rgba(168,192,232,.13)" stroke-width="9"/>
+              <circle id="resultArc" cx="70" cy="70" r="54" fill="none" stroke="#E8B34B" stroke-width="9" stroke-linecap="round" stroke-dasharray="339.29" stroke-dashoffset="339.29" transform="rotate(-90 70 70)"/>
+            </svg>
+            <div class="result-center"><b id="resultScore">0</b><span>得分 / 10</span></div>
+          </div>
+          <div class="result-stats">
+            <h3>本轮完成</h3>
+            <div class="stat-row"><span>正确率</span><b id="resultAccuracy">—</b></div>
+            <div class="stat-row"><span>用时</span><b id="resultTime">—</b></div>
+            <div class="stat-row"><span>答对</span><b id="resultCorrect">—</b></div>
+          </div>
+        </div>
+
+        <div class="result-section">
+          <div class="result-title"><h3>本轮错题</h3><span id="roundWrongCount">0 题</span></div>
+          <div class="wrong-list" id="roundWrong"></div>
+        </div>
+
+        <div class="result-section">
+          <div class="result-title">
+            <h3>错题本</h3>
+            <span id="wrongCount">0 题</span>
+            <button class="link-btn" id="wrongClear" type="button">清空</button>
+          </div>
+          <div class="wrong-book" id="wrongBook"></div>
+        </div>
+
+        <div class="result-actions"><button class="btn-primary" id="quizAgain" type="button">再来一轮</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 观测手记 ================= -->
+  <section id="panel-journal" class="panel" role="tabpanel" aria-label="观测手记">
+    <div class="section-head">
+      <div>
+        <h2>观测手记</h2>
+        <p>记录每一次抬头；手记与报告只保存在本机浏览器。</p>
+      </div>
+    </div>
+
+    <div class="journal-grid">
+      <div class="card log-form-card">
+        <h3>新增手记</h3>
+        <form id="logForm" novalidate>
+          <div class="field">
+            <label for="logDate">观测日期</label>
+            <input type="date" id="logDate" class="log-input">
+          </div>
+          <div class="field">
+            <label for="logTarget">观测目标</label>
+            <input type="text" id="logTarget" class="log-input" placeholder="如：满月、英仙座流星雨、猎户座">
+          </div>
+          <div class="field">
+            <label for="logPlace">观测地点</label>
+            <input type="text" id="logPlace" class="log-input" placeholder="如：楼顶、郊外营地">
+          </div>
+          <div class="field">
+            <label for="logIndex">今晚指数 <span class="label-hint">0–100</span></label>
+            <div class="index-row">
+              <input type="number" id="logIndex" class="log-input" min="0" max="100" placeholder="可手填">
+              <button type="button" class="btn-ghost" id="logIndexPull">带入规划指数</button>
+            </div>
+            <small class="field-hint" id="logIndexHint">点击可读取规划页最近一次计算结果；取不到请手填。</small>
+          </div>
+          <div class="field">
+            <label for="logNotes">所见记录</label>
+            <textarea id="logNotes" class="log-input log-textarea" rows="4" placeholder="看到了什么？月面、流星、星座、卫星……"></textarea>
+          </div>
+          <div class="field">
+            <label for="logFeeling">心得</label>
+            <input type="text" id="logFeeling" class="log-input" placeholder="一句话记下今晚的感受">
+          </div>
+          <button type="submit" class="btn-primary log-save">保存手记</button>
+        </form>
+      </div>
+
+      <div class="card log-list-card">
+        <div class="log-list-head">
+          <h3>手记列表</h3>
+          <span class="log-count" id="logCount">0 条</span>
+          <div class="log-list-actions">
+            <button type="button" class="link-btn" id="logSelectAll">全选</button>
+            <button type="button" class="link-btn danger" id="logClear">清空</button>
+          </div>
+        </div>
+        <div class="log-list" id="logList"></div>
+      </div>
+    </div>
+
+    <div class="report-wrap card" id="reportWrap">
+      <div class="report-tools">
+        <div>
+          <h3>报告生成</h3>
+          <p>勾选上方手记，自动拼成 Markdown《我的观星手记报告》。</p>
+        </div>
+        <div class="report-actions">
+          <button type="button" class="btn-ghost" id="reportCopy">复制 Markdown</button>
+          <button type="button" class="btn-ghost" id="reportPrintBtn">打印报告</button>
+        </div>
+      </div>
+      <pre class="report-pre" id="reportPrint">—</pre>
+    </div>
+
+    <div class="block-title">观测任务 · Missions</div>
+    <div class="mission-grid" id="missionGrid"></div>
+
+    <p class="note">手记保存在本机 localStorage 键 <b>xingye_logs</b>；清理浏览器数据会一并删除。打印时只输出报告正文。</p>
+  </section>
+</main>
+
+<div class="lightbox" id="constLightbox" hidden>
+  <div class="lb-backdrop" data-close></div>
+  <div class="lb-dialog" role="dialog" aria-modal="true" aria-labelledby="lbName">
+    <button class="lb-close" id="lbClose" type="button" aria-label="关闭大图">×</button>
+    <div class="lb-chart" id="lbChart"></div>
+    <div class="lb-info">
+      <div class="lb-head"><h3 id="lbName">—</h3><span class="lb-season" id="lbSeason">—</span></div>
+      <p class="lb-star" id="lbStar">—</p>
+      <p class="lb-intro" id="lbIntro">—</p>
+      <p class="lb-find" id="lbFind">—</p>
+      <span class="chart-note is-static">示意星图 · 用于认星训练</span>
+    </div>
+  </div>
+</div>
+
+<footer class="fixed-note">
+  <b>星图为示意星图</b>，用于认星训练；天象数据为教学模型计算值
+</footer>
+
+<script>
+/* ================= 基础常量与数据 ================= */
+const SYN = 29.53059;
+const BASE_JD = 2451550.1;
+const WEEK_CN = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+
+const METEORS = [
+  { name: '象限仪座流星雨', m: 1, d: 3, active: '12/28–1/12', radiant: '牧夫座', zhr: 60, parent: '小行星 2003 EH1', tip: '极大窗口短，凌晨守候。' },
+  { name: '天琴座流星雨', m: 4, d: 22, active: '4/14–4/30', radiant: '天琴座', zhr: 18, parent: '撒切尔彗星', tip: '偶有火流星，适合入门。' },
+  { name: '宝瓶座 η 流星雨', m: 5, d: 6, active: '4/19–5/28', radiant: '宝瓶座', zhr: 50, parent: '哈雷彗星', tip: '南天辐射点，凌晨观测。' },
+  { name: '宝瓶座 δ 流星雨', m: 7, d: 30, active: '7/12–8/23', radiant: '宝瓶座', zhr: 25, parent: '马可丹彗星（争议说）', tip: '与英仙座季衔接。' },
+  { name: '英仙座流星雨', m: 8, d: 13, active: '7/17–8/24', radiant: '英仙座', zhr: 100, parent: '斯威夫特-塔特尔彗星', tip: '暑期招牌，北半球最佳之一。' },
+  { name: '天龙座流星雨', m: 10, d: 8, active: '10/6–10/10', radiant: '天龙座', zhr: 10, parent: '贾可比尼彗星', tip: '偶有爆发年，黄昏即可看。' },
+  { name: '猎户座流星雨', m: 10, d: 21, active: '10/2–11/7', radiant: '猎户座', zhr: 20, parent: '哈雷彗星', tip: '速度快、余迹漂亮。' },
+  { name: '金牛座流星雨', m: 11, d: 12, active: '10/20–12/10', radiant: '金牛座', zhr: 10, parent: '恩克彗星', tip: '流量不大但火流星多。' },
+  { name: '狮子座流星雨', m: 11, d: 17, active: '11/6–11/30', radiant: '狮子座', zhr: 15, parent: '坦普尔-塔特尔彗星', tip: '约 33 年一次流星暴周期。' },
+  { name: '双子座流星雨', m: 12, d: 14, active: '12/4–12/17', radiant: '双子座', zhr: 120, parent: '小行星 3200 法厄同', tip: '全年流量之王，整夜可见。' },
+  { name: '小熊座流星雨', m: 12, d: 22, active: '12/17–12/26', radiant: '小熊座', zhr: 10, parent: '塔特尔彗星', tip: '岁末收官，月光干扰年年不同。' },
+  { name: '六月牧夫座流星雨', m: 6, d: 27, active: '6/22–7/2', radiant: '牧夫座', zhr: null, parent: '庞士-温尼克彗星', tip: '以慢速流星著称，年际变化大。' }
+];
+
+const PHASES = [
+  { from: 0, to: 1.84, name: '朔（新月）' },
+  { from: 1.84, to: 5.53, name: '娥眉月' },
+  { from: 5.53, to: 9.22, name: '上弦月' },
+  { from: 9.22, to: 12.91, name: '盈凸月' },
+  { from: 12.91, to: 16.61, name: '望（满月）' },
+  { from: 16.61, to: 20.30, name: '亏凸月' },
+  { from: 20.30, to: 23.99, name: '下弦月' },
+  { from: 23.99, to: 27.68, name: '残月' },
+  { from: 27.68, to: SYN + 0.0001, name: '晦' }
+];
+
+const EIGHT_PHASES = [
+  { name: '朔', age: 0 },
+  { name: '娥眉月', age: 3.7 },
+  { name: '上弦月', age: 7.4 },
+  { name: '盈凸月', age: 11 },
+  { name: '望', age: 14.77 },
+  { name: '亏凸月', age: 18.5 },
+  { name: '下弦月', age: 22.1 },
+  { name: '残月', age: 25.8 }
+];
+
+const TABS = [
+  { id: 'home', num: '01', name: '首页', desc: '今夜速览、月相与流星雨，一屏掌握。' },
+  { id: 'moon', num: '02', name: '月相实验室', desc: '拨动日期，看清月亮盈亏与下一次满月。' },
+  { id: 'meteor', num: '03', name: '流星雨年历', desc: '12 场流星雨的极大、ZHR 与辐射点。' },
+  { id: 'plan', num: '04', name: '观测规划', desc: '云量、光害与月光评分，挑出今晚目标。' },
+  { id: 'constellation', num: '05', name: '星座学堂', desc: '四季星图、12 星座与行星访客。' },
+  { id: 'cards', num: '06', name: '知识卡', desc: '30 条观星常识，结论、要点与易混点。' },
+  { id: 'quiz', num: '07', name: '知识测验', desc: '30 道题检验你的夜空知识。' },
+  { id: 'journal', num: '08', name: '观测手记', desc: '日期、地点、条件与所见，留档复盘。' }
+];
+
+/* ================= 日期与月相模型 ================= */
+function pad2(n) { return String(n).padStart(2, '0'); }
+function startOfToday() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+function toDateValue(date) {
+  return date.getFullYear() + '-' + pad2(date.getMonth() + 1) + '-' + pad2(date.getDate());
+}
+function parseDateValue(value) {
+  const parts = String(value).split('-').map(Number);
+  return new Date(parts[0], parts[1] - 1, parts[2]);
+}
+function sameDay(a, b) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+function formatCnDate(date) {
+  return date.getFullYear() + '年' + (date.getMonth() + 1) + '月' + date.getDate() + '日 ' + WEEK_CN[date.getDay()];
+}
+function daysInMonth(year, month) {
+  return new Date(year, month + 1, 0).getDate();
+}
+function mod(value, base) {
+  return ((value % base) + base) % base;
+}
+function jdAtNoon(date) {
+  return Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12) / 86400000 + 2440587.5;
+}
+function computeMoon(date) {
+  const age = mod(jdAtNoon(date) - BASE_JD, SYN);
+  const illum = (1 - Math.cos(2 * Math.PI * age / SYN)) / 2 * 100;
+  const ageForPhase = Math.round(age * 10) / 10;
+  let phaseIndex = PHASES.length - 1;
+  for (let i = 0; i < PHASES.length; i++) {
+    if (ageForPhase >= PHASES[i].from && ageForPhase < PHASES[i].to) { phaseIndex = i; break; }
+  }
+  const nextFM = Math.round(mod(14.77 - age, SYN));
+  const nextNM = Math.round(mod(SYN - age, SYN));
+  return {
+    age: age,
+    illum: illum,
+    phaseIndex: phaseIndex,
+    phaseName: PHASES[phaseIndex].name,
+    nextFM: nextFM,
+    nextNM: nextNM,
+    waxing: age < 14.77
+  };
+}
+function nextMeteor(date) {
+  const year = date.getFullYear();
+  const base = Date.UTC(year, date.getMonth(), date.getDate());
+  let best = null;
+  for (let i = 0; i < METEORS.length; i++) {
+    const item = METEORS[i];
+    const diff = Math.round((Date.UTC(year, item.m - 1, item.d) - base) / 86400000);
+    if (diff >= 0 && (best === null || diff < best.days)) {
+      best = {
+        name: item.name,
+        days: diff,
+        item: item,
+        year: year,
+        date: new Date(year, item.m - 1, item.d)
+      };
+    }
+  }
+  if (best === null) {
+    const first = METEORS[0];
+    const diff = Math.round((Date.UTC(year + 1, 0, 3) - base) / 86400000);
+    best = {
+      name: first.name,
+      days: diff,
+      item: first,
+      year: year + 1,
+      date: new Date(year + 1, 0, 3)
+    };
+  }
+  return best;
+}
+function daysLabel(days) {
+  return days === 0 ? '就是今天' : days + ' 天';
+}
+
+/* ================= 月亮 SVG ================= */
+let moonUid = 0;
+function moonSVG(illum, waxing, label) {
+  moonUid += 1;
+  const uid = 'moonclip' + moonUid;
+  const f = Math.max(0, Math.min(1, illum / 100));
+  const R = 96;
+  const cx = 100;
+  const cy = 100;
+  const a = Math.max(0.05, R * Math.abs(1 - 2 * f));
+  let brightPath = '';
+  if (f >= 0.995) {
+    brightPath = 'M ' + cx + ' ' + (cy - R) + ' A ' + R + ' ' + R + ' 0 1 1 ' + cx + ' ' + (cy + R) +
+      ' A ' + R + ' ' + R + ' 0 1 1 ' + cx + ' ' + (cy - R) + ' Z';
+  } else if (f > 0.005) {
+    if (waxing) {
+      brightPath = 'M ' + cx + ' ' + (cy - R) + ' A ' + R + ' ' + R + ' 0 0 1 ' + cx + ' ' + (cy + R) +
+        ' A ' + a + ' ' + R + ' 0 0 ' + (f < 0.5 ? 0 : 1) + ' ' + cx + ' ' + (cy - R) + ' Z';
+    } else {
+      brightPath = 'M ' + cx + ' ' + (cy - R) + ' A ' + R + ' ' + R + ' 0 0 0 ' + cx + ' ' + (cy + R) +
+        ' A ' + a + ' ' + R + ' 0 0 ' + (f < 0.5 ? 1 : 0) + ' ' + cx + ' ' + (cy - R) + ' Z';
+    }
+  }
+  const aria = label ? ' role="img" aria-label="' + label + '"' : ' aria-hidden="true"';
+  const bright = brightPath
+    ? '<path d="' + brightPath + '" fill="#DCE7F8"/>' +
+      '<g clip-path="url(#' + uid + ')" opacity=".2" fill="#5B6C8F">' +
+      '<circle cx="76" cy="78" r="17"/><circle cx="122" cy="66" r="11"/>' +
+      '<circle cx="132" cy="116" r="15"/><circle cx="88" cy="132" r="10"/>' +
+      '<circle cx="112" cy="92" r="7"/></g>'
+    : '';
+  return '<svg viewBox="0 0 200 200" ' + aria + ' focusable="false">' +
+    (brightPath ? '<defs><clipPath id="' + uid + '"><path d="' + brightPath + '"/></clipPath></defs>' : '') +
+    '<circle cx="100" cy="100" r="96" fill="#151F36" stroke="rgba(168,192,232,.26)" stroke-width="1.4"/>' +
+    bright +
+    '<circle cx="100" cy="100" r="96" fill="none" stroke="rgba(168,192,232,.28)" stroke-width="1.2"/>' +
+    '</svg>';
+}
+
+/* ================= 首页 ================= */
+function renderHome() {
+  const today = startOfToday();
+  const moon = computeMoon(today);
+  document.getElementById('heroDate').textContent = formatCnDate(today);
+  document.getElementById('homeAge').textContent = moon.age.toFixed(1);
+  document.getElementById('homeIllum').textContent = Math.round(moon.illum);
+  document.getElementById('homePhase').textContent = moon.phaseName;
+  document.getElementById('homePhaseSub').textContent = moon.waxing ? '盈月阶段 · 月面渐亮' : '亏月阶段 · 月面渐暗';
+  const meteor = nextMeteor(today);
+  document.getElementById('homeMeteor').textContent = meteor.name;
+  document.getElementById('homeMeteorDays').innerHTML = meteor.days === 0
+    ? '就是今天'
+    : meteor.days + '<small>天后</small>';
+}
+
+function renderGuide() {
+  const grid = document.getElementById('guideGrid');
+  grid.innerHTML = TABS.map(function (tab) {
+    return '<button class="guide-card" type="button" data-tab="' + tab.id + '">' +
+      '<span class="guide-num">' + tab.num + '</span>' +
+      '<span class="guide-name">' + tab.name + '</span>' +
+      '<span class="guide-desc">' + tab.desc + '</span>' +
+      '<svg class="guide-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg>' +
+      '</button>';
+  }).join('');
+}
+
+/* ================= 月相实验室 ================= */
+let moonDate = startOfToday();
+let moonInput, calTitle, calGrid;
+
+function renderMoonDetail() {
+  const moon = computeMoon(moonDate);
+  const big = document.getElementById('moonBig');
+  big.innerHTML = moonSVG(moon.illum, moon.waxing,
+    '月亮示意：' + moon.phaseName + '，照亮比 ' + Math.round(moon.illum) + '%');
+  document.getElementById('moonAge').innerHTML = moon.age.toFixed(1) + '<small>天</small>';
+  document.getElementById('moonIllum').innerHTML = Math.round(moon.illum) + '<small>%</small>';
+  document.getElementById('moonPhase').textContent = moon.phaseName;
+  const fm = moon.nextFM === 0 ? '<em>就是今天</em>' : '<b>' + moon.nextFM + '</b><span>天</span>';
+  const nm = moon.nextNM === 0 ? '<em>就是今天</em>' : '<b>' + moon.nextNM + '</b><span>天</span>';
+  document.getElementById('moonNextDual').innerHTML =
+    '<span class="dual-line"><span>满月</span>' + fm + '</span>' +
+    '<span class="dual-line"><span>新月</span>' + nm + '</span>';
+}
+
+function renderPhaseStrip() {
+  const moon = computeMoon(moonDate);
+  const map = [0, 1, 2, 3, 4, 5, 6, 7, 0];
+  const current = map[moon.phaseIndex];
+  document.getElementById('phaseStrip').innerHTML = EIGHT_PHASES.map(function (phase, i) {
+    const illum = (1 - Math.cos(2 * Math.PI * phase.age / SYN)) / 2 * 100;
+    const waxing = phase.age < 14.77;
+    return '<div class="phase-item' + (i === current ? ' is-current' : '') + '" title="' + phase.name + '">' +
+      moonSVG(illum, waxing, phase.name + '示意') +
+      '<span>' + phase.name + '</span></div>';
+  }).join('');
+}
+
+function renderCalendar() {
+  const year = moonDate.getFullYear();
+  const month = moonDate.getMonth();
+  calTitle.textContent = year + ' 年 ' + (month + 1) + ' 月';
+  const offset = (new Date(year, month, 1).getDay() + 6) % 7;
+  const total = daysInMonth(year, month);
+  const cells = [];
+  for (let i = 0; i < offset; i++) cells.push('<div class="cal-cell is-empty" aria-hidden="true"></div>');
+  for (let d = 1; d <= total; d++) {
+    const date = new Date(year, month, d);
+    const moon = computeMoon(date);
+    const selected = sameDay(date, moonDate);
+    const label = year + '年' + (month + 1) + '月' + d + '日，' + moon.phaseName + '，照亮比 ' + Math.round(moon.illum) + '%';
+    cells.push('<button class="cal-cell' + (selected ? ' is-selected' : '') + '" type="button" data-date="' +
+      toDateValue(date) + '" aria-label="' + label + '">' +
+      '<span class="d">' + d + '</span>' +
+      moonSVG(moon.illum, moon.waxing) +
+      '<span class="pct">' + Math.round(moon.illum) + '%</span></button>');
+  }
+  while (cells.length % 7 !== 0) cells.push('<div class="cal-cell is-empty" aria-hidden="true"></div>');
+  calGrid.innerHTML = cells.join('');
+}
+
+function renderMoonAll() {
+  moonInput.value = toDateValue(moonDate);
+  renderMoonDetail();
+  renderPhaseStrip();
+  renderCalendar();
+}
+
+function setMoonDate(date) {
+  moonDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  renderMoonAll();
+}
+
+function shiftMonth(delta) {
+  const target = new Date(moonDate.getFullYear(), moonDate.getMonth() + delta, 1);
+  const day = Math.min(moonDate.getDate(), daysInMonth(target.getFullYear(), target.getMonth()));
+  setMoonDate(new Date(target.getFullYear(), target.getMonth(), day));
+}
+
+function initMoonLab() {
+  moonInput = document.getElementById('moonDate');
+  calTitle = document.getElementById('calTitle');
+  calGrid = document.getElementById('moonCalendar');
+  moonInput.addEventListener('change', function () {
+    if (moonInput.value) setMoonDate(parseDateValue(moonInput.value));
+  });
+  document.getElementById('moonToday').addEventListener('click', function () {
+    setMoonDate(startOfToday());
+  });
+  document.getElementById('calPrev').addEventListener('click', function () { shiftMonth(-1); });
+  document.getElementById('calNext').addEventListener('click', function () { shiftMonth(1); });
+  calGrid.addEventListener('click', function (event) {
+    const cell = event.target.closest('.cal-cell[data-date]');
+    if (cell) setMoonDate(parseDateValue(cell.dataset.date));
+  });
+  renderMoonAll();
+}
+
+/* ================= 流星雨年历 ================= */
+let meteorDate = startOfToday();
+
+function sortedMeteors() {
+  return METEORS.slice().sort(function (a, b) {
+    return (a.m * 100 + a.d) - (b.m * 100 + b.d);
+  });
+}
+function zhrShort(zhr) {
+  return zhr === null ? '不稳定 0–100' : zhr + ' 颗/小时';
+}
+function renderMeteorPage() {
+  const next = nextMeteor(meteorDate);
+  document.getElementById('meteorDate').value = toDateValue(meteorDate);
+  document.getElementById('nbName').textContent = next.name;
+  document.getElementById('nbSub').textContent = '辐射点 ' + next.item.radiant + ' · 母体 ' + next.item.parent;
+  document.getElementById('nbPeakLabel').textContent = '极大日期 · ' + next.date.getFullYear();
+  document.getElementById('nbPeak').textContent = pad2(next.date.getMonth() + 1) + '/' + pad2(next.date.getDate());
+  document.getElementById('nbDays').textContent = next.days === 0 ? '就是今天' : next.days + ' 天后';
+  document.getElementById('nbZhr').textContent = next.item.zhr === null ? '不稳定（0–100）' : next.item.zhr + ' 颗/小时';
+
+  const list = sortedMeteors();
+  document.getElementById('meteorGrid').innerHTML = list.map(function (m, i) {
+    const pct = m.zhr === null ? 100 : Math.min(100, m.zhr / 120 * 100);
+    const isNext = m.name === next.name;
+    const zhrHtml = m.zhr === null
+      ? '<b class="unstable">不稳定</b><em>0–100</em>'
+      : '<b>' + m.zhr + '</b><em>颗/小时</em>';
+    return '<article class="meteor-card' + (isNext ? ' is-next' : '') + '">' +
+      '<div class="mc-top"><span class="mc-num">' + pad2(i + 1) + '</span>' +
+      '<span class="mc-name">' + m.name + '</span>' +
+      (isNext ? '<span class="mc-next">下一场</span>' : '') + '</div>' +
+      '<div class="mc-peak"><b>' + pad2(m.m) + '</b><span>月</span><b>' + pad2(m.d) + '</b><span>日</span><em>极大</em></div>' +
+      '<dl class="mc-facts">' +
+      '<div><dt>活跃期</dt><dd>' + m.active + '</dd></div>' +
+      '<div><dt>辐射点</dt><dd>' + m.radiant + '</dd></div>' +
+      '<div><dt>母体</dt><dd>' + m.parent + '</dd></div>' +
+      '</dl>' +
+      '<p class="mc-tip">' + m.tip + '</p>' +
+      '<div class="zhr"><div class="zhr-head"><span>ZHR</span>' + zhrHtml + '</div>' +
+      '<div class="zhr-bar' + (m.zhr === null ? ' is-unstable' : '') + '">' +
+      '<i style="width:' + pct.toFixed(2) + '%"></i></div></div>' +
+      '</article>';
+  }).join('');
+}
+function initMeteorPage() {
+  const input = document.getElementById('meteorDate');
+  input.value = toDateValue(meteorDate);
+  input.addEventListener('change', function () {
+    if (input.value) {
+      meteorDate = parseDateValue(input.value);
+      renderMeteorPage();
+    }
+  });
+  document.getElementById('meteorToday').addEventListener('click', function () {
+    meteorDate = startOfToday();
+    renderMeteorPage();
+  });
+  renderMeteorPage();
+}
+
+/* ================= 观测规划 ================= */
+let planDate = startOfToday();
+let planCloud = 20;
+let planBortle = 4;
+let planSeeing = 4;
+
+function bortleHint(value) {
+  if (value === 1) return '当前 1 级 · 银河投影可见';
+  if (value === 4) return '当前 4 级 · 城乡交界';
+  if (value === 9) return '当前 9 级 · 市中心仅见月与亮行星';
+  return '当前 ' + value + ' 级';
+}
+function computePlan(illumInt) {
+  const cloudScore = 30 * (1 - planCloud / 100);
+  const lightScore = 25 * (9 - planBortle) / 8;
+  const moonScore = 25 * (1 - illumInt / 100);
+  const seeScore = 20 * planSeeing / 5;
+  const total = Math.round(cloudScore + lightScore + moonScore + seeScore);
+  let grade = '较差';
+  let gradeClass = 'g-poor';
+  if (total >= 80) { grade = '绝佳'; gradeClass = 'g-excellent'; }
+  else if (total >= 60) { grade = '良好'; gradeClass = 'g-good'; }
+  else if (total >= 40) { grade = '一般'; gradeClass = 'g-fair'; }
+  return {
+    total: total,
+    grade: grade,
+    gradeClass: gradeClass,
+    cloudScore: cloudScore,
+    lightScore: lightScore,
+    moonScore: moonScore,
+    seeScore: seeScore
+  };
+}
+function seasonByMonth(month) {
+  if (month >= 3 && month <= 5) return { name: '狮子座', months: '3–5 月' };
+  if (month >= 6 && month <= 8) return { name: '天鹅座', months: '6–8 月' };
+  if (month >= 9 && month <= 11) return { name: '飞马座', months: '9–11 月' };
+  return { name: '猎户座', months: '12–2 月' };
+}
+function galaxyTarget(month) {
+  if (month >= 3 && month <= 5) {
+    return { kind: 'galaxy', title: '星系与星团（春季）', reason: '春季银河较淡，转向狮子座、室女座附近的星系与星团，暗夜下双筒可见。', tag: '深空' };
+  }
+  if (month >= 6 && month <= 8) {
+    return { kind: 'galaxy', title: '银河（夏季）', reason: '夏季银河横贯天顶，银心在人马座方向，暗夜下肉眼可见尘埃带。', tag: '深空' };
+  }
+  if (month >= 9 && month <= 11) {
+    return { kind: 'galaxy', title: '银河（秋季）', reason: '秋季银河斜贯西天，飞马座与仙女座方向适合扫视星系。', tag: '深空' };
+  }
+  return { kind: 'galaxy', title: '猎户座大星云（冬季）', reason: '冬季猎户座大星云高悬，双筒即可看到云雾状光斑，是深空入门首选。', tag: '深空' };
+}
+const TARGET_ICONS = {
+  moon: '<circle cx="24" cy="24" r="14" fill="#DCE7F8"/><path d="M24 10 A14 14 0 0 0 24 38 A9 14 0 0 1 24 10 Z" fill="#141D33"/>',
+  planet: '<circle cx="24" cy="24" r="11" fill="#A8C0E8"/><ellipse cx="24" cy="24" rx="20" ry="6" fill="none" stroke="#E8B34B" stroke-width="1.5" transform="rotate(-18 24 24)"/>',
+  occult: '<circle cx="22" cy="25" r="13" fill="#141D33" stroke="#A8C0E8" stroke-width="1.2"/><circle cx="36" cy="13" r="2.4" fill="#E8B34B"/>',
+  sign: '<path d="M10 32 L20 16 L30 26 L40 12" stroke="#A8C0E8" stroke-width="1.4"/><circle cx="10" cy="32" r="2" fill="#E8B34B"/><circle cx="20" cy="16" r="1.8" fill="#E9EEF7"/><circle cx="30" cy="26" r="1.6" fill="#E9EEF7"/><circle cx="40" cy="12" r="2.2" fill="#E8B34B"/>',
+  cluster: '<circle cx="16" cy="20" r="2" fill="#E9EEF7"/><circle cx="28" cy="14" r="1.7" fill="#A8C0E8"/><circle cx="33" cy="26" r="2.2" fill="#E9EEF7"/><circle cx="20" cy="32" r="1.6" fill="#A8C0E8"/><circle cx="30" cy="35" r="1.4" fill="#E9EEF7"/><circle cx="24" cy="24" r="1.3" fill="#E8B34B"/>',
+  double: '<circle cx="17" cy="20" r="3" fill="#E8B34B"/><circle cx="31" cy="30" r="2.4" fill="#A8C0E8"/><path d="M19 22 L29 28" stroke="#8FA0C2" stroke-width="1" stroke-dasharray="2 3"/>',
+  galaxy: '<ellipse cx="24" cy="24" rx="18" ry="8" fill="none" stroke="#A8C0E8" stroke-opacity=".7" stroke-width="1.3" transform="rotate(-24 24 24)"/><ellipse cx="24" cy="24" rx="9" ry="4" fill="none" stroke="#E8B34B" stroke-opacity=".75" stroke-width="1.2" transform="rotate(-24 24 24)"/><circle cx="24" cy="24" r="2" fill="#FFF3D2"/>',
+  meteor: '<path d="M12 34 L34 12" stroke="#E8B34B" stroke-width="2" stroke-linecap="round"/><path d="M20 38 L40 18" stroke="#A8C0E8" stroke-opacity=".45" stroke-width="1.2"/><circle cx="34" cy="12" r="2.2" fill="#FFF3D2"/>',
+  satellite: '<rect x="21" y="20" width="6" height="8" rx="1" fill="#A8C0E8"/><rect x="9" y="20" width="9" height="8" rx="1" fill="none" stroke="#E8B34B" stroke-width="1.3"/><rect x="30" y="20" width="9" height="8" rx="1" fill="none" stroke="#E8B34B" stroke-width="1.3"/><path d="M30 16 L36 10" stroke="#8FA0C2" stroke-width="1"/>'
+};
+function targetIcon(kind) {
+  return '<svg class="target-icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">' +
+    (TARGET_ICONS[kind] || TARGET_ICONS.moon) + '</svg>';
+}
+function buildTargets(illumInt, nextMt) {
+  const month = planDate.getMonth() + 1;
+  const season = seasonByMonth(month);
+  const targets = [];
+  if (illumInt >= 70) {
+    targets.push({
+      kind: 'moon', title: '月亮：环形山与月海', tag: '首选',
+      reason: '照亮比 ' + illumInt + '%，月面几乎全亮，环形山与月海正对阳光，适合对照月面图辨认。'
+    });
+    targets.push({
+      kind: 'planet', title: '亮行星：金星或木星', tag: '稳妥',
+      reason: '强月光下暗天体难寻，但金星或木星仍是最亮、不闪烁的目标，沿黄道附近寻找。'
+    });
+    targets.push({
+      kind: 'occult', title: '月掩亮星（概念观测）', tag: '进阶',
+      reason: '满月沿黄道运行，可能掩食背景亮星；记录掩入与掩出时刻，理解月球轨道与黄道的关系。'
+    });
+  } else if (illumInt >= 30) {
+    targets.push({
+      kind: 'moon', title: '月亮：明暗界线', tag: '首选',
+      reason: '照亮比 ' + illumInt + '%，明暗界线清晰，沿界线看环形山阴影最立体，是月面观测的黄金期。'
+    });
+    targets.push({
+      kind: 'sign', title: '当季招牌：' + season.name, tag: '定位',
+      reason: month + ' 月夜空以' + season.name + '为地标，先认它，再用它定位周围暗星。'
+    });
+    if (month === 12 || month <= 2) {
+      targets.push({
+        kind: 'cluster', title: '昴星团（M45）', tag: '双筒',
+        reason: '冬季昴星团高悬，双筒即可看到一团蓝白星，月光适中时仍可辨认。'
+      });
+    } else {
+      targets.push({
+        kind: 'double', title: '双星观测', tag: '双筒',
+        reason: '月光适中，挑一对颜色对比明显的双星，用双筒或小望远镜看分离与色调。'
+      });
+    }
+  } else if (planBortle <= 5) {
+    targets.push(galaxyTarget(month));
+    targets.push({
+      kind: 'meteor', title: '当月流星雨：' + nextMt.name, tag: '天象',
+      reason: '最近一场' + nextMt.name + '在 ' + (nextMt.days === 0 ? '今天' : nextMt.days + ' 天后') +
+        '极大（ZHR ' + zhrShort(nextMt.item.zhr) + '）。朝辐射点侧方 45° 看，比直盯辐射点更舒服。'
+    });
+    targets.push({
+      kind: 'satellite', title: '人造卫星过境', tag: '城市友好',
+      reason: '暗夜适合等国际空间站或亮卫星过境；它们只在晨昏出现，持续几分钟，且不闪烁。'
+    });
+  } else {
+    targets.push({
+      kind: 'planet', title: '亮行星', tag: '首选',
+      reason: 'Bortle ' + planBortle + ' 级光害较强，暗天体难寻，亮行星仍是最稳的目标。'
+    });
+    targets.push({
+      kind: 'sign', title: '星座辨认：' + season.name, tag: '入门',
+      reason: '先认当季招牌' + season.name + '，以亮星为锚点，再逐步扩展。'
+    });
+    targets.push({
+      kind: 'moon', title: '双筒镜月面', tag: '双筒',
+      reason: '照亮比仅 ' + illumInt + '%，月面呈细月，双筒看环形山阴影层次最好；月亮偏低时视宁度更差。'
+    });
+  }
+  return targets;
+}
+function setSegActive(id, value) {
+  const buttons = document.querySelectorAll('#' + id + ' button');
+  for (let i = 0; i < buttons.length; i++) {
+    buttons[i].classList.toggle('is-active', Number(buttons[i].dataset.v) === value);
+  }
+}
+let planScoreShown = null;
+let planScoreRaf = null;
+const planReduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function setPlanScore(to) {
+  const el = document.getElementById('scoreNum');
+  if (planReduceMotion || planScoreShown === null) {
+    el.textContent = to;
+    planScoreShown = to;
+    return;
+  }
+  const from = planScoreShown;
+  if (from === to) {
+    el.textContent = to;
+    return;
+  }
+  if (planScoreRaf) cancelAnimationFrame(planScoreRaf);
+  const start = performance.now();
+  const duration = 420;
+  function tick(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = Math.round(from + (to - from) * eased);
+    if (t < 1) {
+      planScoreRaf = requestAnimationFrame(tick);
+    } else {
+      planScoreShown = to;
+      planScoreRaf = null;
+    }
+  }
+  planScoreRaf = requestAnimationFrame(tick);
+}
+function renderPlan() {
+  const moon = computeMoon(planDate);
+  const illumInt = Math.round(moon.illum);
+  const score = computePlan(illumInt);
+
+  document.getElementById('planDate').value = toDateValue(planDate);
+  document.getElementById('cloudVal').textContent = planCloud + '%';
+  document.getElementById('cloudRange').value = planCloud;
+  document.getElementById('cloudRange').style.setProperty('--fill', planCloud + '%');
+  document.getElementById('bortleVal').textContent = planBortle + ' 级';
+  document.getElementById('bortleHint').textContent = bortleHint(planBortle);
+  document.getElementById('seeingVal').textContent = planSeeing + ' / 5';
+  setSegActive('bortleSeg', planBortle);
+  setSegActive('seeingSeg', planSeeing);
+
+  document.getElementById('planMoonRef').innerHTML =
+    '月光依据：月龄 <b>' + moon.age.toFixed(1) + '</b> 天 · 照亮比 <b>' + illumInt + '</b>%';
+  document.getElementById('scoreMoon').innerHTML =
+    '月龄 <b>' + moon.age.toFixed(1) + '</b> 天 · 照亮比 <b>' + illumInt + '</b>%';
+  setPlanScore(score.total);
+  const badge = document.getElementById('gradeBadge');
+  badge.textContent = score.grade;
+  badge.className = 'grade-badge ' + score.gradeClass;
+  const colors = { 'g-excellent': '#E8B34B', 'g-good': '#A8C0E8', 'g-fair': '#B6C4DC', 'g-poor': '#E08976' };
+  const arc = document.getElementById('scoreArc');
+  arc.style.stroke = colors[score.gradeClass];
+  arc.style.strokeDashoffset = (351.86 * (1 - score.total / 100)).toFixed(2);
+
+  const rows = [
+    ['cloud', score.cloudScore, 30],
+    ['light', score.lightScore, 25],
+    ['moon', score.moonScore, 25],
+    ['seeing', score.seeScore, 20]
+  ];
+  const ids = { cloud: 'Cloud', light: 'Light', moon: 'Moon', seeing: 'Seeing' };
+  rows.forEach(function (row) {
+    const name = row[0];
+    document.getElementById('m' + ids[name]).textContent = row[1].toFixed(1);
+    document.getElementById('b' + ids[name]).style.width = (row[1] / row[2] * 100).toFixed(2) + '%';
+  });
+
+  const targets = buildTargets(illumInt, nextMeteor(planDate));
+  document.getElementById('targetGrid').innerHTML = targets.map(function (t, i) {
+    return '<article class="target-card">' +
+      '<span class="target-idx">' + pad2(i + 1) + '</span>' +
+      '<div class="target-head">' + targetIcon(t.kind) + '<h4>' + t.title + '</h4></div>' +
+      '<span class="target-tag">' + t.tag + '</span>' +
+      '<p class="target-reason">' + t.reason + '</p>' +
+      '</article>';
+  }).join('');
+}
+function initPlanPage() {
+  const dateInput = document.getElementById('planDate');
+  dateInput.value = toDateValue(planDate);
+  dateInput.addEventListener('change', function () {
+    if (dateInput.value) {
+      planDate = parseDateValue(dateInput.value);
+      renderPlan();
+    }
+  });
+  document.getElementById('planToday').addEventListener('click', function () {
+    planDate = startOfToday();
+    renderPlan();
+  });
+  document.getElementById('cloudRange').addEventListener('input', function (event) {
+    planCloud = Number(event.target.value);
+    renderPlan();
+  });
+  document.getElementById('bortleSeg').addEventListener('click', function (event) {
+    const btn = event.target.closest('button[data-v]');
+    if (btn) {
+      planBortle = Number(btn.dataset.v);
+      renderPlan();
+    }
+  });
+  document.getElementById('seeingSeg').addEventListener('click', function (event) {
+    const btn = event.target.closest('button[data-v]');
+    if (btn) {
+      planSeeing = Number(btn.dataset.v);
+      renderPlan();
+    }
+  });
+  renderPlan();
+}
+
+/* ================= 星座学堂 ================= */
+const CONSTELLATIONS = [
+  {
+    name: '猎户座', season: '冬', brightest: '参宿四',
+    intro: '猎人的腰带三星最易认。',
+    find: '先找并排的腰带三星，再向四角找肩与膝。',
+    points: [[30, 25], [70, 25], [46, 55], [50, 57], [54, 59], [38, 82], [62, 82]],
+    lines: [[1, 3], [2, 5], [3, 4], [4, 5], [3, 6], [5, 7], [1, 2]],
+    main: 0
+  },
+  {
+    name: '大熊座（北斗七星）', season: '春', brightest: '天枢',
+    intro: '北斗是北天认星的总钥匙。',
+    find: '沿斗口两星延长五倍找到北极星。',
+    points: [[10, 40], [22, 36], [34, 34], [45, 38], [52, 30], [66, 22], [82, 26]],
+    lines: [[1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7]],
+    main: 0
+  },
+  {
+    name: '仙后座', season: '秋', brightest: '王良四',
+    intro: 'W 形五星，秋夜北天的路标。',
+    find: 'W 中间一星对准的方向有仙女座星系。',
+    points: [[8, 55], [26, 35], [44, 52], [62, 30], [84, 48]],
+    lines: [[1, 2], [2, 3], [3, 4], [4, 5]],
+    main: 2
+  },
+  {
+    name: '天鹅座', season: '夏', brightest: '天津四',
+    intro: '大十字悬在银河正中。',
+    find: '夏季大三角里沿银河的一只天鹅。',
+    points: [[50, 12], [50, 45], [50, 85], [22, 38], [78, 52]],
+    lines: [[1, 2], [2, 3], [4, 2], [2, 5]],
+    main: 0
+  },
+  {
+    name: '天琴座', season: '夏', brightest: '织女星',
+    intro: '织女星旁的小平行四边形。',
+    find: '夏季大三角最亮的那颗就是织女。',
+    points: [[30, 20], [38, 42], [48, 50], [44, 66], [34, 58]],
+    lines: [[1, 2], [2, 3], [3, 4], [4, 5], [5, 2]],
+    main: 0
+  },
+  {
+    name: '天蝎座', season: '夏', brightest: '心宿二',
+    intro: '红色的心宿二与一条 S 形尾巴。',
+    find: '夏夜南方低空，先认红色心宿二。',
+    points: [[20, 18], [26, 26], [30, 34], [40, 44], [52, 52], [64, 58], [74, 62], [82, 58], [86, 46]],
+    lines: [[1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9]],
+    main: 3
+  },
+  {
+    name: '狮子座', season: '春', brightest: '轩辕十四',
+    intro: '镰刀问号勾出狮头。',
+    find: '春季大三角与镰刀形一起找。',
+    points: [[30, 70], [32, 52], [38, 36], [48, 26], [62, 24], [80, 42], [68, 60]],
+    lines: [[1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 1]],
+    main: 0
+  },
+  {
+    name: '双子座', season: '冬', brightest: '北河三',
+    intro: '两条平行的人形，头是双星。',
+    find: '猎户座东北方，两颗亮星并排是双头。',
+    points: [[38, 16], [58, 20], [34, 40], [32, 64], [30, 86], [56, 42], [56, 66], [58, 86]],
+    lines: [[1, 3], [3, 4], [4, 5], [2, 6], [6, 7], [7, 8], [1, 2]],
+    main: 1
+  },
+  {
+    name: '金牛座', season: '冬', brightest: '毕宿五',
+    intro: 'V 形毕星团托着橙色眼睛。',
+    find: '昴星团向东南延长找到毕宿五。',
+    points: [[50, 56], [36, 38], [22, 24], [64, 38], [78, 24], [44, 70]],
+    lines: [[3, 2], [2, 1], [1, 4], [4, 5], [1, 6]],
+    main: 0
+  },
+  {
+    name: '飞马座', season: '秋', brightest: '室宿一',
+    intro: '秋季大四边形是秋夜的地标。',
+    find: '四边形东边一角拖出仙女座链。',
+    points: [[25, 25], [75, 25], [75, 75], [25, 75], [88, 14], [96, 6]],
+    lines: [[1, 2], [2, 3], [3, 4], [4, 1], [2, 5], [5, 6]],
+    main: 0
+  },
+  {
+    name: '仙女座', season: '秋', brightest: '奎宿九',
+    intro: '一条星链尽头藏着仙女座星系。',
+    find: '从飞马四边形东北角沿链数三颗。',
+    points: [[15, 62], [38, 52], [60, 42], [82, 30], [66, 20]],
+    lines: [[1, 2], [2, 3], [3, 4], [3, 5]],
+    main: 1
+  },
+  {
+    name: '牧夫座', season: '春', brightest: '大角星',
+    intro: '风筝形底尖是橙色的大角。',
+    find: '沿北斗斗柄弧线延长，先到大角再到角宿一。',
+    points: [[50, 82], [38, 56], [30, 32], [44, 15], [62, 17], [67, 40], [58, 58]],
+    lines: [[1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 2], [7, 1]],
+    main: 0
+  }
+];
+
+const SEASONS = [
+  { key: '春', name: '春季星空', points: ['北斗指方向', '狮子座当空', '大角星橙光'] },
+  { key: '夏', name: '夏季星空', points: ['夏季大三角', '银河过天顶', '天蝎在南'] },
+  { key: '秋', name: '秋季星空', points: ['飞马四边形', '仙女座星系', '仙后 W'] },
+  { key: '冬', name: '冬季星空', points: ['冬季大三角', '猎户当空', '昴星团'] }
+];
+
+const PLANETS = [
+  {
+    name: '水星', icon: 'mercury',
+    line: '只在晨昏低空、黄道附近找。',
+    how: '只在晨昏低空、黄道附近找；它总是离太阳很近。',
+    when: '日出前东方低空，或日落后西方低空；大距前后最易见。',
+    confuse: '被误认成亮星或飞机；水星不会出现在半夜高空。'
+  },
+  {
+    name: '金星', icon: 'venus',
+    line: '最亮、只在日出前或日落后、望远镜里有盈亏。',
+    how: '全天最亮；只在日出前或日落后出现，望远镜里能看到盈亏。',
+    when: '日出前东方“启明星”，或日落后西方“长庚星”；亮度最高时最易找。',
+    confuse: '被误认成飞机或极亮恒星；金星不闪烁，也不会高悬午夜。'
+  },
+  {
+    name: '火星', icon: 'mars',
+    line: '橙红色、冲日前后最宜观测。',
+    how: '橙红色是最直接的辨认线索。',
+    when: '冲日前后最宜观测，此时距离近、视直径大。',
+    confuse: '被误认成红色亮星（如心宿二）；火星在星空背景中逐年移动。'
+  },
+  {
+    name: '木星', icon: 'jupiter',
+    line: '最亮行星之一、四颗伽利略卫星排成线。',
+    how: '最亮行星之一；双筒或小望远镜可见四颗伽利略卫星排成一条线。',
+    when: '冲日前后整夜可见；平时也沿黄道附近运行，亮度稳定。',
+    confuse: '被误认成极亮恒星；木星不闪烁，卫星排线是辨认线索。'
+  },
+  {
+    name: '土星', icon: 'saturn',
+    line: '光环需望远镜、每年环倾角在变化。',
+    how: '光环需要望远镜才能看清；每年环倾角都在变化。',
+    when: '冲日前后最亮，环倾角大时最适合看光环。',
+    confuse: '肉眼只是一颗偏黄的亮星；光环要望远镜，别当成“耳朵”。'
+  }
+];
+
+const PLANET_ICONS = {
+  mercury: '<circle cx="24" cy="24" r="10" fill="#B8C4D6"/><circle cx="20" cy="20" r="2" fill="#8E9AAE"/><circle cx="28" cy="27" r="1.4" fill="#8E9AAE"/><circle cx="24" cy="32" r="1.2" fill="#8E9AAE"/>',
+  venus: '<circle cx="24" cy="24" r="13" fill="#F2D98A"/><path d="M13 20 Q24 26 35 20" stroke="#FFF3D2" stroke-opacity=".6" fill="none"/><path d="M14 29 Q24 34 34 29" stroke="#E8B34B" stroke-opacity=".4" fill="none"/>',
+  mars: '<circle cx="24" cy="24" r="11" fill="#D97757"/><circle cx="20" cy="20" r="3" fill="#A9503A" opacity=".6"/><circle cx="29" cy="28" r="2" fill="#A9503A" opacity=".5"/>',
+  jupiter: '<circle cx="24" cy="24" r="14" fill="#D8C3A5"/><path d="M11 18 Q24 22 37 18" stroke="#B08F6E" stroke-width="2" fill="none"/><path d="M11 27 Q24 31 37 27" stroke="#B08F6E" stroke-width="2" fill="none"/><ellipse cx="29" cy="33" rx="3.4" ry="2" fill="#B5654A"/>',
+  saturn: '<circle cx="24" cy="24" r="10" fill="#E3CF9A"/><ellipse cx="24" cy="24" rx="18" ry="5.5" fill="none" stroke="#E8B34B" stroke-width="1.8" transform="rotate(-20 24 24)"/>'
+};
+
+function constellationSVG(c, big) {
+  const pts = c.points;
+  const lines = c.lines.map(function (pair, i) {
+    const a = pts[pair[0] - 1];
+    const b = pts[pair[1] - 1];
+    return '<line class="const-line" style="animation-delay:' + (i * 0.035).toFixed(2) + 's" x1="' + a[0] + '" y1="' + a[1] + '" x2="' + b[0] + '" y2="' + b[1] + '"/>';
+  }).join('');
+  const stars = pts.map(function (p, i) {
+    const delay = (i * 0.03).toFixed(2) + 's';
+    if (i === c.main) {
+      return '<circle class="star-halo" style="animation-delay:' + delay + '" cx="' + p[0] + '" cy="' + p[1] + '" r="5.6"/>' +
+        '<circle class="star-main" style="animation-delay:' + delay + '" cx="' + p[0] + '" cy="' + p[1] + '" r="2.9"/>';
+    }
+    return '<circle class="star-halo star-halo-sub" style="animation-delay:' + delay + '" cx="' + p[0] + '" cy="' + p[1] + '" r="3.4"/>' +
+      '<circle class="star-sub" style="animation-delay:' + delay + '" cx="' + p[0] + '" cy="' + p[1] + '" r="1.7"/>';
+  }).join('');
+  return '<svg viewBox="0 0 100 100" class="const-svg' + (big ? ' is-big' : '') + '" aria-hidden="true">' +
+    '<g class="const-lines">' + lines + '</g>' + stars + '</svg>';
+}
+
+function renderConstellations() {
+  document.getElementById('constGrid').innerHTML = CONSTELLATIONS.map(function (c, i) {
+    return '<article class="const-card" data-index="' + i + '" data-points="' + c.points.length +
+      '" data-lines="' + c.lines.length + '" tabindex="0" role="button" aria-label="' + c.name + '，点击放大星图">' +
+      '<div class="const-chart">' + constellationSVG(c) +
+      '<span class="chart-zoom">放大 ↗</span><span class="chart-note">示意星图</span></div>' +
+      '<div class="const-top"><h3>' + c.name + '</h3><span class="season-pill">' + c.season + '</span></div>' +
+      '<p class="const-star">最亮星 · ' + c.brightest + '</p>' +
+      '<p class="const-intro">' + c.intro + '</p>' +
+      '<p class="const-find"><b>寻找方法</b>' + c.find + '</p>' +
+      '</article>';
+  }).join('');
+
+  document.getElementById('seasonGrid').innerHTML = SEASONS.map(function (s) {
+    return '<article class="season-card"><div class="season-big">' + s.key + '</div>' +
+      '<div class="season-info"><span class="season-sub">' + s.name + '</span>' +
+      '<ul class="season-points">' +
+      s.points.map(function (p) { return '<li>' + p + '</li>'; }).join('') +
+      '</ul></div></article>';
+  }).join('');
+
+  document.getElementById('planetGrid').innerHTML = PLANETS.map(function (p) {
+    return '<article class="planet-card">' +
+      '<div class="planet-head"><svg class="planet-orb" viewBox="0 0 48 48" fill="none" aria-hidden="true">' +
+      PLANET_ICONS[p.icon] + '</svg><h4>' + p.name + '</h4></div>' +
+      '<p class="planet-line">' + p.line + '</p>' +
+      '<dl class="planet-facts">' +
+      '<div><dt>认法</dt><dd>' + p.how + '</dd></div>' +
+      '<div><dt>最佳时机</dt><dd>' + p.when + '</dd></div>' +
+      '<div><dt>常见误认</dt><dd>' + p.confuse + '</dd></div>' +
+      '</dl></article>';
+  }).join('');
+}
+
+let constLastFocus = null;
+function openConstellation(index) {
+  const c = CONSTELLATIONS[index];
+  if (!c) return;
+  document.getElementById('lbChart').innerHTML = constellationSVG(c, true);
+  document.getElementById('lbName').textContent = c.name;
+  document.getElementById('lbSeason').textContent = c.season + '季';
+  document.getElementById('lbStar').textContent = '最亮星 · ' + c.brightest;
+  document.getElementById('lbIntro').textContent = c.intro;
+  document.getElementById('lbFind').textContent = '寻找方法：' + c.find;
+  constLastFocus = document.activeElement;
+  const box = document.getElementById('constLightbox');
+  box.hidden = false;
+  document.body.style.overflow = 'hidden';
+  document.getElementById('lbClose').focus();
+}
+function closeConstellation() {
+  const box = document.getElementById('constLightbox');
+  if (box.hidden) return;
+  box.hidden = true;
+  document.body.style.overflow = '';
+  if (constLastFocus && constLastFocus.focus) constLastFocus.focus();
+}
+function initConstellationPage() {
+  const grid = document.getElementById('constGrid');
+  grid.addEventListener('click', function (event) {
+    const card = event.target.closest('.const-card');
+    if (card) openConstellation(Number(card.dataset.index));
+  });
+  grid.addEventListener('keydown', function (event) {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    const card = event.target.closest('.const-card');
+    if (card) {
+      event.preventDefault();
+      openConstellation(Number(card.dataset.index));
+    }
+  });
+  document.getElementById('lbClose').addEventListener('click', closeConstellation);
+  document.querySelector('.lb-backdrop').addEventListener('click', closeConstellation);
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') closeConstellation();
+  });
+  renderConstellations();
+}
+
+/* ================= 视觉场景 SVG ================= */
+const SCENE_LABELS = {
+  moon: '月亮周期',
+  meteor: '流星',
+  telescope: '望远镜',
+  compass: '星图罗盘',
+  galaxy: '银河',
+  trophy: '奖杯',
+  notebook: '记录本',
+  dipper: '北斗七星',
+  cassiopeia: '仙后 W',
+  saturn: '土星环',
+  nebula: '星云',
+  comet: '彗星'
+};
+const SCENES = {
+  moon: '<circle cx="24" cy="24" r="21" class="s-soft" stroke-dasharray="2 5"/><circle cx="20" cy="24" r="10" class="s-line"/><path d="M20 14 A10 10 0 0 0 20 34 A6 10 0 0 1 20 14 Z" class="s-soft"/><path d="M5 32 Q24 16 43 32" class="s-soft" stroke-dasharray="2 3"/><circle cx="37" cy="15" r="1.8" class="s-gold"/>',
+  meteor: '<circle cx="24" cy="24" r="21" class="s-soft" stroke-dasharray="2 5"/><path d="M9 39 L29 19" class="s-gold-line"/><path d="M18 41 L36 23" class="s-soft"/><circle cx="29" cy="19" r="2" class="s-gold"/><circle cx="11" cy="14" r="1.2" class="s-gold"/><circle cx="39" cy="35" r="1.2" class="s-soft"/>',
+  telescope: '<circle cx="24" cy="24" r="21" class="s-soft" stroke-dasharray="2 5"/><path d="M9 33 L31 20" class="s-line" stroke-width="3.2"/><path d="M28 17 L38 11" class="s-soft"/><path d="M15 37 L22 28 M30 38 L25 30" class="s-soft"/><circle cx="9" cy="33" r="2" class="s-gold"/><circle cx="21" cy="12" r="1.2" class="s-gold"/>',
+  compass: '<circle cx="24" cy="24" r="21" class="s-soft" stroke-dasharray="2 5"/><circle cx="24" cy="24" r="15" class="s-line"/><path d="M24 9 V15 M24 33 V39 M9 24 H15 M33 24 H39" class="s-soft"/><path d="M24 24 L32 16" class="s-gold-line"/><circle cx="24" cy="24" r="2" class="s-gold"/><circle cx="36" cy="12" r="1.2" class="s-gold"/>',
+  galaxy: '<circle cx="24" cy="24" r="21" class="s-soft" stroke-dasharray="2 5"/><ellipse cx="24" cy="24" rx="16" ry="7" class="s-soft" transform="rotate(-25 24 24)"/><ellipse cx="24" cy="24" rx="9" ry="4" class="s-line" transform="rotate(-25 24 24)"/><circle cx="24" cy="24" r="2" class="s-gold"/><circle cx="11" cy="31" r="1.2" class="s-gold"/>',
+  trophy: '<circle cx="24" cy="24" r="21" class="s-soft" stroke-dasharray="2 5"/><path d="M17 12 H31 V20 A7 7 0 0 1 17 20 Z" class="s-line"/><path d="M17 14 H12 V18 A5 5 0 0 0 17 21 M31 14 H36 V18 A5 5 0 0 1 31 21" class="s-soft"/><path d="M24 27 V33 M18 37 H30" class="s-line"/><circle cx="24" cy="18" r="1.4" class="s-gold"/>',
+  notebook: '<circle cx="24" cy="24" r="21" class="s-soft" stroke-dasharray="2 5"/><rect x="12" y="9" width="24" height="30" rx="3" class="s-line"/><path d="M16 9 V39" class="s-soft"/><path d="M21 17 H32 M21 23 H32 M21 29 H28" class="s-soft"/><path d="M30 9 V16 L33 14 L36 16 V9" class="s-gold-line"/>',
+  dipper: '<circle cx="24" cy="24" r="21" class="s-soft" stroke-dasharray="2 5"/><path d="M9 30 L15 21 L24 20 L30 25 L38 14" class="s-soft"/><circle cx="9" cy="30" r="1.6" class="s-gold"/><circle cx="15" cy="21" r="1.4" class="s-gold"/><circle cx="24" cy="20" r="1.4" class="s-gold"/><circle cx="30" cy="25" r="1.5" class="s-gold"/><circle cx="38" cy="14" r="1.8" class="s-gold"/>',
+  cassiopeia: '<circle cx="24" cy="24" r="21" class="s-soft" stroke-dasharray="2 5"/><path d="M7 30 L16 16 L25 28 L34 15 L42 27" class="s-soft"/><circle cx="7" cy="30" r="1.4" class="s-gold"/><circle cx="16" cy="16" r="1.5" class="s-gold"/><circle cx="25" cy="28" r="1.4" class="s-gold"/><circle cx="34" cy="15" r="1.5" class="s-gold"/><circle cx="42" cy="27" r="1.4" class="s-gold"/>',
+  saturn: '<circle cx="24" cy="24" r="21" class="s-soft" stroke-dasharray="2 5"/><circle cx="24" cy="24" r="9" class="s-line"/><ellipse cx="24" cy="24" rx="17" ry="5" class="s-gold-line" transform="rotate(-18 24 24)"/><circle cx="18" cy="20" r="1" class="s-gold"/>',
+  nebula: '<circle cx="24" cy="24" r="21" class="s-soft" stroke-dasharray="2 5"/><path d="M12 28 Q18 14 30 15 Q40 17 36 28 Q33 36 22 34 Q14 32 12 28 Z" class="s-soft"/><path d="M18 30 Q24 22 31 25" class="s-soft"/><circle cx="25" cy="24" r="2" class="s-gold"/><circle cx="38" cy="12" r="1.2" class="s-gold"/>',
+  comet: '<circle cx="24" cy="24" r="21" class="s-soft" stroke-dasharray="2 5"/><circle cx="32" cy="16" r="4" class="s-line"/><path d="M28 19 Q18 29 8 38" class="s-soft"/><path d="M29 22 Q21 31 13 42" class="s-soft"/><circle cx="32" cy="16" r="1.4" class="s-gold"/>'
+};
+function sceneSVG(name) {
+  return '<svg class="scene-svg" viewBox="0 0 48 48" fill="none" role="img" aria-label="' +
+    SCENE_LABELS[name] + '" data-scene="' + name + '">' + SCENES[name] + '</svg>';
+}
+function initScenes() {
+  const sectionMap = {
+    'panel-moon': 'moon',
+    'panel-meteor': 'meteor',
+    'panel-plan': 'telescope',
+    'panel-constellation': 'compass',
+    'panel-cards': 'galaxy',
+    'panel-quiz': 'trophy',
+    'panel-journal': 'notebook'
+  };
+  Object.keys(sectionMap).forEach(function (panelId) {
+    const head = document.querySelector('#' + panelId + ' .section-head');
+    if (!head || head.querySelector('.head-scene')) return;
+    const span = document.createElement('span');
+    span.className = 'head-scene';
+    span.innerHTML = sceneSVG(sectionMap[panelId]);
+    head.appendChild(span);
+  });
+  const hero = document.querySelector('.hero');
+  if (hero && !hero.querySelector('.hero-art')) {
+    const art = document.createElement('div');
+    art.className = 'hero-art';
+    art.innerHTML = sceneSVG('dipper');
+    hero.appendChild(art);
+  }
+  const homeTitles = document.querySelectorAll('#panel-home .block-title');
+  if (homeTitles[0] && !homeTitles[0].querySelector('.title-scene')) {
+    homeTitles[0].insertAdjacentHTML('beforeend', '<span class="title-scene">' + sceneSVG('nebula') + '</span>');
+  }
+  if (homeTitles[1] && !homeTitles[1].querySelector('.title-scene')) {
+    homeTitles[1].insertAdjacentHTML('beforeend', '<span class="title-scene">' + sceneSVG('comet') + '</span>');
+  }
+  const constTitles = document.querySelectorAll('#panel-constellation .block-title');
+  if (constTitles[0] && !constTitles[0].querySelector('.title-scene')) {
+    constTitles[0].insertAdjacentHTML('beforeend', '<span class="title-scene">' + sceneSVG('cassiopeia') + '</span>');
+  }
+  if (constTitles[1] && !constTitles[1].querySelector('.title-scene')) {
+    constTitles[1].insertAdjacentHTML('beforeend', '<span class="title-scene">' + sceneSVG('saturn') + '</span>');
+  }
+}
+
+/* ================= 知识卡 ================= */
+const CARD_CATS = [
+  { id: 'moon', name: '月球与月相' },
+  { id: 'meteor', name: '流星与彗星' },
+  { id: 'const', name: '星座与星图' },
+  { id: 'skill', name: '观测技能' },
+  { id: 'scope', name: '望远镜与光害' }
+];
+
+const KNOWLEDGE = [
+  { id: 1, cat: 'moon', title: '朔望月', conclusion: '月相循环周期 29.53 天，不是日历月。', points: '朔到下个朔、望在周期正中。', confuse: '农历初一是朔，十五前后才是望。', verify: '月相实验室里连拨十天看变化。' },
+  { id: 2, cat: 'moon', title: '月亮同步自转', conclusion: '月亮自转与公转同周期，所以永远一面对着我们。', points: '背面靠探测器才看清。', confuse: '看不见背面不等于背面不自转。', verify: '月历里满月图样每天位置不变。' },
+  { id: 3, cat: 'moon', title: '明暗界线', conclusion: '月面明暗交界线附近环形山阴影最长、最立体。', points: '上下弦前后是看环形山的黄金期。', confuse: '满月反而平淡，对比度最低。', verify: '规划页在 30–70% 照亮比时首推看月。' },
+  { id: 4, cat: 'moon', title: '月海', conclusion: '月面暗斑是古熔岩平原，叫月海却没有水。', points: '雨海、静海最易认。', confuse: '月海不是阴影，是反照率低。', verify: '满月时按图认三片大月海。' },
+  { id: 5, cat: 'moon', title: '蓝月亮', conclusion: '一个月里第二次满月俗称蓝月，与颜色无关。', points: '平均约 2.7 年出现一次。', confuse: '蓝月亮通常不蓝。', verify: '月历里找找哪个月有两次望。' },
+  { id: 6, cat: 'moon', title: '超级月亮', conclusion: '满月恰在近地点附近时视直径略大，叫超级月亮。', points: '比远地点满月大约 14%。', confuse: '肉眼很难察觉大小差别。', verify: '记录手记里连续拍三个月满月对比。' },
+  { id: 7, cat: 'meteor', title: '流星与流星体', conclusion: '流星是尘粒闯入大气发光的现象，不是星星掉下来。', points: '流星体—流星—陨石是同一物的三段旅程。', confuse: '流星雨的“雨”与天气无关。', verify: '年历里每场流星雨都标了母体。' },
+  { id: 8, cat: 'meteor', title: '辐射点', conclusion: '同一场流星雨的流星轨迹反向延长，交汇于辐射点。', points: '辐射点在哪个星座，流星雨就以它命名。', confuse: '流星出现在全天，不必只盯辐射点。', verify: '观测时朝辐射点侧方 45 度看最舒服。' },
+  { id: 9, cat: 'meteor', title: 'ZHR', conclusion: 'ZHR 是理想条件下每小时天顶流量，是流星雨的标称强度。', points: '实际能看到的通常只有标称的一部分。', confuse: 'ZHR 120 不等于躺着就能数 120 颗。', verify: '年历比例条按 ZHR 120 满格绘制。' },
+  { id: 10, cat: 'meteor', title: '火流星', conclusion: '亮度超过金星的流星叫火流星，常伴余迹与声响传闻。', points: '金牛座流星雨以火流星多著称。', confuse: '火流星不等于陨石落地。', verify: '手记里给火流星单独记一笔。' },
+  { id: 11, cat: 'meteor', title: '彗星的尾巴', conclusion: '彗尾永远背向太阳，分尘埃尾与离子尾。', points: '离子尾直、尘埃尾弯。', confuse: '彗星不是拖着尾巴“往前飞”，过近日点后是倒着走。', verify: '知识测验里有这道经典题。' },
+  { id: 12, cat: 'meteor', title: '流星暴', conclusion: 'ZHR 上千的现象叫流星暴，狮子座约 33 年一个高峰周期。', points: '与母彗星回归周期相关。', confuse: '流星雨年年有，流星暴可遇不可求。', verify: '年历狮子座条目写了周期。' },
+  { id: 13, cat: 'const', title: '星座是分区', conclusion: '现代天文学把全天划成 88 个星座，是天空的行政区。', points: '星座有正式边界，黄道十二星座只是其中一部分。', confuse: '星座图案是连线游戏，分区才是科学定义。', verify: '学堂里 12 张星图都标了分区名。' },
+  { id: 14, cat: 'const', title: '星等', conclusion: '星等越小越亮，负数是极亮星。', points: '1 等比 6 等亮约 100 倍，肉眼极限约 6 等。', confuse: '星等大不等于星大。', verify: '规划页 Bortle 高时只剩低星等星。' },
+  { id: 15, cat: 'const', title: '光年', conclusion: '光年是距离单位，约 9.46 万亿千米。', points: '看多远的星，就是看它多久以前的样子。', confuse: '光年不是时间单位。', verify: '仙女座星系的光出发时还没有人类文明。' },
+  { id: 16, cat: 'const', title: '黄道', conclusion: '太阳一年在天球上的路径叫黄道，行星都在黄道附近找。', points: '月亮轨道与黄道相近，月掩星由此发生。', confuse: '黄道不是太阳的真实轨道，是视运动。', verify: '行星访客五张卡都提到黄道附近。' },
+  { id: 17, cat: 'const', title: '北极星', conclusion: '北极星几乎指向正北，高度角约等于当地纬度。', points: '靠北斗斗口延长五倍找到。', confuse: '北极星不是最亮的星。', verify: '学堂大熊座卡写了找法。' },
+  { id: 18, cat: 'const', title: '银河', conclusion: '银河是银河系盘面在天球上的投影，夏季最壮观。', points: '银心在人马座方向，冬季银河较淡。', confuse: '银河不是一条河，是恒星密集带。', verify: '规划页低月光低光害时首推银河。' },
+  { id: 19, cat: 'skill', title: '暗适应', conclusion: '眼睛完全适应黑暗需要约 20–30 分钟。', points: '期间避免白光，用红光手电。', confuse: '看一眼手机，适应进度大半清零。', verify: '手记里记下今晚的暗适应感受。' },
+  { id: 20, cat: 'skill', title: '视宁度与通透度', conclusion: '视宁度看星像稳不稳，通透度看天空透不透，是两回事。', points: '高空急流影响视宁，湿度水汽影响通透。', confuse: '透明的夜也可能星像抖动。', verify: '规划页通透度一项单独计分。' },
+  { id: 21, cat: 'skill', title: '观测选址', conclusion: '好观测地要同时满足暗、干、高、稳。', points: '远离光害、水汽少、海拔与交通兼顾。', confuse: '山顶风大未必比山腰好。', verify: '用 Bortle 分段给自家楼顶打分。' },
+  { id: 22, cat: 'skill', title: '避月观测', conclusion: '看深空要避开满月前后一周，月初月末最宜。', points: '朔前后月光干扰最小。', confuse: '月亮不是敌人，看月本身另挑弦月期。', verify: '月历里圈出本月无月周。' },
+  { id: 23, cat: 'skill', title: '安全守则', conclusion: '夜间观测先保安全：结伴、照明、保暖、告知行程。', points: '提前踩点、带红光手电与外套。', confuse: '郊野观测最大的风险不在天上在脚下。', verify: '手记的地点栏就是行程报备。' },
+  { id: 24, cat: 'skill', title: '记录习惯', conclusion: '写下来的观测才算数，记忆会美化当晚的星空。', points: '日期、器材、条件、所见四要素。', confuse: '照片不能替代目视记录。', verify: '观测手记就是为此而设。' },
+  { id: 25, cat: 'scope', title: '双筒 vs 望远镜', conclusion: '入门先双筒：视场大、找星易；望远镜胜在放大与细节。', points: '7×50 是经典入门规格。', confuse: '放大倍数不是望远镜的第一指标，口径才是。', verify: '双筒看昴星团与月面是经典第一课。' },
+  { id: 26, cat: 'scope', title: '口径与集光力', conclusion: '口径翻倍，集光力变四倍，能看更暗的天体。', points: '极限星等随口径提升。', confuse: '同口径下倍数越高画面越暗。', verify: '知识测验里有集光力计算题。' },
+  { id: 27, cat: 'scope', title: '光害的代价', conclusion: '光害不只偷走星星，还浪费能源、扰乱生态节律。', points: '全截止灯具、按需照明是解法。', confuse: '灯越亮不等于路越安全。', verify: '给学校或小区提一条照明改进建议。' },
+  { id: 28, cat: 'scope', title: 'Bortle 分级', conclusion: 'Bortle 1–9 级描述夜空黑暗程度，1 级能看到银河投影。', points: '级别与可见极限星等对应。', confuse: '同一地点不同夜晚级别也会变。', verify: '规划页用的就是这套分级。' },
+  { id: 29, cat: 'scope', title: '手机天文软件', conclusion: '星图软件是好帮手，但先用眼睛认三颗亮星再低头看屏。', points: '开启红光夜间模式护暗适应。', confuse: '软件星图方向要和实地对齐校准。', verify: '认全四季招牌星座的任务就靠先眼后屏。' },
+  { id: 30, cat: 'scope', title: '人造天体', conclusion: '国际空间站与卫星过境亮度可观，是城市里也能看的“人造流星”。', points: '过境只在晨昏、持续几分钟。', confuse: '卫星不闪烁，飞机才闪烁。', verify: '规划页概念卡里有它的位置。' }
+];
+
+const CARD_FAV_KEY = 'xingye.cards.favorites.v1';
+let cardFavs = new Set();
+let cardCat = 'all';
+let cardFavOnly = false;
+let cardSearchTerm = '';
+
+function readLS(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (e) {
+    return fallback;
+  }
+}
+function writeLS(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* 离线隐私模式下静默失败 */ }
+}
+try { cardFavs = new Set(readLS(CARD_FAV_KEY, [])); } catch (e) { cardFavs = new Set(); }
+
+function cardMatches(card, term) {
+  if (!term) return true;
+  const hay = (card.title + ' ' + card.conclusion + ' ' + card.points + ' ' + card.confuse + ' ' + card.verify).toLowerCase();
+  return hay.indexOf(term) !== -1;
+}
+function knowledgeCardHTML(card) {
+  const fav = cardFavs.has(card.id);
+  return '<article class="know-card' + (fav ? ' is-fav' : '') + '" data-id="' + card.id + '" data-cat="' + card.cat + '">' +
+    '<button class="know-main" type="button" aria-expanded="false">' +
+    '<span class="know-idx">' + pad2(card.id) + '</span>' +
+    '<span class="know-text"><span class="know-title">' + card.title + '</span>' +
+    '<span class="know-conclusion">' + card.conclusion + '</span></span>' +
+    '<svg class="know-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>' +
+    '</button>' +
+    '<button class="know-fav" type="button" aria-label="收藏 ' + card.title + '" aria-pressed="' + (fav ? 'true' : 'false') + '">' + (fav ? '★' : '☆') + '</button>' +
+    '<div class="know-more" hidden>' +
+    '<div class="know-row"><span>要点</span><p>' + card.points + '</p></div>' +
+    '<div class="know-row"><span>易混点</span><p>' + card.confuse + '</p></div>' +
+    '<div class="know-row"><span>去验证</span><p>' + card.verify + '</p></div>' +
+    '</div></article>';
+}
+function renderCatTabs() {
+  const tabs = [{ id: 'all', name: '全部' }].concat(CARD_CATS);
+  document.getElementById('catTabs').innerHTML = tabs.map(function (t) {
+    const count = t.id === 'all' ? KNOWLEDGE.length : KNOWLEDGE.filter(function (c) { return c.cat === t.id; }).length;
+    return '<button class="cat-tab' + (cardCat === t.id ? ' is-active' : '') + '" type="button" data-cat="' + t.id + '">' +
+      t.name + '<b>' + count + '</b></button>';
+  }).join('');
+}
+function renderKnowledge() {
+  const term = cardSearchTerm.trim().toLowerCase();
+  const list = KNOWLEDGE.filter(function (c) {
+    if (cardCat !== 'all' && c.cat !== cardCat) return false;
+    if (cardFavOnly && !cardFavs.has(c.id)) return false;
+    return cardMatches(c, term);
+  });
+  document.getElementById('cardGrid').innerHTML = list.map(knowledgeCardHTML).join('');
+  document.getElementById('cardEmpty').hidden = list.length > 0;
+  document.getElementById('cardCount').textContent = list.length + ' / 30 条';
+  document.getElementById('favCount').textContent = cardFavs.size;
+}
+function initKnowledgePage() {
+  renderCatTabs();
+  renderKnowledge();
+  document.getElementById('cardSearch').addEventListener('input', function (event) {
+    cardSearchTerm = event.target.value;
+    renderKnowledge();
+  });
+  document.getElementById('catTabs').addEventListener('click', function (event) {
+    const btn = event.target.closest('.cat-tab');
+    if (btn) {
+      cardCat = btn.dataset.cat;
+      renderCatTabs();
+      renderKnowledge();
+    }
+  });
+  const favOnly = document.getElementById('favOnly');
+  favOnly.addEventListener('click', function () {
+    cardFavOnly = !cardFavOnly;
+    favOnly.classList.toggle('is-active', cardFavOnly);
+    favOnly.setAttribute('aria-pressed', cardFavOnly ? 'true' : 'false');
+    renderKnowledge();
+  });
+  document.getElementById('cardGrid').addEventListener('click', function (event) {
+    const fav = event.target.closest('.know-fav');
+    if (fav) {
+      const id = Number(fav.closest('.know-card').dataset.id);
+      if (cardFavs.has(id)) cardFavs.delete(id); else cardFavs.add(id);
+      writeLS(CARD_FAV_KEY, Array.from(cardFavs));
+      renderKnowledge();
+      return;
+    }
+    const main = event.target.closest('.know-main');
+    if (main) {
+      const card = main.closest('.know-card');
+      const more = card.querySelector('.know-more');
+      const open = more.hidden;
+      more.hidden = !open;
+      main.setAttribute('aria-expanded', open ? 'true' : 'false');
+      card.classList.toggle('is-open', open);
+    }
+  });
+}
+
+/* ================= 知识测验 ================= */
+const QUIZ = [
+  { id: 1, type: 'single', q: '月相变化的周期（朔望月）约为：', options: ['27.3 天', '29.5 天', '30.5 天', '365 天'], answer: 'B', explain: '朔到下个朔 29.53 天；27.3 天是恒星月。' },
+  { id: 2, type: 'single', q: '农历十五前后，月相最接近：', options: ['朔', '上弦', '望', '下弦'], answer: 'C', explain: '望发生在朔望月正中，约在农历十五前后。' },
+  { id: 3, type: 'single', q: '我们永远只看到月亮同一面，是因为：', options: ['月亮不自转', '自转与公转周期相同', '地球挡住了背面', '月亮背面没有光'], answer: 'B', explain: '同步自转，背面靠探测器才看清。' },
+  { id: 4, type: 'single', q: '看月面环形山最立体的时机是：', options: ['满月正中', '明暗界线附近', '月全食时', '新月'], answer: 'B', explain: '界线附近阴影最长、对比最强。' },
+  { id: 5, type: 'single', q: '“蓝月亮”指的是：', options: ['月亮变蓝', '一个月里第二次满月', '月全食的月亮', '近地点的月亮'], answer: 'B', explain: '与颜色无关，平均约 2.7 年一次。' },
+  { id: 6, type: 'single', q: '月海的成因是：', options: ['海洋干涸', '古熔岩平原', '陨石坑积水', '阴影'], answer: 'B', explain: '月海是玄武岩平原，反照率低所以暗。' },
+  { id: 7, type: 'single', q: '流星雨的“流星”本质是：', options: ['恒星坠落', '彗星或小行星尘粒闯入大气发光', '卫星碎片', '云层放电'], answer: 'B', explain: '尘粒高速闯入大气烧蚀发光。' },
+  { id: 8, type: 'single', q: '流星雨以什么命名：', options: ['母体彗星', '辐射点所在星座', '发现者', '极大日期'], answer: 'B', explain: '轨迹反向延长交汇的辐射点在哪个星座就叫什么。' },
+  { id: 9, type: 'single', q: 'ZHR 120 的含义是：', options: ['必看 120 颗', '理想条件下每小时天顶流量 120', '每分钟 120 颗', '全年 120 颗'], answer: 'B', explain: '标称强度，实际观测通常打折。' },
+  { id: 10, type: 'single', q: '英仙座流星雨的母体是：', options: ['哈雷彗星', '斯威夫特-塔特尔彗星', '恩克彗星', '法厄同'], answer: 'B', explain: '哈雷彗星对应宝瓶座 η 与猎户座两场。' },
+  { id: 11, type: 'judge', q: '彗星的尾巴总是指向前进方向。', options: ['正确', '错误'], answer: '错误', explain: '彗尾永远背向太阳，过近日点后是“倒着走”。' },
+  { id: 12, type: 'single', q: '全天共有多少个星座：', options: ['12', '48', '88', '108'], answer: 'C', explain: '现代天文学把全天划分为 88 个星座分区。' },
+  { id: 13, type: 'single', q: '星等数值越大，星星：', options: ['越亮', '越暗', '越大', '越近'], answer: 'B', explain: '星等标尺反着来，越小越亮，负数极亮。' },
+  { id: 14, type: 'single', q: '光年是：', options: ['时间单位', '距离单位', '亮度单位', '速度单位'], answer: 'B', explain: '光一年走的距离，约 9.46 万亿千米。' },
+  { id: 15, type: 'single', q: '北极星最可靠的用途是：', options: ['最亮好认', '指示正北方向', '预报天气', '测量时间'], answer: 'B', explain: '它几乎位于北天极，高度角约等于纬度。' },
+  { id: 16, type: 'single', q: '夏季大三角不包含：', options: ['织女星', '牛郎星', '天津四', '北极星'], answer: 'D', explain: '大三角是织女、牛郎、天津四。' },
+  { id: 17, type: 'single', q: '眼睛完全暗适应约需要：', options: ['1 分钟', '5 分钟', '20–30 分钟', '2 小时'], answer: 'C', explain: '期间应避免白光，用红光照明。' },
+  { id: 18, type: 'single', q: '看深空天体最适合的月相期是：', options: ['满月周', '朔前后无月周', '上弦周', '任何时间一样'], answer: 'B', explain: '月光干扰最小，天空背景最暗。' },
+  { id: 19, type: 'single', q: '望远镜最关键的指标是：', options: ['放大倍数', '口径', '长度', '重量'], answer: 'B', explain: '口径决定集光力与分辨率。' },
+  { id: 20, type: 'single', q: '口径翻倍，集光力变为：', options: ['2 倍', '3 倍', '4 倍', '8 倍'], answer: 'C', explain: '集光力与口径的平方成正比。' },
+  { id: 21, type: 'single', q: 'Bortle 1 级的夜空意味着：', options: ['市中心', '银河能投下影子', '只能看月亮', '全云'], answer: 'B', explain: '1 级是最暗的天然夜空。' },
+  { id: 22, type: 'judge', q: '流星雨出现时，流星只会出现在辐射点附近。', options: ['正确', '错误'], answer: '错误', explain: '流星全天出现，只是轨迹反向延长交汇于辐射点。' },
+  { id: 23, type: 'judge', q: '满月时看环形山效果最好。', options: ['正确', '错误'], answer: '错误', explain: '满月对比度最低，明暗界线附近最立体。' },
+  { id: 24, type: 'judge', q: '光年是时间单位。', options: ['正确', '错误'], answer: '错误', explain: '光年是距离单位。' },
+  { id: 25, type: 'judge', q: '北极星是全天最亮的星。', options: ['正确', '错误'], answer: '错误', explain: '最亮恒星是天狼星，北极星胜在指向正北。' },
+  { id: 26, type: 'judge', q: 'ZHR 120 表示任何地点每小时必见 120 颗。', options: ['正确', '错误'], answer: '错误', explain: '那是理想条件标称值，实际受月光、光害、天气影响。' },
+  { id: 27, type: 'judge', q: '月亮背面永远背对地球，是因为月亮不自转。', options: ['正确', '错误'], answer: '错误', explain: '月亮在自转，只是自转与公转周期相同。' },
+  { id: 28, type: 'judge', q: '市中心 Bortle 9 级也能轻松看到银河。', options: ['正确', '错误'], answer: '错误', explain: '9 级夜空仅见月亮与亮行星。' },
+  { id: 29, type: 'judge', q: '观测前长时间看手机白屏不影响看星。', options: ['正确', '错误'], answer: '错误', explain: '白光会破坏暗适应，需要重新适应二三十分钟。' },
+  { id: 30, type: 'judge', q: '彗尾永远背向太阳。', options: ['正确', '错误'], answer: '正确', explain: '太阳风与光压把彗发物质推向背阳方向。' }
+];
+
+const WRONG_KEY = 'xingye.quiz.wrongbook.v1';
+let wrongBook = readLS(WRONG_KEY, []);
+if (!Array.isArray(wrongBook)) wrongBook = [];
+let quizRound = [];
+let quizIndex = 0;
+let quizAnswered = false;
+let quizAnswers = [];
+let quizStarted = false;
+let quizTimeLimit = false;
+let quizStartTime = 0;
+let questionTimer = null;
+let questionDeadline = 0;
+
+function shuffle(list) {
+  for (let i = list.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = list[i];
+    list[i] = list[j];
+    list[j] = tmp;
+  }
+  return list;
+}
+function drawRound() {
+  return shuffle(QUIZ.slice()).slice(0, 10).map(function (q) {
+    if (q.type === 'judge') {
+      return Object.assign({}, q, {
+        displayOptions: ['正确', '错误'],
+        correctIndex: q.answer === '正确' ? 0 : 1
+      });
+    }
+    const correctText = q.options[q.answer.charCodeAt(0) - 65];
+    const opts = shuffle(q.options.slice());
+    return Object.assign({}, q, {
+      displayOptions: opts,
+      correctIndex: opts.indexOf(correctText)
+    });
+  });
+}
+function optionLabel(item, index) {
+  if (item.type === 'judge') return item.displayOptions[index];
+  return String.fromCharCode(65 + index) + '. ' + item.displayOptions[index];
+}
+function formatDuration(sec) {
+  if (sec < 60) return sec + ' 秒';
+  return Math.floor(sec / 60) + ' 分 ' + (sec % 60) + ' 秒';
+}
+function startRound() {
+  quizRound = drawRound();
+  quizIndex = 0;
+  quizAnswered = false;
+  quizAnswers = [];
+  quizStarted = true;
+  quizStartTime = Date.now();
+  document.getElementById('quizStart').hidden = true;
+  document.getElementById('quizResult').hidden = true;
+  document.getElementById('quizPlay').hidden = false;
+  document.getElementById('quizProgressBar').style.width = '0%';
+  showQuestion();
+}
+function showQuestion() {
+  const item = quizRound[quizIndex];
+  quizAnswered = false;
+  const play = document.getElementById('quizPlay');
+  play.dataset.qid = item.id;
+  document.getElementById('quizProgressText').textContent = '第 ' + (quizIndex + 1) + ' / ' + quizRound.length + ' 题';
+  document.getElementById('quizProgressBar').style.width = (quizIndex / quizRound.length * 100) + '%';
+  const type = document.getElementById('qType');
+  type.textContent = item.type === 'judge' ? '判断题' : '单选题';
+  type.classList.toggle('is-judge', item.type === 'judge');
+  document.getElementById('qText').textContent = item.q;
+  document.getElementById('qOptions').innerHTML = item.displayOptions.map(function (text, i) {
+    const letter = item.type === 'judge' ? '' : '<b>' + String.fromCharCode(65 + i) + '</b>';
+    return '<button class="quiz-option" type="button" data-i="' + i + '">' + letter + '<span>' + text + '</span></button>';
+  }).join('');
+  const exp = document.getElementById('qExplain');
+  exp.hidden = true;
+  exp.innerHTML = '';
+  const next = document.getElementById('quizNext');
+  next.hidden = true;
+  next.textContent = quizIndex === quizRound.length - 1 ? '查看结算' : '下一题';
+  document.getElementById('qScore').textContent = '已答对 ' + quizAnswers.filter(function (a) { return a.correct; }).length;
+  startQuestionTimer();
+}
+function revealAnswer(item, ok, timedOut) {
+  const exp = document.getElementById('qExplain');
+  const head = timedOut ? '超时判错' : (ok ? '回答正确' : '回答错误');
+  exp.innerHTML = '<b class="' + (ok ? 'exp-ok' : 'exp-bad') + '">' + head + '</b>' +
+    '<p>正确答案：<strong>' + optionLabel(item, item.correctIndex) + '</strong></p>' +
+    '<p>' + item.explain + '</p>';
+  exp.hidden = false;
+  document.getElementById('quizNext').hidden = false;
+  document.getElementById('qScore').textContent = '已答对 ' + quizAnswers.filter(function (a) { return a.correct; }).length;
+}
+function answerQuestion(index) {
+  if (quizAnswered || !quizStarted) return;
+  quizAnswered = true;
+  stopQuestionTimer();
+  const item = quizRound[quizIndex];
+  const ok = index === item.correctIndex;
+  const chosenLabel = optionLabel(item, index);
+  quizAnswers.push({
+    id: item.id,
+    correct: ok,
+    chosenLabel: chosenLabel,
+    correctLabel: optionLabel(item, item.correctIndex),
+    q: item.q,
+    explain: item.explain
+  });
+  if (!ok) addWrongBook(item, chosenLabel);
+  const opts = document.querySelectorAll('#qOptions .quiz-option');
+  for (let k = 0; k < opts.length; k++) {
+    opts[k].disabled = true;
+    opts[k].classList.add('is-locked');
+    if (k === item.correctIndex) opts[k].classList.add('is-correct');
+    else if (k === index) opts[k].classList.add('is-wrong');
+  }
+  revealAnswer(item, ok, false);
+}
+function timeoutQuestion() {
+  if (quizAnswered || !quizStarted) return;
+  quizAnswered = true;
+  stopQuestionTimer();
+  const item = quizRound[quizIndex];
+  quizAnswers.push({
+    id: item.id,
+    correct: false,
+    chosenLabel: '超时未答',
+    correctLabel: optionLabel(item, item.correctIndex),
+    q: item.q,
+    explain: item.explain
+  });
+  addWrongBook(item, '超时未答');
+  const opts = document.querySelectorAll('#qOptions .quiz-option');
+  for (let k = 0; k < opts.length; k++) {
+    opts[k].disabled = true;
+    opts[k].classList.add('is-locked');
+    if (k === item.correctIndex) opts[k].classList.add('is-correct');
+  }
+  revealAnswer(item, false, true);
+}
+function startQuestionTimer() {
+  stopQuestionTimer();
+  const timer = document.getElementById('quizTimer');
+  if (!quizTimeLimit) {
+    timer.hidden = true;
+    return;
+  }
+  timer.hidden = false;
+  timer.classList.remove('is-urgent');
+  timer.textContent = '30s';
+  questionDeadline = Date.now() + 30000;
+  questionTimer = setInterval(function () {
+    const left = Math.max(0, Math.ceil((questionDeadline - Date.now()) / 1000));
+    timer.textContent = left + 's';
+    timer.classList.toggle('is-urgent', left <= 10);
+    if (left <= 0) {
+      stopQuestionTimer();
+      timeoutQuestion();
+    }
+  }, 200);
+}
+function stopQuestionTimer() {
+  if (questionTimer) {
+    clearInterval(questionTimer);
+    questionTimer = null;
+  }
+}
+function addWrongBook(item, chosenLabel) {
+  const entry = {
+    id: item.id,
+    q: item.q,
+    type: item.type,
+    chosen: chosenLabel,
+    correct: optionLabel(item, item.correctIndex),
+    explain: item.explain,
+    time: new Date().toISOString()
+  };
+  const idx = wrongBook.findIndex(function (w) { return w.id === item.id; });
+  if (idx >= 0) wrongBook[idx] = entry; else wrongBook.push(entry);
+  writeLS(WRONG_KEY, wrongBook);
+}
+function renderWrongBook() {
+  const count = document.getElementById('wrongCount');
+  const startCount = document.getElementById('startWrongCount');
+  if (count) count.textContent = wrongBook.length + ' 题';
+  if (startCount) startCount.textContent = wrongBook.length;
+  const box = document.getElementById('wrongBook');
+  if (!box) return;
+  if (!wrongBook.length) {
+    box.innerHTML = '<p class="clean">错题本是空的。答错的题会自动收进来。</p>';
+    return;
+  }
+  box.innerHTML = wrongBook.map(function (w) {
+    return '<article class="wrong-entry">' +
+      '<div class="we-head"><span class="we-q">' + w.q + '</span>' +
+      '<button class="we-remove" type="button" data-id="' + w.id + '">移出</button></div>' +
+      '<div class="we-meta">你的答案：' + w.chosen + ' · 正确答案：' + w.correct + '</div>' +
+      '<p class="we-exp">' + w.explain + '</p></article>';
+  }).join('');
+}
+function renderRoundWrong() {
+  const list = quizAnswers.filter(function (a) { return !a.correct; });
+  document.getElementById('roundWrongCount').textContent = list.length + ' 题';
+  const box = document.getElementById('roundWrong');
+  if (!list.length) {
+    box.innerHTML = '<p class="clean">本轮全对，没有错题。</p>';
+    return;
+  }
+  box.innerHTML = list.map(function (a, i) {
+    return '<details class="wrong-item"><summary>' +
+      '<span class="wi-title">' + (i + 1) + '. ' + a.q + '</span>' +
+      '<span class="wi-tag">你选：' + a.chosenLabel + '</span></summary>' +
+      '<div class="wi-body"><p>正确答案：<strong>' + a.correctLabel + '</strong></p>' +
+      '<p>' + a.explain + '</p></div></details>';
+  }).join('');
+}
+function finishRound() {
+  quizStarted = false;
+  stopQuestionTimer();
+  const total = quizRound.length;
+  const correct = quizAnswers.filter(function (a) { return a.correct; }).length;
+  const accuracy = Math.round(correct / total * 100);
+  const elapsed = Math.max(1, Math.round((Date.now() - quizStartTime) / 1000));
+  document.getElementById('quizPlay').hidden = true;
+  document.getElementById('quizResult').hidden = false;
+  document.getElementById('quizProgressBar').style.width = '100%';
+  document.getElementById('resultScore').textContent = correct;
+  document.getElementById('resultCorrect').textContent = correct + ' / ' + total;
+  document.getElementById('resultAccuracy').textContent = accuracy + '%';
+  document.getElementById('resultTime').textContent = formatDuration(elapsed);
+  const color = accuracy >= 80 ? '#E8B34B' : (accuracy >= 60 ? '#A8C0E8' : '#E08976');
+  const arc = document.getElementById('resultArc');
+  arc.style.stroke = color;
+  const circumference = 339.29;
+  arc.style.transition = 'none';
+  arc.style.strokeDashoffset = circumference;
+  void arc.getBoundingClientRect();
+  requestAnimationFrame(function () {
+    arc.style.transition = 'stroke-dashoffset 1.15s cubic-bezier(.22,.8,.3,1)';
+    arc.style.strokeDashoffset = (circumference * (1 - correct / total)).toFixed(2);
+  });
+  renderRoundWrong();
+  renderWrongBook();
+  const result = document.getElementById('quizResult');
+  if (result.scrollIntoView) result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function initQuizPage() {
+  renderWrongBook();
+  document.getElementById('quizStartBtn').addEventListener('click', startRound);
+  document.getElementById('quizAgain').addEventListener('click', startRound);
+  document.getElementById('qOptions').addEventListener('click', function (event) {
+    const btn = event.target.closest('.quiz-option');
+    if (btn) answerQuestion(Number(btn.dataset.i));
+  });
+  document.getElementById('quizNext').addEventListener('click', function () {
+    if (!quizAnswered) return;
+    if (quizIndex < quizRound.length - 1) {
+      quizIndex += 1;
+      showQuestion();
+    } else {
+      finishRound();
+    }
+  });
+  document.getElementById('quizLimit').addEventListener('change', function (event) {
+    quizTimeLimit = event.target.checked;
+    if (quizStarted && !quizAnswered && !document.getElementById('quizPlay').hidden) {
+      startQuestionTimer();
+    } else {
+      stopQuestionTimer();
+      document.getElementById('quizTimer').hidden = true;
+    }
+  });
+  document.getElementById('wrongBook').addEventListener('click', function (event) {
+    const btn = event.target.closest('.we-remove');
+    if (btn) {
+      const id = Number(btn.dataset.id);
+      wrongBook = wrongBook.filter(function (w) { return w.id !== id; });
+      writeLS(WRONG_KEY, wrongBook);
+      renderWrongBook();
+    }
+  });
+  document.getElementById('wrongClear').addEventListener('click', function () {
+    wrongBook = [];
+    writeLS(WRONG_KEY, wrongBook);
+    renderWrongBook();
+  });
+}
+
+/* ================= 观测手记 ================= */
+const LOG_KEY = 'xingye_logs';
+let logs = readLS(LOG_KEY, []);
+if (!Array.isArray(logs)) logs = [];
+let selectedLogIds = new Set(logs.map(function (log) { return String(log.id); }));
+
+const MISSIONS = [
+  {
+    icon: 'moon',
+    title: '追一次满月',
+    goal: '在满月前后完整观测一次月亮，记录月面特征。',
+    criteria: '在月相实验室选到照亮比 ≥95% 的日期，并在手记里写下至少三处月面特征（环形山或月海）。'
+  },
+  {
+    icon: 'meteor',
+    title: '守一场流星雨',
+    goal: '在流星雨极大前后守候一场流星雨。',
+    criteria: '在流星雨年历找到下一场，记录极大日期、辐射点与实际看到的流星数量。'
+  },
+  {
+    icon: 'sign',
+    title: '认全四季招牌星座',
+    goal: '认全狮子座、天鹅座、飞马座、猎户座四个当季招牌。',
+    criteria: '在星座学堂能不看提示指出四张星图的名称、最亮星与寻找方法。'
+  }
+];
+
+function escapeHTML(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+let toastTimer = null;
+function showToast(message) {
+  const old = document.querySelector('.toast');
+  if (old) old.remove();
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = message;
+  document.body.appendChild(el);
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () {
+    el.remove();
+    toastTimer = null;
+  }, 2200);
+}
+function sortedLogs() {
+  return logs.slice().sort(function (a, b) {
+    const byDate = String(b.date || '').localeCompare(String(a.date || ''));
+    if (byDate !== 0) return byDate;
+    return String(b.createdAt || '').localeCompare(String(a.createdAt || ''));
+  });
+}
+function excerpt(text, max) {
+  const clean = String(text || '').replace(/\s+/g, ' ').trim();
+  return clean.length > max ? clean.slice(0, max) + '…' : clean;
+}
+function renderMissions() {
+  document.getElementById('missionGrid').innerHTML = MISSIONS.map(function (m, i) {
+    return '<article class="mission-card">' +
+      '<span class="mission-num">' + pad2(i + 1) + '</span>' +
+      '<div class="mission-head"><svg class="mission-icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">' +
+      TARGET_ICONS[m.icon] + '</svg><h4>' + m.title + '</h4></div>' +
+      '<p class="mission-goal"><span class="mission-label">目标</span>' + m.goal + '</p>' +
+      '<p class="mission-done"><span class="mission-label">完成判据</span>' + m.criteria + '</p>' +
+      '</article>';
+  }).join('');
+}
+function renderLogs() {
+  const list = sortedLogs();
+  document.getElementById('logCount').textContent = list.length + ' 条';
+  const box = document.getElementById('logList');
+  if (!list.length) {
+    box.innerHTML = '<p class="log-empty">还没有手记。填好左侧表单，保存第一条今晚的星空。</p>';
+    return;
+  }
+  box.innerHTML = list.map(function (log) {
+    const id = escapeHTML(log.id);
+    const checked = selectedLogIds.has(String(log.id)) ? ' checked' : '';
+    const indexHtml = log.index == null
+      ? '<span class="log-index">指数未填</span>'
+      : '<span class="log-index">指数 ' + escapeHTML(log.index) + '</span>';
+    return '<article class="log-item" data-id="' + id + '">' +
+      '<div class="log-item-head">' +
+      '<label class="log-check-wrap"><input type="checkbox" class="log-check" data-id="' + id + '"' + checked + ' aria-label="选入报告"></label>' +
+      '<span class="log-date">' + escapeHTML(log.date) + '</span>' +
+      '<span class="log-target">' + escapeHTML(log.target) + '</span>' +
+      indexHtml +
+      '<button type="button" class="log-del" data-id="' + id + '">删除</button>' +
+      '</div>' +
+      '<span class="log-place">地点：' + escapeHTML(log.place || '未填') + '</span>' +
+      '<p class="log-excerpt">' + escapeHTML(excerpt(log.notes, 80) || '（未填所见记录）') + '</p>' +
+      (log.feeling ? '<p class="log-feeling">“' + escapeHTML(log.feeling) + '”</p>' : '') +
+      '</article>';
+  }).join('');
+}
+function updateSelectAllLabel() {
+  const btn = document.getElementById('logSelectAll');
+  if (!btn) return;
+  const all = logs.map(function (log) { return String(log.id); });
+  const allSelected = all.length > 0 && all.every(function (id) { return selectedLogIds.has(id); });
+  btn.textContent = allSelected ? '全不选' : '全选';
+}
+function buildReport(selected) {
+  const lines = [];
+  lines.push('# 我的观星手记报告');
+  lines.push('');
+  lines.push('生成日期：' + toDateValue(startOfToday()));
+  lines.push('');
+  if (!selected.length) {
+    lines.push('（尚未勾选手记）');
+    lines.push('');
+  }
+  selected.forEach(function (log, i) {
+    const notes = String(log.notes || '未填').replace(/\n/g, '\n  ');
+    lines.push('## ' + (i + 1) + '. ' + log.date + ' · ' + log.target);
+    lines.push('');
+    lines.push('- 观测日期：' + log.date);
+    lines.push('- 观测目标：' + log.target);
+    lines.push('- 观测地点：' + (log.place || '未填'));
+    lines.push('- 今晚指数：' + (log.index == null ? '未填' : log.index + ' 分'));
+    lines.push('- 所见记录：' + notes);
+    lines.push('- 心得：' + (log.feeling || '—'));
+    lines.push('');
+  });
+  lines.push('---');
+  lines.push('');
+  lines.push('观测是天文学的起点——先抬头，再记录，然后理解。');
+  return lines.join('\n');
+}
+function renderReport() {
+  const selected = sortedLogs().filter(function (log) {
+    return selectedLogIds.has(String(log.id));
+  });
+  document.getElementById('reportPrint').textContent = buildReport(selected);
+}
+function resetLogForm() {
+  document.getElementById('logDate').value = toDateValue(startOfToday());
+  document.getElementById('logTarget').value = '';
+  document.getElementById('logPlace').value = '';
+  document.getElementById('logIndex').value = '';
+  document.getElementById('logNotes').value = '';
+  document.getElementById('logFeeling').value = '';
+  document.getElementById('logIndexHint').textContent = '点击可读取规划页最近一次计算结果；取不到请手填。';
+}
+function saveLog(event) {
+  if (event) event.preventDefault();
+  const target = document.getElementById('logTarget').value.trim();
+  if (!target) {
+    showToast('请先填写观测目标');
+    document.getElementById('logTarget').focus();
+    return;
+  }
+  const indexRaw = document.getElementById('logIndex').value.trim();
+  let index = null;
+  if (indexRaw !== '') {
+    const num = Number(indexRaw);
+    if (Number.isFinite(num)) index = Math.max(0, Math.min(100, Math.round(num)));
+  }
+  const log = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    date: document.getElementById('logDate').value || toDateValue(startOfToday()),
+    target: target,
+    place: document.getElementById('logPlace').value.trim(),
+    index: index,
+    notes: document.getElementById('logNotes').value,
+    feeling: document.getElementById('logFeeling').value.trim(),
+    createdAt: new Date().toISOString()
+  };
+  logs.push(log);
+  selectedLogIds.add(String(log.id));
+  writeLS(LOG_KEY, logs);
+  renderLogs();
+  renderReport();
+  updateSelectAllLabel();
+  resetLogForm();
+  showToast('手记已保存到本机');
+}
+function pullPlanIndex() {
+  try {
+    if (typeof computePlan !== 'function' || typeof computeMoon !== 'function' || typeof planDate === 'undefined') {
+      throw new Error('no-plan');
+    }
+    const moon = computeMoon(planDate);
+    const score = computePlan(Math.round(moon.illum));
+    document.getElementById('logIndex').value = score.total;
+    document.getElementById('logIndexHint').textContent =
+      '已带入规划页 ' + toDateValue(planDate) + ' · ' + score.total + ' 分 · ' + score.grade;
+  } catch (e) {
+    document.getElementById('logIndexHint').textContent = '暂未取到规划结果，请手填今晚指数';
+  }
+}
+async function copyReport() {
+  const text = document.getElementById('reportPrint').textContent;
+  let ok = false;
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      ok = true;
+    }
+  } catch (e) {
+    ok = false;
+  }
+  if (!ok) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+    } catch (e) {
+      ok = false;
+    }
+  }
+  showToast(ok ? '报告已复制到剪贴板' : '复制失败，请手动选择报告文本');
+}
+function initJournalPage() {
+  document.getElementById('logDate').value = toDateValue(startOfToday());
+  renderMissions();
+  renderLogs();
+  renderReport();
+  updateSelectAllLabel();
+
+  document.getElementById('logForm').addEventListener('submit', saveLog);
+  document.getElementById('logIndexPull').addEventListener('click', pullPlanIndex);
+
+  document.getElementById('logList').addEventListener('change', function (event) {
+    const cb = event.target.closest('.log-check');
+    if (!cb) return;
+    const id = String(cb.dataset.id);
+    if (cb.checked) selectedLogIds.add(id); else selectedLogIds.delete(id);
+    updateSelectAllLabel();
+    renderReport();
+  });
+  document.getElementById('logList').addEventListener('click', function (event) {
+    const del = event.target.closest('.log-del');
+    if (!del) return;
+    const id = String(del.dataset.id);
+    logs = logs.filter(function (log) { return String(log.id) !== id; });
+    selectedLogIds.delete(id);
+    writeLS(LOG_KEY, logs);
+    renderLogs();
+    renderReport();
+    updateSelectAllLabel();
+    showToast('已删除这条手记');
+  });
+  document.getElementById('logSelectAll').addEventListener('click', function () {
+    const all = logs.map(function (log) { return String(log.id); });
+    const allSelected = all.length > 0 && all.every(function (id) { return selectedLogIds.has(id); });
+    if (allSelected) all.forEach(function (id) { selectedLogIds.delete(id); });
+    else all.forEach(function (id) { selectedLogIds.add(id); });
+    renderLogs();
+    renderReport();
+    updateSelectAllLabel();
+  });
+  document.getElementById('logClear').addEventListener('click', function () {
+    if (!logs.length) {
+      showToast('手记列表已经是空的');
+      return;
+    }
+    logs = [];
+    selectedLogIds.clear();
+    writeLS(LOG_KEY, []);
+    renderLogs();
+    renderReport();
+    updateSelectAllLabel();
+    showToast('手记已清空');
+  });
+  document.getElementById('reportCopy').addEventListener('click', copyReport);
+  document.getElementById('reportPrintBtn').addEventListener('click', function () {
+    window.print();
+  });
+}
+
+/* ================= 页签导航 ================= */
+let currentTab = 'home';
+let skyUpdateRun = null;
+function switchTab(id) {
+  if (!document.getElementById('panel-' + id)) return;
+  currentTab = id;
+  const tabs = document.querySelectorAll('.tab');
+  for (let i = 0; i < tabs.length; i++) {
+    const active = tabs[i].dataset.tab === id;
+    tabs[i].classList.toggle('is-active', active);
+    tabs[i].setAttribute('aria-selected', active ? 'true' : 'false');
+  }
+  const panels = document.querySelectorAll('.panel');
+  for (let i = 0; i < panels.length; i++) {
+    panels[i].classList.toggle('is-active', panels[i].id === 'panel-' + id);
+  }
+  const current = document.querySelector('.tab[data-tab="' + id + '"]');
+  if (current) current.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  if (id === 'home') renderHome();
+  if (skyUpdateRun) skyUpdateRun();
+  window.scrollTo(0, 0);
+}
+
+function initTabs() {
+  document.querySelector('.tab-scroll').addEventListener('click', function (event) {
+    const tab = event.target.closest('.tab');
+    if (tab) switchTab(tab.dataset.tab);
+  });
+  document.getElementById('guideGrid').addEventListener('click', function (event) {
+    const card = event.target.closest('.guide-card');
+    if (card) switchTab(card.dataset.tab);
+  });
+}
+
+/* ================= Canvas 星空 ================= */
+function initSky() {
+  const canvas = document.getElementById('skyCanvas');
+  if (!canvas) return null;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const STAR_COUNT = 170;
+  let w = 0, h = 0, dpr = 1;
+  let stars = [], meteors = [];
+  let raf = null, last = 0, inView = true, timer = null;
+  let resizeTimer = null;
+  let bgCanvas = null, bgCtx = null;
+
+  function makeStars() {
+    stars = [];
+    for (let i = 0; i < STAR_COUNT; i++) {
+      const roll = Math.random();
+      stars.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: 0.35 + Math.random() * 1.25,
+        base: 0.2 + Math.random() * 0.5,
+        amp: 0.12 + Math.random() * 0.4,
+        speed: 0.0005 + Math.random() * 0.0015,
+        phase: Math.random() * Math.PI * 2,
+        color: roll < 0.1 ? '#A8C0E8' : (roll < 0.17 ? '#E8B34B' : '#E9EEF7')
+      });
+    }
+  }
+
+  function buildBackground() {
+    if (!w || !h) return;
+    bgCanvas = document.createElement('canvas');
+    bgCanvas.width = Math.round(w * dpr);
+    bgCanvas.height = Math.round(h * dpr);
+    bgCtx = bgCanvas.getContext('2d');
+    if (!bgCtx) return;
+    bgCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    bgCtx.save();
+    bgCtx.translate(w / 2, h / 2);
+    bgCtx.rotate(-0.38);
+    const band = bgCtx.createLinearGradient(0, -h * 0.55, 0, h * 0.55);
+    band.addColorStop(0, 'rgba(168,192,232,0)');
+    band.addColorStop(0.3, 'rgba(168,192,232,0.05)');
+    band.addColorStop(0.5, 'rgba(214,226,250,0.13)');
+    band.addColorStop(0.7, 'rgba(168,192,232,0.05)');
+    band.addColorStop(1, 'rgba(168,192,232,0)');
+    bgCtx.fillStyle = band;
+    bgCtx.fillRect(-w, -h * 0.26, w * 2, h * 0.52);
+    for (let i = 0; i < 46; i++) {
+      const bx = -w + Math.random() * w * 2;
+      const by = -h * 0.2 + Math.random() * h * 0.4;
+      bgCtx.globalAlpha = 0.02 + Math.random() * 0.06;
+      bgCtx.fillStyle = '#DCE7F8';
+      bgCtx.beginPath();
+      bgCtx.arc(bx, by, 1 + Math.random() * 2.4, 0, Math.PI * 2);
+      bgCtx.fill();
+    }
+    bgCtx.restore();
+    bgCtx.globalAlpha = 1;
+    const nebulas = [
+      { x: w * 0.76, y: h * 0.22, r: h * 0.32, c: 'rgba(122,102,196,0.16)', c2: 'rgba(122,102,196,0)' },
+      { x: w * 0.18, y: h * 0.76, r: h * 0.36, c: 'rgba(232,179,75,0.08)', c2: 'rgba(232,179,75,0)' }
+    ];
+    nebulas.forEach(function (n) {
+      const g = bgCtx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
+      g.addColorStop(0, n.c);
+      g.addColorStop(0.55, 'rgba(168,192,232,0.03)');
+      g.addColorStop(1, n.c2);
+      bgCtx.fillStyle = g;
+      bgCtx.beginPath();
+      bgCtx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+      bgCtx.fill();
+    });
+  }
+
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width < 2 || rect.height < 2) return;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    w = rect.width;
+    h = rect.height;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    buildBackground();
+    makeStars();
+    meteors = [];
+    if (reduceMotion) paint(0, false, 1);
+  }
+
+  function spawnMeteor() {
+    if (meteors.length >= 2 || !w || !h) return;
+    const fromLeft = Math.random() < 0.5;
+    const speed = 4.6 + Math.random() * 2.2;
+    const angle = (fromLeft ? 0.23 : 0.77) * Math.PI + (Math.random() - 0.5) * 0.16;
+    meteors.push({
+      x: w * (fromLeft ? 0.12 + Math.random() * 0.3 : 0.5 + Math.random() * 0.42),
+      y: h * (0.05 + Math.random() * 0.24),
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      len: 90 + Math.random() * 90,
+      life: 0,
+      max: 62 + Math.random() * 26
+    });
+  }
+
+  function scheduleMeteor() {
+    timer = setTimeout(function () {
+      if (inView && currentTab === 'home' && !document.hidden) spawnMeteor();
+      scheduleMeteor();
+    }, 3400 + Math.random() * 2800);
+  }
+
+  function paint(now, animate, step) {
+    ctx.clearRect(0, 0, w, h);
+    if (bgCanvas) ctx.drawImage(bgCanvas, 0, 0, w, h);
+    for (let i = 0; i < stars.length; i++) {
+      const s = stars[i];
+      const twinkle = animate ? 0.5 + 0.5 * Math.sin(s.phase + now * s.speed) : 0.7;
+      ctx.globalAlpha = Math.min(1, s.base + s.amp * twinkle);
+      ctx.fillStyle = s.color;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    if (!animate) return;
+    for (let i = meteors.length - 1; i >= 0; i--) {
+      const m = meteors[i];
+      m.x += m.vx * step;
+      m.y += m.vy * step;
+      m.life += step;
+      if (m.life > m.max || m.x < -220 || m.x > w + 220 || m.y > h + 60) {
+        meteors.splice(i, 1);
+        continue;
+      }
+      const mag = Math.hypot(m.vx, m.vy) || 1;
+      const tailX = m.x - m.vx / mag * m.len;
+      const tailY = m.y - m.vy / mag * m.len;
+      const fade = Math.min(1, m.life / 6) * Math.min(1, (m.max - m.life) / 18);
+      const grad = ctx.createLinearGradient(m.x, m.y, tailX, tailY);
+      grad.addColorStop(0, 'rgba(255,248,225,' + fade + ')');
+      grad.addColorStop(0.18, 'rgba(232,179,75,' + fade * 0.75 + ')');
+      grad.addColorStop(1, 'rgba(168,192,232,0)');
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 1.8;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(m.x, m.y);
+      ctx.lineTo(tailX, tailY);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(255,248,225,' + fade + ')';
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function frame(now) {
+    raf = requestAnimationFrame(frame);
+    if (document.hidden) return;
+    if (!last) last = now;
+    if (now - last < 33) return;
+    const step = Math.min(2.4, (now - last) / 33.3);
+    last = now;
+    paint(now, true, step);
+  }
+
+  function shouldRun() {
+    return inView && currentTab === 'home' && !document.hidden && !reduceMotion;
+  }
+
+  function updateRun() {
+    if (shouldRun()) {
+      if (!raf) {
+        last = 0;
+        raf = requestAnimationFrame(frame);
+      }
+    } else if (raf) {
+      cancelAnimationFrame(raf);
+      raf = null;
+    }
+  }
+
+  resize();
+  window.addEventListener('load', resize);
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      resize();
+      updateRun();
+    }, 160);
+  });
+  document.addEventListener('visibilitychange', updateRun);
+
+  if (typeof IntersectionObserver === 'function') {
+    const observer = new IntersectionObserver(function (entries) {
+      inView = entries[0].isIntersecting;
+      updateRun();
+    }, { threshold: 0.01 });
+    observer.observe(canvas);
+  }
+
+  if (reduceMotion) {
+    paint(0, false, 1);
+  } else {
+    setTimeout(spawnMeteor, 900);
+    setTimeout(spawnMeteor, 1700);
+    scheduleMeteor();
+    updateRun();
+  }
+
+  return { updateRun: updateRun };
+}
+
+/* ================= 初始化 ================= */
+renderHome();
+renderGuide();
+initTabs();
+initMoonLab();
+initMeteorPage();
+initPlanPage();
+initConstellationPage();
+initKnowledgePage();
+initQuizPage();
+initJournalPage();
+initScenes();
+const sky = initSky();
+skyUpdateRun = sky ? sky.updateRun : null;
+</script>
+</body>
+</html>
