@@ -1,0 +1,5396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="行旅小智——山野出行规划与安全助手：地形天气知识库、出行风险诊断、行程单生成与安全自测。">
+<meta name="theme-color" content="#FBF7F0">
+<title>行旅小智 · 山野出行规划与安全助手</title>
+<style>
+  :root{
+    --bg:#FBF7F0;
+    --surface:#FFFFFF;
+    --ink:#1D2421;
+    --body:#3B423D;
+    --muted:#6E736D;
+    --green:#2E6B5B;
+    --green-soft:#E7EFEA;
+    --green-line:rgba(46,107,91,.28);
+    --clay:#C8853A;
+    --clay-soft:#F7ECDD;
+    --surface-soft:#FCFAF6;
+    --paper-bright:#FFFDF8;
+    --paper-warm:#FBFAF6;
+    --track:#F0ECE3;
+    --danger:#A83A2C;
+    --danger-line:#B14636;
+    --danger-soft:#F9E8E4;
+    --clay-ink:#7A5423;
+    --line:rgba(29,36,33,.10);
+    --shadow:0 18px 44px -30px rgba(29,36,33,.45);
+    --shadow-lift:0 26px 60px -34px rgba(29,36,33,.5);
+    --radius-xl:30px;
+    --radius-lg:24px;
+    --ease:.3s cubic-bezier(.4,0,.2,1);
+  }
+
+  *,*::before,*::after{box-sizing:border-box}
+
+  html{scroll-behavior:smooth}
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"HarmonyOS Sans SC","HarmonyOS Sans","PingFang SC","Microsoft YaHei",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  button,input{font:inherit}
+  button{color:inherit}
+
+  :focus-visible{outline:2px solid var(--green);outline-offset:3px}
+
+  /* ---------- 顶栏 ---------- */
+  .topbar{
+    position:sticky;
+    top:0;
+    z-index:40;
+    background:rgba(251,247,240,.86);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    border-bottom:1px solid var(--line);
+  }
+
+  .topbar-inner{
+    max-width:1080px;
+    margin:0 auto;
+    padding:12px clamp(16px,4vw,32px);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+  }
+
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:11px;
+    min-width:0;
+  }
+
+  .brand-mark{
+    width:38px;
+    height:38px;
+    flex:none;
+    border-radius:12px;
+    background:var(--green);
+    display:grid;
+    place-items:center;
+    color:#fff;
+    box-shadow:0 8px 18px -10px rgba(46,107,91,.8);
+  }
+
+  .brand-mark svg{width:22px;height:22px}
+
+  .brand-text{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+  .brand-name{font-size:16px;font-weight:700;letter-spacing:.02em}
+  .brand-sub{font-size:11px;color:var(--muted);letter-spacing:.08em}
+
+  .topbar-badge{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex:none;
+    font-size:11px;
+    color:var(--green);
+    background:var(--green-soft);
+    border-radius:999px;
+    padding:6px 11px;
+    white-space:nowrap;
+  }
+
+  .topbar-badge::before{
+    content:"";
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:var(--green);
+  }
+
+  /* ---------- 主容器 ---------- */
+  main{
+    max-width:1080px;
+    margin:0 auto;
+    padding:clamp(16px,3vw,28px) clamp(16px,4vw,32px) calc(132px + env(safe-area-inset-bottom));
+  }
+
+  .view{display:none}
+  .view.active{display:block;animation:rise .38s cubic-bezier(.2,.7,.3,1) both}
+
+  @keyframes rise{
+    from{opacity:0;transform:translateY(10px)}
+    to{opacity:1;transform:none}
+  }
+
+  /* ---------- 首页 ---------- */
+  .hero{
+    position:relative;
+    overflow:hidden;
+    margin-top:4px;
+    padding:clamp(28px,5vw,60px);
+    border-radius:38px;
+    background:linear-gradient(158deg,var(--paper-bright) 0%,#F4EEE2 100%);
+    border:1px solid rgba(200,133,58,.18);
+    box-shadow:var(--shadow);
+  }
+
+  .hero-art{
+    position:absolute;
+    right:-18px;
+    bottom:-6px;
+    width:min(46%,440px);
+    height:auto;
+    pointer-events:none;
+  }
+
+  .hero-mobile-art{display:none}
+  .hero-mobile-art svg{display:block;width:100%;height:auto}
+
+  .hero-inner{position:relative;z-index:1;max-width:620px}
+
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:9px;
+    margin:0 0 18px;
+    font-size:11.5px;
+    font-weight:600;
+    letter-spacing:.2em;
+    color:var(--clay);
+  }
+
+  .eyebrow::before{
+    content:"";
+    width:26px;
+    height:1px;
+    background:var(--clay);
+  }
+
+  .hero h1{
+    margin:0;
+    font-size:clamp(44px,9vw,84px);
+    line-height:.98;
+    letter-spacing:-.045em;
+    font-weight:800;
+  }
+
+  .hero-sub{
+    margin:14px 0 0;
+    font-size:clamp(18px,2.6vw,26px);
+    font-weight:600;
+    letter-spacing:.01em;
+    color:var(--green);
+  }
+
+  .hero-desc{
+    margin:16px 0 26px;
+    max-width:46ch;
+    font-size:14.5px;
+    line-height:1.8;
+    color:var(--muted);
+  }
+
+  .btn-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:15px 26px;
+    border:0;
+    border-radius:999px;
+    background:var(--ink);
+    color:#fff;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    transition:background var(--ease),transform var(--ease),box-shadow var(--ease);
+    box-shadow:0 16px 30px -20px rgba(29,36,33,.9);
+  }
+
+  .btn-pill:hover{background:var(--green);transform:translateY(-2px);box-shadow:0 20px 36px -20px rgba(46,107,91,.8)}
+  .btn-pill:active{transform:translateY(0)}
+  .btn-pill svg{width:17px;height:17px}
+
+  .section-gap{margin-top:clamp(26px,4vw,42px)}
+
+  .features{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:14px;
+  }
+
+  @media (max-width:620px){
+    .features{grid-template-columns:1fr}
+  }
+
+  .feature{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    min-height:184px;
+    padding:24px;
+    text-align:left;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:26px;
+    cursor:pointer;
+    transition:transform var(--ease),border-color var(--ease),box-shadow var(--ease);
+    box-shadow:var(--shadow);
+  }
+
+  .feature:hover{
+    transform:translateY(-4px);
+    border-color:var(--green-line);
+    box-shadow:var(--shadow-lift);
+  }
+
+  .feature-no{
+    font-size:11.5px;
+    font-weight:700;
+    letter-spacing:.22em;
+    color:var(--clay);
+  }
+
+  .feature h3{
+    margin:0;
+    font-size:22px;
+    letter-spacing:-.02em;
+  }
+
+  .feature p{
+    margin:0;
+    font-size:13.5px;
+    line-height:1.7;
+    color:var(--muted);
+  }
+
+  .feature .go{
+    margin-top:auto;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--green);
+  }
+
+  .feature .go svg{width:14px;height:14px;transition:transform var(--ease)}
+  .feature:hover .go svg{transform:translateX(4px)}
+
+  .four{
+    padding:clamp(22px,4vw,36px);
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-xl);
+    box-shadow:var(--shadow);
+  }
+
+  .four-head{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:10px;
+  }
+
+  .four-head h2{
+    margin:0;
+    font-size:clamp(22px,3vw,28px);
+    letter-spacing:-.02em;
+  }
+
+  .four-head span{
+    font-size:12px;
+    color:var(--muted);
+    letter-spacing:.08em;
+  }
+
+  .four-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    gap:22px 24px;
+    margin-top:24px;
+  }
+
+  .four-item{display:flex;gap:13px;align-items:flex-start}
+
+  .four-dot{
+    flex:none;
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    background:var(--green-soft);
+    color:var(--green);
+    font-size:12px;
+    font-weight:700;
+  }
+
+  .four-item h4{margin:2px 0 4px;font-size:16px;letter-spacing:-.01em}
+  .four-item p{margin:0;font-size:13.5px;line-height:1.65;color:var(--muted)}
+
+  /* ---------- 页标题 ---------- */
+  .page-head{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:12px;
+    margin:10px 0 22px;
+  }
+
+  .page-head h2{
+    margin:0;
+    font-size:clamp(30px,5vw,44px);
+    letter-spacing:-.035em;
+    line-height:1.1;
+  }
+
+  .page-head p{
+    margin:8px 0 0;
+    font-size:14px;
+    color:var(--muted);
+  }
+
+  .page-count{
+    font-size:12.5px;
+    color:var(--green);
+    background:var(--green-soft);
+    border-radius:999px;
+    padding:7px 13px;
+    white-space:nowrap;
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* ---------- 知识库工具区 ---------- */
+  .kb-tools{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    min-width:0;
+    margin-bottom:20px;
+  }
+
+  .search{
+    position:relative;
+    display:flex;
+    align-items:center;
+    min-width:0;
+  }
+
+  .search-icon{
+    position:absolute;
+    left:19px;
+    width:18px;
+    height:18px;
+    color:var(--muted);
+    pointer-events:none;
+  }
+
+  .search input{
+    width:100%;
+    height:54px;
+    padding:0 54px 0 50px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:var(--surface);
+    color:var(--ink);
+    font-size:15px;
+    -webkit-appearance:none;
+    appearance:none;
+    transition:border-color var(--ease),box-shadow var(--ease);
+    box-shadow:var(--shadow);
+  }
+
+  .search input::-webkit-search-cancel-button,
+  .search input::-webkit-search-decoration{
+    -webkit-appearance:none;
+    appearance:none;
+  }
+
+  .search input::placeholder{color:#8E938C}
+
+  .search input:focus{
+    outline:none;
+    border-color:var(--green);
+    box-shadow:0 0 0 4px rgba(46,107,91,.12);
+  }
+
+  .search-clear{
+    position:absolute;
+    right:10px;
+    width:34px;
+    height:34px;
+    display:grid;
+    place-items:center;
+    border:0;
+    border-radius:50%;
+    background:var(--green-soft);
+    color:var(--green);
+    cursor:pointer;
+    transition:background var(--ease),transform var(--ease);
+  }
+
+  .search-clear:hover{background:#D8E6DE;transform:scale(1.05)}
+  .search-clear[hidden]{display:none}
+  .search-clear svg{width:14px;height:14px}
+
+  .chips{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding:2px 2px 6px;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .chips::-webkit-scrollbar{display:none}
+
+  .chip{
+    flex:none;
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    padding:9px 15px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:var(--surface);
+    color:var(--body);
+    font-size:13px;
+    font-weight:500;
+    cursor:pointer;
+    transition:background var(--ease),color var(--ease),border-color var(--ease),transform var(--ease);
+    white-space:nowrap;
+  }
+
+  .chip:hover{border-color:var(--green-line);transform:translateY(-1px)}
+
+  .chip[aria-pressed="true"]{
+    background:var(--ink);
+    border-color:var(--ink);
+    color:#fff;
+  }
+
+  .chip-count{
+    font-size:11px;
+    font-variant-numeric:tabular-nums;
+    opacity:.62;
+  }
+
+  /* ---------- 知识卡片 ---------- */
+  .k-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+    gap:14px;
+    min-width:0;
+  }
+
+  .k-grid[hidden]{display:none}
+
+  .k-card{
+    display:flex;
+    flex-direction:column;
+    gap:11px;
+    padding:22px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow);
+    transition:transform var(--ease),border-color var(--ease),box-shadow var(--ease);
+  }
+
+  .k-card:hover{
+    transform:translateY(-3px);
+    border-color:var(--green-line);
+    box-shadow:var(--shadow-lift);
+  }
+
+  .k-meta{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+
+  .k-no{
+    font-size:11.5px;
+    letter-spacing:.18em;
+    color:var(--muted);
+    font-variant-numeric:tabular-nums;
+  }
+
+  .k-cat{
+    font-size:11.5px;
+    font-weight:600;
+    color:var(--green);
+    background:var(--green-soft);
+    border-radius:999px;
+    padding:4px 10px;
+    white-space:nowrap;
+  }
+
+  .k-title{
+    margin:0;
+    font-size:19px;
+    line-height:1.35;
+    letter-spacing:-.015em;
+  }
+
+  .k-point{
+    margin:0;
+    font-size:14.5px;
+    line-height:1.75;
+    color:var(--body);
+  }
+
+  .k-confuse{
+    margin:2px 0 0;
+    padding:10px 13px;
+    font-size:13px;
+    line-height:1.65;
+    color:var(--clay-ink);
+    background:var(--clay-soft);
+    border-left:3px solid var(--clay);
+    border-radius:0 12px 12px 0;
+  }
+
+  .empty{
+    padding:54px 24px;
+    text-align:center;
+    background:var(--surface);
+    border:1px dashed var(--green-line);
+    border-radius:var(--radius-lg);
+  }
+
+  .empty[hidden]{display:none}
+  .empty h3{margin:0 0 6px;font-size:18px}
+  .empty p{margin:0;font-size:13.5px;color:var(--muted)}
+
+  /* ---------- 出行诊断 ---------- */
+  .diag-layout{
+    display:grid;
+    grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);
+    gap:16px;
+    align-items:start;
+  }
+
+  .diag-form{
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+    min-width:0;
+    padding:clamp(18px,3vw,26px);
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-xl);
+    box-shadow:var(--shadow);
+  }
+
+  .diag-form-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+  }
+
+  .diag-form-head h3{
+    margin:0;
+    font-size:19px;
+    letter-spacing:-.02em;
+  }
+
+  .diag-form-head p{
+    margin:5px 0 0;
+    font-size:12.5px;
+    color:var(--muted);
+  }
+
+  .text-btn{
+    flex:none;
+    padding:6px 2px;
+    border:0;
+    background:transparent;
+    color:var(--green);
+    font-size:12px;
+    font-weight:600;
+    cursor:pointer;
+    text-decoration:underline;
+    text-underline-offset:3px;
+    transition:color var(--ease);
+  }
+
+  .text-btn:hover{color:var(--clay)}
+
+  .diag-groups{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+  }
+
+  .diag-group{
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+    min-width:0;
+  }
+
+  .diag-group-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:8px;
+  }
+
+  .diag-label{font-size:14.5px;font-weight:700}
+  .diag-hint{font-size:10px;color:var(--muted);letter-spacing:.1em}
+
+  .diag-options{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+  }
+
+  .diag-opt{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    min-width:0;
+    padding:11px 12px;
+    border:1px solid var(--line);
+    border-radius:14px;
+    background:var(--surface-soft);
+    font-size:13px;
+    font-weight:500;
+    text-align:left;
+    cursor:pointer;
+    transition:border-color var(--ease),background var(--ease),color var(--ease),transform var(--ease);
+  }
+
+  .diag-opt:hover{border-color:var(--green-line);transform:translateY(-1px)}
+
+  .diag-opt[aria-pressed="true"]{
+    border-color:var(--green);
+    background:var(--green-soft);
+    color:#225246;
+    box-shadow:inset 0 0 0 1px var(--green);
+  }
+
+  .opt-label{min-width:0;overflow-wrap:break-word}
+
+  .opt-score{
+    flex:none;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:24px;
+    height:21px;
+    padding:0 6px;
+    border-radius:999px;
+    background:rgba(29,36,33,.06);
+    color:var(--muted);
+    font-size:10.5px;
+    font-variant-numeric:tabular-nums;
+    transition:background var(--ease),color var(--ease);
+  }
+
+  .diag-opt[aria-pressed="true"] .opt-score{background:var(--green);color:#fff}
+
+  .diag-result{
+    --tier:#2E6B5B;
+    --tier-soft:#E7EFEA;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    min-width:0;
+    padding:clamp(18px,3vw,26px);
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-xl);
+    box-shadow:var(--shadow-lift);
+  }
+
+  .diag-result[data-tier="mid"]{--tier:#5F7A24;--tier-soft:#EEF2DE}
+  .diag-result[data-tier="hard"]{--tier:#A9671F;--tier-soft:#F7E9D8}
+  .diag-result[data-tier="high"]{--tier:var(--danger);--tier-soft:#F8E5E1}
+
+  .score-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+  }
+
+  .score-cap{
+    margin:0;
+    font-size:10.5px;
+    letter-spacing:.16em;
+    color:var(--muted);
+  }
+
+  .score-big{
+    margin:5px 0 0;
+    font-size:clamp(46px,7vw,58px);
+    line-height:1;
+    font-weight:800;
+    letter-spacing:-.05em;
+    color:var(--tier);
+    font-variant-numeric:tabular-nums;
+    transition:color var(--ease);
+  }
+
+  .score-big small{
+    font-size:17px;
+    font-weight:600;
+    letter-spacing:0;
+    color:var(--muted);
+  }
+
+  .score-big.is-bump{animation:score-bump .36s ease}
+
+  @keyframes score-bump{
+    0%{transform:scale(1)}
+    45%{transform:scale(1.06)}
+    100%{transform:scale(1)}
+  }
+
+  .tier{
+    flex:none;
+    padding:8px 14px;
+    border-radius:999px;
+    background:var(--tier-soft);
+    color:var(--tier);
+    font-size:13px;
+    font-weight:700;
+    white-space:nowrap;
+    transition:background-color var(--ease),color var(--ease);
+  }
+
+  .tier-advice{
+    margin:0;
+    font-size:13px;
+    line-height:1.7;
+    color:var(--body);
+  }
+
+  .slope-card{
+    overflow:hidden;
+    border:1px solid var(--line);
+    border-radius:18px;
+    background:#F7FAF7;
+  }
+
+  .slope-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    padding:9px 13px;
+    border-bottom:1px solid var(--line);
+    background:rgba(255,255,255,.55);
+    font-size:10.5px;
+    letter-spacing:.06em;
+    color:var(--muted);
+  }
+
+  .slope-head strong{font-weight:600;color:var(--green)}
+
+  #slope-canvas{display:block;width:100%;height:176px}
+
+  .breakdown{display:flex;flex-direction:column;gap:12px}
+
+  .bd-row{display:flex;flex-direction:column;gap:6px}
+
+  .bd-top{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    font-size:12.5px;
+    min-width:0;
+  }
+
+  .bd-label{flex:none;font-weight:700}
+  .bd-opt{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:11.5px;
+    color:var(--muted);
+  }
+
+  .bd-score{
+    flex:none;
+    margin-left:auto;
+    font-size:12px;
+    font-weight:700;
+    color:var(--tier);
+    font-variant-numeric:tabular-nums;
+    white-space:nowrap;
+  }
+
+  .bd-bar{
+    height:7px;
+    overflow:hidden;
+    border-radius:999px;
+    background:var(--track);
+  }
+
+  .bd-fill{
+    display:block;
+    height:100%;
+    width:0;
+    border-radius:999px;
+    background:var(--tier);
+    transition:width .45s cubic-bezier(.2,.7,.3,1),background-color var(--ease);
+  }
+
+  .bd-basis{
+    margin:0;
+    font-size:11px;
+    line-height:1.55;
+    color:var(--muted);
+  }
+
+  .gear{
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+    padding-top:14px;
+    border-top:1px solid var(--line);
+  }
+
+  .gear h3{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    margin:0;
+    font-size:13px;
+    letter-spacing:.04em;
+  }
+
+  .gear h3 em{
+    font-style:normal;
+    font-size:10.5px;
+    font-weight:500;
+    color:var(--muted);
+  }
+
+  .gear-list{
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+    margin:0;
+    padding:0;
+    list-style:none;
+  }
+
+  .gear-list li{
+    display:flex;
+    gap:9px;
+    padding:9px 11px;
+    border:1px solid rgba(200,133,58,.14);
+    border-radius:12px;
+    background:var(--surface-soft);
+    font-size:11.5px;
+    line-height:1.55;
+    color:var(--body);
+  }
+
+  .gear-list li::before{
+    content:"";
+    flex:none;
+    width:6px;
+    height:6px;
+    margin-top:6px;
+    border-radius:50%;
+    background:var(--clay);
+  }
+
+  .gear-list strong{
+    display:block;
+    margin-bottom:1px;
+    font-size:12px;
+    color:var(--ink);
+  }
+
+  .gear-list .gear-none{color:var(--muted)}
+  .gear-list .gear-none::before{background:var(--green)}
+
+  .diag-warning{
+    margin:2px 0 0;
+    padding:11px 13px;
+    border:1px solid rgba(200,133,58,.24);
+    border-radius:13px;
+    background:#F6EFE3;
+    color:#6F5326;
+    font-size:11px;
+    line-height:1.65;
+  }
+
+  .diag-warning strong{color:var(--clay-ink)}
+
+  @media (max-width:900px){
+    .diag-layout{grid-template-columns:1fr}
+  }
+
+  /* ---------- 行程单助手 ---------- */
+  .plan-layout{
+    display:grid;
+    grid-template-columns:minmax(0,.84fr) minmax(0,1.16fr);
+    gap:16px;
+    align-items:start;
+  }
+
+  .plan-form{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+    min-width:0;
+    padding:clamp(18px,3vw,26px);
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-xl);
+    box-shadow:var(--shadow);
+  }
+
+  .plan-form-head h3{margin:0;font-size:19px;letter-spacing:-.02em}
+  .plan-form-head p{margin:5px 0 0;font-size:12.5px;color:var(--muted)}
+
+  .plan-example-bar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    padding:10px 12px;
+    border:1px solid var(--line);
+    border-radius:14px;
+    background:var(--surface-soft);
+  }
+
+  .plan-example-bar label{
+    flex:none;
+    font-size:11px;
+    font-weight:700;
+    color:var(--body);
+  }
+
+  .plan-select{
+    flex:1;
+    min-width:0;
+    height:38px;
+    padding:0 10px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:#fff;
+    color:var(--ink);
+    font-size:12px;
+    cursor:pointer;
+    transition:border-color var(--ease),box-shadow var(--ease);
+  }
+
+  .plan-select:focus{
+    outline:none;
+    border-color:var(--green);
+    box-shadow:0 0 0 3px rgba(46,107,91,.1);
+  }
+
+  .plan-example-note{
+    margin:-8px 0 0;
+    padding:10px 12px;
+    border-left:3px solid var(--clay);
+    border-radius:0 12px 12px 0;
+    background:var(--clay-soft);
+    color:var(--clay-ink);
+    font-size:10.5px;
+    line-height:1.65;
+  }
+
+  .plan-example-note[hidden]{display:none}
+
+  .plan-section-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+
+  .example-brief{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    padding:13px 14px;
+    border:1px solid rgba(200,133,58,.25);
+    border-radius:14px;
+    background:var(--clay-soft);
+  }
+
+  .example-badge{
+    font-size:9.5px;
+    font-weight:700;
+    letter-spacing:.1em;
+    color:var(--clay-ink);
+  }
+
+  .example-brief p{
+    margin:0;
+    font-size:11px;
+    line-height:1.65;
+    color:var(--clay-ink);
+  }
+
+  .example-brief ul{
+    margin:0;
+    padding-left:15px;
+    font-size:10.5px;
+    line-height:1.65;
+    color:var(--clay-ink);
+  }
+
+  .example-brief .example-source{
+    font-size:9.5px;
+    opacity:.82;
+  }
+
+  .tpl-list{display:flex;flex-direction:column;gap:8px}
+
+  .plan-tpl{
+    display:flex;
+    align-items:center;
+    gap:11px;
+    min-width:0;
+    padding:12px 13px;
+    border:1px solid var(--line);
+    border-radius:16px;
+    background:var(--surface-soft);
+    text-align:left;
+    cursor:pointer;
+    transition:border-color var(--ease),background var(--ease),transform var(--ease);
+  }
+
+  .plan-tpl:hover{border-color:var(--green-line);transform:translateY(-1px)}
+
+  .plan-tpl[aria-pressed="true"]{
+    border-color:var(--green);
+    background:var(--green-soft);
+  }
+
+  .tpl-dot{
+    flex:none;
+    width:15px;
+    height:15px;
+    border:2px solid rgba(29,36,33,.22);
+    border-radius:50%;
+    background:transparent;
+    transition:border-color var(--ease),background var(--ease),box-shadow var(--ease);
+  }
+
+  .plan-tpl[aria-pressed="true"] .tpl-dot{
+    border-color:var(--green);
+    background:var(--green);
+    box-shadow:inset 0 0 0 3px #fff;
+  }
+
+  .tpl-text{flex:1;min-width:0}
+  .tpl-text strong{display:block;font-size:14px;letter-spacing:-.01em}
+  .tpl-text small{display:block;margin-top:1px;font-size:10.5px;color:var(--muted)}
+
+  .tpl-days{
+    flex:none;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.12em;
+    color:var(--muted);
+  }
+
+  .plan-tpl[aria-pressed="true"] .tpl-days{color:var(--green)}
+
+  .plan-fields{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:12px;
+  }
+
+  .field{display:flex;flex-direction:column;gap:6px;min-width:0}
+  .field-wide{grid-column:1/-1}
+
+  .field label{font-size:11.5px;font-weight:700;color:var(--body);letter-spacing:.02em}
+
+  .plan-input{
+    width:100%;
+    height:46px;
+    padding:0 12px;
+    border:1px solid var(--line);
+    border-radius:14px;
+    background:var(--surface-soft);
+    color:var(--ink);
+    font-size:14px;
+    transition:border-color var(--ease),box-shadow var(--ease),background var(--ease);
+  }
+
+  .plan-input::placeholder{color:#9A9E97}
+  .plan-input:focus{
+    outline:none;
+    border-color:var(--green);
+    background:#fff;
+    box-shadow:0 0 0 4px rgba(46,107,91,.1);
+  }
+
+  .plan-input.is-error{
+    border-color:var(--danger);
+    box-shadow:0 0 0 4px rgba(168,58,44,.1);
+  }
+
+  .plan-error{margin:0;font-size:11px;color:var(--danger)}
+  .plan-error[hidden]{display:none}
+
+  .btn-generate{width:100%;justify-content:center}
+
+  .plan-note{
+    margin:-6px 0 0;
+    font-size:11px;
+    line-height:1.55;
+    color:var(--muted);
+    text-align:center;
+  }
+
+  .plan-output-wrap{min-width:0}
+
+  .plan-empty{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    min-height:320px;
+    padding:40px 24px;
+    text-align:center;
+    border:1px dashed var(--green-line);
+    border-radius:var(--radius-xl);
+    background:linear-gradient(165deg,var(--paper-bright),#F7F1E7);
+  }
+
+  .plan-empty[hidden]{display:none}
+  .plan-empty strong{font-size:17px;letter-spacing:-.01em}
+  .plan-empty p{margin:0;max-width:30ch;font-size:12.5px;line-height:1.7;color:var(--muted)}
+
+  .plan-output{
+    display:flex;
+    flex-direction:column;
+    gap:24px;
+    min-width:0;
+    padding:clamp(18px,3vw,28px);
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-xl);
+    box-shadow:var(--shadow-lift);
+    scroll-margin-top:84px;
+  }
+
+  .plan-output[hidden]{display:none}
+
+  .plan-output-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+
+  .plan-eyebrow{
+    margin:0 0 5px;
+    font-size:10px;
+    font-weight:600;
+    letter-spacing:.16em;
+    color:var(--clay);
+  }
+
+  .plan-output-head h3{
+    margin:0;
+    font-size:clamp(20px,3vw,26px);
+    letter-spacing:-.025em;
+    line-height:1.25;
+    overflow-wrap:anywhere;
+  }
+
+  .plan-meta{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-top:8px;
+  }
+
+  .plan-meta span{
+    padding:4px 9px;
+    border-radius:999px;
+    background:var(--green-soft);
+    color:var(--green);
+    font-size:10.5px;
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+  }
+
+  .copy-btn{
+    flex:none;
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    padding:10px 16px;
+    border:0;
+    border-radius:999px;
+    background:var(--ink);
+    color:#fff;
+    font-size:12px;
+    font-weight:600;
+    cursor:pointer;
+    transition:background var(--ease),transform var(--ease);
+  }
+
+  .copy-btn:hover{background:var(--green);transform:translateY(-1px)}
+  .copy-btn svg{width:14px;height:14px}
+
+  .plan-section{display:flex;flex-direction:column;gap:12px;min-width:0}
+
+  .plan-section h4{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:0;
+    font-size:14px;
+    letter-spacing:.01em;
+  }
+
+  .plan-section h4 span{
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.14em;
+    color:var(--clay);
+  }
+
+  .tl-day{
+    margin:2px 0 0;
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:.16em;
+    color:var(--green);
+  }
+
+  .timeline{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    margin-left:5px;
+    padding-left:19px;
+    border-left:1.5px dashed var(--green-line);
+  }
+
+  .tl-item{position:relative}
+  .tl-item::before{
+    content:"";
+    position:absolute;
+    left:-25px;
+    top:4px;
+    width:9px;
+    height:9px;
+    border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 0 2px #fff,0 0 0 3px var(--green-line);
+  }
+
+  .tl-time{font-size:10.5px;font-weight:700;letter-spacing:.07em;color:var(--clay)}
+  .tl-title{margin:1px 0 2px;font-size:14px;font-weight:700;letter-spacing:-.01em}
+  .tl-detail{margin:0;font-size:12.5px;line-height:1.65;color:var(--muted)}
+
+  .gear-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(148px,1fr));
+    gap:8px;
+  }
+
+  .check{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    min-width:0;
+    padding:9px 10px;
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:var(--surface-soft);
+    font-size:12px;
+    cursor:pointer;
+    transition:background var(--ease),border-color var(--ease);
+  }
+
+  .check:hover{border-color:var(--green-line)}
+  .check input{flex:none;width:15px;height:15px;margin:0;accent-color:var(--green)}
+  .check span{min-width:0;overflow-wrap:anywhere}
+  .check:has(input:checked){background:var(--green-soft);border-color:var(--green-line)}
+
+  .budget-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:16px}
+  .budget-table{width:100%;border-collapse:collapse;font-size:12px}
+  .budget-table th,.budget-table td{padding:10px 11px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+  .budget-table thead th{background:#F7F3EA;color:var(--muted);font-size:10.5px;font-weight:600;letter-spacing:.05em}
+  .budget-table tbody th{font-size:12.5px;font-weight:600;white-space:nowrap}
+  .budget-table .budget-desc{font-size:10.5px;line-height:1.5;color:var(--muted)}
+  .budget-table tfoot th,.budget-table tfoot td{border-bottom:0;background:var(--paper-warm)}
+  .budget-table tfoot th{font-size:13px}
+  .budget-table tfoot td{font-weight:700;font-size:14px;color:var(--ink);font-variant-numeric:tabular-nums}
+
+  .budget-input{
+    width:100%;
+    max-width:104px;
+    height:34px;
+    padding:0 8px;
+    border:1px solid var(--line);
+    border-radius:9px;
+    background:#fff;
+    color:var(--ink);
+    font-size:13px;
+    font-weight:600;
+    text-align:right;
+    font-variant-numeric:tabular-nums;
+    transition:border-color var(--ease),box-shadow var(--ease);
+  }
+
+  .budget-input:focus{
+    outline:none;
+    border-color:var(--green);
+    box-shadow:0 0 0 3px rgba(46,107,91,.1);
+  }
+
+  .budget-status{font-size:10.5px;font-weight:500;color:var(--muted)}
+  .budget-status.over{color:var(--danger);font-weight:700}
+  .budget-status.within{color:var(--green);font-weight:600}
+
+  .budget-hint{margin:8px 0 0;font-size:10.5px;color:var(--muted)}
+
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:calc(96px + env(safe-area-inset-bottom));
+    z-index:60;
+    padding:10px 18px;
+    border-radius:999px;
+    background:rgba(29,36,33,.92);
+    color:#fff;
+    font-size:12.5px;
+    font-weight:600;
+    white-space:nowrap;
+    pointer-events:none;
+    opacity:0;
+    transform:translate(-50%,8px);
+    transition:opacity var(--ease),transform var(--ease);
+  }
+
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  @media (max-width:900px){
+    .plan-layout{grid-template-columns:1fr}
+  }
+
+  @media (max-width:420px){
+    .plan-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .field-budget{grid-column:1/-1}
+    .gear-grid{grid-template-columns:1fr}
+    .budget-table th,.budget-table td{padding:9px 8px}
+    .copy-btn{width:100%;justify-content:center}
+  }
+
+  /* ---------- 安全自测 ---------- */
+  .safety-shell{max-width:1000px;margin:0 auto}
+  .quiz-stage{max-width:820px;margin:0 auto}
+
+  .quiz-card,.quiz-result{
+    padding:clamp(20px,4vw,30px);
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-xl);
+    box-shadow:var(--shadow-lift);
+    scroll-margin-top:84px;
+  }
+
+  .quiz-card[hidden],.quiz-result[hidden]{display:none}
+
+  .quiz-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:10px;
+  }
+
+  .quiz-tags{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+
+  .quiz-type,.quiz-mode{
+    display:inline-flex;
+    align-items:center;
+    padding:4px 10px;
+    border-radius:999px;
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:.06em;
+  }
+
+  .quiz-type{background:var(--green-soft);color:var(--green)}
+  .quiz-mode{background:var(--clay-soft);color:var(--clay-ink)}
+  .quiz-mode[hidden]{display:none}
+
+  .quiz-progress-text{
+    font-size:10.5px;
+    color:var(--muted);
+    font-variant-numeric:tabular-nums;
+    white-space:nowrap;
+  }
+
+  .quiz-progress{
+    height:6px;
+    overflow:hidden;
+    border-radius:999px;
+    background:var(--track);
+    margin-bottom:22px;
+  }
+
+  .quiz-progress span{
+    display:block;
+    height:100%;
+    width:10%;
+    border-radius:999px;
+    background:var(--green);
+    transition:width .35s cubic-bezier(.2,.7,.3,1);
+  }
+
+  .quiz-stem{
+    margin:0 0 20px;
+    font-size:clamp(19px,3vw,24px);
+    line-height:1.55;
+    letter-spacing:-.02em;
+  }
+
+  .quiz-options{display:grid;grid-template-columns:1fr;gap:9px}
+
+  .quiz-options.is-judge{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+  .quiz-opt{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    min-width:0;
+    padding:13px 15px;
+    border:1px solid var(--line);
+    border-radius:16px;
+    background:var(--surface-soft);
+    text-align:left;
+    font-size:14px;
+    line-height:1.55;
+    cursor:pointer;
+    transition:border-color var(--ease),background var(--ease),transform var(--ease),box-shadow var(--ease);
+  }
+
+  .quiz-opt:hover:not(:disabled){border-color:var(--green-line);transform:translateY(-1px)}
+
+  .opt-key{
+    flex:none;
+    display:grid;
+    place-items:center;
+    width:30px;
+    height:30px;
+    border:1px solid rgba(29,36,33,.16);
+    border-radius:50%;
+    color:var(--muted);
+    font-size:12px;
+    font-weight:700;
+    transition:background var(--ease),color var(--ease),border-color var(--ease);
+  }
+
+  .opt-text{min-width:0;overflow-wrap:anywhere}
+
+  .quiz-opt.is-judge{
+    justify-content:center;
+    padding:17px 14px;
+    font-size:16px;
+    font-weight:700;
+  }
+
+  .quiz-opt.is-judge .opt-key{width:36px;height:36px;font-size:15px}
+
+  .quiz-opt.is-correct{border-color:var(--green);background:var(--green-soft)}
+  .quiz-opt.is-correct .opt-key{background:var(--green);border-color:var(--green);color:#fff}
+
+  .quiz-opt.is-wrong{border-color:var(--danger-line);background:var(--danger-soft)}
+  .quiz-opt.is-wrong .opt-key{background:var(--danger);border-color:var(--danger);color:#fff}
+
+  .quiz-opt:disabled{cursor:default;opacity:1}
+
+  .quiz-explain{
+    margin-top:18px;
+    padding:16px;
+    border:1px solid var(--line);
+    border-left:4px solid var(--green);
+    border-radius:16px;
+    background:var(--paper-warm);
+  }
+
+  .quiz-explain[hidden]{display:none}
+  .quiz-explain.is-bad{border-left-color:var(--danger);background:#FDF7F5}
+
+  .explain-verdict{margin:0;font-size:14px;font-weight:700;color:var(--green)}
+  .quiz-explain.is-bad .explain-verdict{color:var(--danger)}
+
+  .explain-answer{margin:6px 0 0;font-size:12.5px;font-weight:600;color:var(--ink)}
+  .explain-text{margin:8px 0 0;font-size:12.5px;line-height:1.7;color:var(--muted)}
+
+  .explain-actions{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-top:14px;
+  }
+
+  .explain-hint{font-size:10.5px;color:var(--muted)}
+
+  .btn-next{padding:10px 18px;font-size:13px}
+
+  .quiz-foot{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:18px;
+    padding-top:14px;
+    border-top:1px solid var(--line);
+  }
+
+  .quiz-foot-note{font-size:10px;color:var(--muted)}
+
+  /* 结算 */
+  .result-head h3{
+    margin:0;
+    font-size:clamp(24px,3.5vw,30px);
+    letter-spacing:-.03em;
+  }
+
+  .result-head p{
+    margin:6px 0 0;
+    font-size:12.5px;
+    color:var(--muted);
+  }
+
+  .result-head .plan-eyebrow{
+    margin:0 0 6px;
+    font-size:10px;
+    color:var(--clay);
+    letter-spacing:.16em;
+  }
+
+  .result-body{
+    display:grid;
+    grid-template-columns:180px minmax(0,1fr);
+    align-items:center;
+    gap:22px;
+    margin:22px 0;
+  }
+
+  .result-chart canvas{display:block;width:160px;height:160px;margin:0 auto}
+
+  .result-score{
+    margin:0;
+    font-size:clamp(40px,7vw,52px);
+    line-height:1;
+    font-weight:800;
+    letter-spacing:-.05em;
+    color:var(--green);
+    font-variant-numeric:tabular-nums;
+  }
+
+  .result-score small{
+    font-size:16px;
+    font-weight:600;
+    letter-spacing:0;
+    color:var(--muted);
+  }
+
+  .result-accuracy{margin:6px 0 0;font-size:13px;color:var(--body)}
+
+  .type-stats{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+
+  .type-row{display:flex;flex-direction:column;gap:5px}
+  .type-top{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;color:var(--body)}
+  .type-top span:last-child{font-weight:700;font-variant-numeric:tabular-nums;color:var(--green)}
+  .type-bar{height:6px;border-radius:999px;background:var(--track);overflow:hidden}
+  .type-bar span{display:block;height:100%;border-radius:999px;background:var(--green)}
+
+  .result-actions{display:flex;gap:9px;flex-wrap:wrap}
+
+  .btn-pill.btn-compact{padding:11px 20px;font-size:13px}
+
+  .btn-ghost{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    padding:11px 18px;
+    border:1px solid var(--line);
+    border-radius:999px;
+    background:var(--surface);
+    color:var(--ink);
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+    transition:border-color var(--ease),color var(--ease),background var(--ease);
+  }
+
+  .btn-ghost:hover{border-color:var(--green);color:var(--green)}
+  .btn-ghost:disabled{opacity:.45;cursor:not-allowed}
+  .btn-ghost[hidden]{display:none}
+
+  /* 错题本 */
+  .wrong-book{margin-top:24px}
+
+  .wrong-head{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+
+  .wrong-head h3{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:0;
+    font-size:20px;
+    letter-spacing:-.02em;
+  }
+
+  #wrong-count{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:24px;
+    height:22px;
+    padding:0 8px;
+    border-radius:999px;
+    background:var(--green-soft);
+    color:var(--green);
+    font-size:11px;
+    font-weight:700;
+    font-variant-numeric:tabular-nums;
+  }
+
+  .wrong-head p{margin:5px 0 0;font-size:11.5px;color:var(--muted)}
+
+  .wrong-empty{
+    padding:34px 22px;
+    text-align:center;
+    border:1px dashed var(--green-line);
+    border-radius:var(--radius-lg);
+    background:var(--surface-soft);
+    color:var(--muted);
+    font-size:12.5px;
+  }
+
+  .wrong-empty[hidden]{display:none}
+
+  .wrong-list{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+    gap:12px;
+  }
+
+  .wrong-list[hidden]{display:none}
+
+  .wrong-item{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    min-width:0;
+    padding:17px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:20px;
+    box-shadow:var(--shadow);
+  }
+
+  .wrong-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+  .wrong-type{
+    padding:3px 9px;
+    border-radius:999px;
+    background:var(--clay-soft);
+    color:var(--clay-ink);
+    font-size:10px;
+    font-weight:700;
+  }
+
+  .wrong-src{font-size:10px;letter-spacing:.08em;color:var(--muted);font-variant-numeric:tabular-nums}
+
+  .wrong-retry{margin-left:auto;font-size:11.5px}
+
+  .wrong-stem{
+    margin:0;
+    font-size:14px;
+    font-weight:600;
+    line-height:1.6;
+    letter-spacing:-.01em;
+    overflow-wrap:anywhere;
+  }
+
+  .wrong-answer{margin:0;font-size:11.5px;font-weight:600;color:var(--green)}
+  .wrong-explain{margin:0;font-size:11px;line-height:1.6;color:var(--muted);overflow-wrap:anywhere}
+
+  @media (max-width:560px){
+    .result-body{grid-template-columns:1fr;gap:16px}
+    .result-chart{order:-1}
+    .result-actions .btn-pill,.result-actions .btn-ghost{flex:1;justify-content:center}
+    .quiz-opt.is-judge{padding:15px 12px}
+  }
+
+  @media (max-width:420px){
+    .quiz-card,.quiz-result{padding:18px}
+    .quiz-opt{padding:12px 13px;font-size:13px}
+    .quiz-opt.is-judge{font-size:15px}
+    .wrong-list{grid-template-columns:1fr}
+  }
+
+  /* ---------- 行前工具 ---------- */
+  .tool-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:16px;
+    align-items:start;
+  }
+
+  .tool-card{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    min-width:0;
+    padding:clamp(18px,3vw,26px);
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-xl);
+    box-shadow:var(--shadow);
+  }
+
+  .tool-head{display:flex;align-items:flex-start;gap:11px}
+
+  .tool-no{
+    flex:none;
+    display:grid;
+    place-items:center;
+    width:34px;
+    height:34px;
+    border-radius:11px;
+    background:var(--green-soft);
+    color:var(--green);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.08em;
+  }
+
+  .tool-head h3{margin:0;font-size:17.5px;letter-spacing:-.02em}
+  .tool-head p{margin:4px 0 0;font-size:11px;line-height:1.55;color:var(--muted)}
+
+  .tool-fields{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+  }
+
+  .tool-field{display:flex;flex-direction:column;gap:5px;min-width:0}
+  .tool-field.is-wide{grid-column:1/-1}
+  .tool-field label{font-size:11px;font-weight:700;color:var(--body);letter-spacing:.01em}
+
+  .tool-input{
+    width:100%;
+    height:42px;
+    padding:0 11px;
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:var(--surface-soft);
+    color:var(--ink);
+    font-size:13.5px;
+    transition:border-color var(--ease),box-shadow var(--ease),background var(--ease);
+  }
+
+  .tool-input:focus{
+    outline:none;
+    border-color:var(--green);
+    background:#fff;
+    box-shadow:0 0 0 3px rgba(46,107,91,.1);
+  }
+
+  .tool-input.is-error{
+    border-color:var(--danger);
+    box-shadow:0 0 0 3px rgba(168,58,44,.1);
+  }
+
+  .seg-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:9px;
+    flex-wrap:wrap;
+  }
+
+  .seg-label{font-size:11px;font-weight:700;color:var(--body)}
+
+  .seg-group{
+    display:inline-flex;
+    flex:none;
+    gap:2px;
+    padding:3px;
+    border-radius:999px;
+    background:var(--track);
+  }
+
+  .seg-btn{
+    padding:7px 12px;
+    border:0;
+    border-radius:999px;
+    background:transparent;
+    color:var(--muted);
+    font-size:11.5px;
+    font-weight:600;
+    cursor:pointer;
+    transition:background var(--ease),color var(--ease);
+  }
+
+  .seg-btn[aria-pressed="true"]{background:var(--green);color:#fff}
+
+  .tool-result{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin-top:auto;
+    padding:14px;
+    border:1px solid var(--line);
+    border-radius:16px;
+    background:var(--surface-soft);
+  }
+
+  .tool-main{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
+  .tool-main span{font-size:10.5px;font-weight:600;letter-spacing:.05em;color:var(--muted)}
+  .tool-main strong{
+    font-size:34px;
+    line-height:1;
+    font-weight:800;
+    letter-spacing:-.04em;
+    color:var(--green);
+    font-variant-numeric:tabular-nums;
+  }
+  .tool-main small{font-size:12px;color:var(--muted)}
+
+  .tool-formula{margin:0;font-size:10.5px;line-height:1.6;color:var(--muted);overflow-wrap:anywhere}
+  .tool-times{margin:0;font-size:11.5px;font-weight:600;line-height:1.6;color:var(--clay-ink)}
+  .tool-note{margin:0;font-size:10.5px;line-height:1.6;color:var(--muted)}
+  .tool-note.is-warn{color:var(--clay-ink);font-weight:600}
+
+  .weather-verdict{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:12px 14px;
+    border-radius:14px;
+    background:var(--green-soft);
+    color:var(--green);
+    font-size:14px;
+    font-weight:700;
+  }
+
+  .weather-verdict[data-level="reduce"]{background:var(--clay-soft);color:var(--clay-ink)}
+  .weather-verdict[data-level="bad"]{background:var(--danger-soft);color:var(--danger)}
+  .weather-verdict small{font-size:10px;font-weight:600;opacity:.82;white-space:nowrap}
+
+  .weather-reasons{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    margin:0;
+    padding:0;
+    list-style:none;
+  }
+
+  .weather-reasons li{
+    position:relative;
+    padding-left:11px;
+    font-size:10.5px;
+    line-height:1.55;
+    color:var(--body);
+  }
+
+  .weather-reasons li::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:6px;
+    width:4px;
+    height:4px;
+    border-radius:50%;
+    background:var(--clay);
+  }
+
+  .weather-fixed{
+    margin:0;
+    padding-top:8px;
+    border-top:1px dashed var(--line);
+    font-size:10px;
+    line-height:1.55;
+    color:var(--muted);
+  }
+
+  .report-card{
+    margin:0;
+    padding:14px;
+    border:1px solid var(--line);
+    border-radius:14px;
+    background:var(--paper-warm);
+    color:var(--body);
+    font-family:"HarmonyOS Sans SC","PingFang SC",monospace;
+    font-size:11.5px;
+    line-height:1.75;
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+  }
+
+  .report-output[hidden]{display:none}
+
+  .report-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+
+  .tool-error{margin:0;font-size:11px;line-height:1.55;color:var(--danger)}
+  .tool-error[hidden]{display:none}
+
+  .tool-foot-hint{margin:0;font-size:10.5px;line-height:1.6;color:var(--muted);text-align:center}
+
+  @media (max-width:900px){
+    .tool-grid{grid-template-columns:1fr}
+  }
+
+  @media (max-width:420px){
+    .tool-fields{grid-template-columns:1fr}
+    .seg-row{justify-content:flex-start}
+  }
+
+  /* ---------- 底部导航 ---------- */
+  .tabbar{
+    position:fixed;
+    left:50%;
+    bottom:calc(14px + env(safe-area-inset-bottom));
+    transform:translateX(-50%);
+    z-index:50;
+    width:min(560px,calc(100% - 24px));
+    display:grid;
+    grid-template-columns:repeat(6,minmax(0,1fr));
+    gap:3px;
+    padding:6px;
+    border-radius:27px;
+    background:rgba(255,255,255,.92);
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--line);
+    box-shadow:0 22px 54px -20px rgba(29,36,33,.4);
+  }
+
+  .tab-btn{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:3px;
+    min-width:0;
+    padding:9px 2px 7px;
+    border:0;
+    border-radius:21px;
+    background:transparent;
+    color:var(--muted);
+    font-size:10.5px;
+    font-weight:500;
+    line-height:1.2;
+    cursor:pointer;
+    transition:background var(--ease),color var(--ease),transform var(--ease);
+  }
+
+  .tab-btn svg{width:20px;height:20px;flex:none}
+
+  .tab-btn:hover{color:var(--green);background:rgba(46,107,91,.06)}
+
+  .tab-btn[aria-selected="true"]{
+    background:var(--green);
+    color:#fff;
+  }
+
+  .tab-btn[aria-selected="true"] svg{transform:translateY(-1px)}
+
+  .noscript{
+    margin:20px auto;
+    max-width:640px;
+    padding:16px 20px;
+    border-radius:16px;
+    background:#FBE9E7;
+    color:#8C2F23;
+    font-size:14px;
+  }
+
+  @media (max-width:760px){
+    .hero-art{display:none}
+    .hero{min-height:0}
+    .hero-mobile-art{display:block;margin-top:20px;border-radius:20px;overflow:hidden}
+  }
+
+  @media (max-width:420px){
+    .brand-sub{display:none}
+    .topbar-badge{font-size:10.5px;padding:5px 9px}
+    .k-grid{grid-template-columns:1fr}
+    .feature{min-height:0}
+    .tab-btn{font-size:9.5px;padding:9px 0 7px}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{
+      animation-duration:.001ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:.001ms !important;
+      scroll-behavior:auto !important;
+    }
+  }
+
+  /* ---------- 场景插画与交互升级 ---------- */
+  .hero-art .cloud{
+    animation:cloud-drift 22s ease-in-out infinite alternate;
+  }
+
+  .hero-mobile-art .cloud{
+    animation:cloud-drift 24s ease-in-out infinite alternate;
+  }
+
+  .hero-art .cloud-b{animation-duration:30s;animation-delay:-8s}
+  .hero-art .cloud-c{animation-duration:26s;animation-delay:-15s}
+
+  @keyframes cloud-drift{
+    from{transform:translateX(-9px)}
+    to{transform:translateX(13px)}
+  }
+
+  .kb-scenes{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding:2px 2px 8px;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .kb-scenes::-webkit-scrollbar{display:none}
+
+  .kb-scene{
+    flex:0 0 118px;
+    display:flex;
+    flex-direction:column;
+    padding:0;
+    overflow:hidden;
+    border:1px solid var(--line);
+    border-radius:16px;
+    background:var(--surface-soft);
+    text-align:left;
+    cursor:pointer;
+    transition:border-color var(--ease),transform var(--ease),box-shadow var(--ease);
+  }
+
+  .kb-scene:hover{transform:translateY(-2px);border-color:var(--green-line)}
+  .kb-scene svg{display:block;width:100%;height:72px}
+
+  .kb-scene span{
+    padding:7px 9px;
+    font-size:10.5px;
+    font-weight:700;
+    color:var(--body);
+  }
+
+  .kb-scene[aria-pressed="true"]{
+    border-color:var(--green);
+    box-shadow:inset 0 0 0 1px var(--green);
+  }
+
+  .kb-scene[aria-pressed="true"] span{color:var(--green)}
+
+  .kb-fav-bar{display:flex;justify-content:flex-start}
+
+  .fav-filter{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:8px 12px;
+    border:1px solid var(--line);
+    border-radius:999px;
+    background:var(--surface);
+    color:var(--body);
+    font-size:11.5px;
+    font-weight:600;
+    cursor:pointer;
+    transition:border-color var(--ease),background var(--ease),color var(--ease);
+  }
+
+  .fav-filter svg{width:14px;height:14px;color:var(--clay)}
+  .fav-filter span{font-size:10.5px;font-variant-numeric:tabular-nums;opacity:.7}
+
+  .fav-filter[aria-pressed="true"]{
+    border-color:var(--clay);
+    background:var(--clay-soft);
+    color:var(--clay-ink);
+  }
+
+  .k-actions{display:flex;align-items:center;gap:6px}
+
+  .k-star{
+    flex:none;
+    display:grid;
+    place-items:center;
+    width:28px;
+    height:28px;
+    padding:0;
+    border:1px solid var(--line);
+    border-radius:50%;
+    background:var(--surface);
+    color:var(--muted);
+    cursor:pointer;
+    transition:color var(--ease),background var(--ease),border-color var(--ease);
+  }
+
+  .k-star svg{width:14px;height:14px}
+  .k-star[aria-pressed="true"]{color:var(--clay);border-color:var(--clay);background:var(--clay-soft)}
+
+  .k-full{display:none;flex-direction:column;gap:8px}
+  .k-card.is-open .k-full{display:flex}
+  .k-card.is-open .k-preview{display:none}
+
+  .k-point-full{
+    margin:0;
+    font-size:14.5px;
+    line-height:1.75;
+    color:var(--body);
+  }
+
+  .k-expand{
+    align-self:flex-start;
+    padding:3px 0;
+    border:0;
+    background:transparent;
+    color:var(--green);
+    font-size:11.5px;
+    font-weight:600;
+    cursor:pointer;
+  }
+
+  .diag-slider{
+    width:100%;
+    height:20px;
+    margin:3px 0 0;
+    accent-color:var(--green);
+    cursor:pointer;
+  }
+
+  .tier-band{
+    position:relative;
+    height:8px;
+    margin:2px 0 4px;
+    border-radius:999px;
+    background:linear-gradient(90deg,#2E6B5B 0 25%,#7A8F2E 25% 50%,#C8853A 50% 75%,#A83A2C 75% 100%);
+  }
+
+  .tier-band-marker{
+    position:absolute;
+    top:50%;
+    left:0;
+    width:14px;
+    height:14px;
+    border:2px solid #fff;
+    border-radius:50%;
+    background:var(--tier);
+    box-shadow:0 2px 6px rgba(0,0,0,.25);
+    transform:translate(-50%,-50%);
+    transition:left .35s cubic-bezier(.2,.7,.3,1),background-color var(--ease);
+  }
+
+  .tool-range{
+    width:100%;
+    height:18px;
+    margin:1px 0 0;
+    accent-color:var(--green);
+    cursor:pointer;
+  }
+
+  .example-gallery{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:6px;
+  }
+
+  .example-thumb{
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+    padding:0;
+    overflow:hidden;
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:var(--surface-soft);
+    cursor:pointer;
+    transition:border-color var(--ease),transform var(--ease),box-shadow var(--ease);
+  }
+
+  .example-thumb:hover{transform:translateY(-1px);border-color:var(--green-line)}
+  .example-thumb svg{display:block;width:100%;height:54px}
+
+  .example-thumb span{
+    padding:5px 4px;
+    overflow:hidden;
+    color:var(--body);
+    font-size:9.5px;
+    font-weight:600;
+    text-align:center;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  .example-thumb[aria-pressed="true"]{
+    border-color:var(--green);
+    box-shadow:inset 0 0 0 1px var(--green);
+  }
+
+  .example-thumb[aria-pressed="true"] span{color:var(--green)}
+
+  .plan-section-actions{display:flex;align-items:center;gap:12px}
+
+  .gear-progress{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    color:var(--green);
+    font-size:10.5px;
+    font-weight:700;
+    font-variant-numeric:tabular-nums;
+  }
+
+  .gear-ring{width:30px;height:30px;transform:rotate(-90deg)}
+  .gear-ring circle{fill:none;stroke-width:4}
+  .gear-ring .ring-bg{stroke:var(--track)}
+  .gear-ring .ring-fg{stroke:var(--green);stroke-linecap:round;transition:stroke-dashoffset .35s ease}
+
+  .tl-group{display:flex;flex-direction:column;gap:10px;margin-bottom:4px}
+
+  .tl-toggle{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    width:100%;
+    padding:5px 0;
+    border:0;
+    background:transparent;
+    color:var(--green);
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:.16em;
+    text-align:left;
+    cursor:pointer;
+  }
+
+  .tl-toggle svg{width:12px;height:12px;flex:none;transition:transform var(--ease)}
+  .tl-group.is-open .tl-toggle svg{transform:rotate(90deg)}
+
+  .tl-toggle-text{
+    margin-left:auto;
+    color:var(--muted);
+    font-size:9.5px;
+    font-weight:500;
+    letter-spacing:.04em;
+  }
+
+  .tl-group:not(.is-open) .timeline{display:none}
+  .tl-group .timeline{margin-top:0}
+
+  .quiz-toolbar{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+    margin:-4px 0 16px;
+  }
+
+  .quiz-timed{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    padding:6px 10px;
+    border:1px solid var(--line);
+    border-radius:999px;
+    background:var(--surface-soft);
+    color:var(--body);
+    font-size:10.5px;
+    font-weight:600;
+    cursor:pointer;
+    user-select:none;
+  }
+
+  .quiz-timed input{width:14px;height:14px;margin:0;accent-color:var(--green)}
+  .quiz-timed:has(input:checked){border-color:var(--green);background:var(--green-soft);color:var(--green)}
+
+  .quiz-timer{
+    padding:6px 10px;
+    border-radius:999px;
+    background:var(--clay-soft);
+    color:var(--clay-ink);
+    font-size:10.5px;
+    font-weight:700;
+    font-variant-numeric:tabular-nums;
+  }
+
+  .quiz-timer.is-urgent{background:var(--danger-soft);color:var(--danger)}
+  .quiz-timer[hidden]{display:none}
+
+  .quiz-streak{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    padding:6px 9px;
+    border-radius:999px;
+    background:var(--track);
+    color:var(--muted);
+    font-size:10.5px;
+    font-weight:700;
+  }
+
+  .quiz-streak svg{width:13px;height:13px;color:var(--muted)}
+  .quiz-streak-label{font-size:9.5px;font-weight:600;opacity:.8}
+  .quiz-streak.is-hot{background:var(--clay-soft);color:var(--clay-ink)}
+  .quiz-streak.is-hot svg{color:var(--clay)}
+
+  .wrong-explain[hidden]{display:none}
+
+  .wrong-toggle{
+    align-self:flex-start;
+    padding:2px 0;
+    font-size:10.5px;
+  }
+
+  @media (max-width:420px){
+    .example-thumb svg{height:48px}
+    .kb-scene{flex-basis:108px}
+    .quiz-toolbar{margin-top:-2px}
+  }
+
+  /* ---------- 打印：只保留行程单正文 ---------- */
+  @media print{
+    @page{size:A4;margin:12mm}
+
+    html,body{background:#fff !important;color:#000 !important}
+
+    .topbar,.tabbar,.toast,.noscript{display:none !important}
+
+    main{max-width:none;margin:0;padding:0}
+
+    .view{display:none !important}
+    #view-itinerary{display:block !important}
+
+    #view-itinerary .page-head,
+    #view-itinerary .plan-form,
+    #view-itinerary .plan-empty,
+    #view-itinerary button,
+    #view-itinerary .budget-hint,
+    #view-itinerary .copy-btn{display:none !important}
+
+    #view-itinerary .plan-layout,
+    #view-itinerary .plan-output-wrap{display:block}
+
+    #view-itinerary .plan-output{
+      display:flex !important;
+      padding:0;
+      border:0;
+      border-radius:0;
+      background:#fff;
+      box-shadow:none;
+    }
+
+    #view-itinerary .plan-output[hidden]{display:none !important}
+
+    #view-itinerary .plan-output-head{margin-bottom:12px}
+    #view-itinerary .plan-output-head h3{color:#000}
+
+    #view-itinerary .plan-eyebrow,
+    #view-itinerary .plan-meta span{
+      color:#000;
+      background:#f2f2f2;
+      border:1px solid #bbb;
+    }
+
+    #view-itinerary .plan-section{
+      break-inside:avoid;
+      page-break-inside:avoid;
+    }
+
+    #view-itinerary .plan-section h4,
+    #view-itinerary .tl-title,
+    #view-itinerary .bd-top,
+    #view-itinerary .budget-table{color:#000}
+
+    #view-itinerary .tl-time,
+    #view-itinerary .plan-section h4 span{color:#333}
+
+    #view-itinerary .timeline{border-left-color:#999}
+
+    #view-itinerary .tl-item::before{
+      background:#333;
+      box-shadow:0 0 0 2px #fff,0 0 0 3px #999;
+    }
+
+    #view-itinerary .example-brief{background:#fff;border:1px solid #999}
+    #view-itinerary .example-badge,
+    #view-itinerary .example-brief p,
+    #view-itinerary .example-brief li{color:#000}
+
+    #view-itinerary .check{background:#fff;border:1px solid #999;color:#000}
+    #view-itinerary .check input{accent-color:#000}
+
+    #view-itinerary .budget-wrap{border-color:#999;overflow:visible}
+    #view-itinerary .budget-table th,
+    #view-itinerary .budget-table td{color:#000;background:#fff;border-color:#999}
+    #view-itinerary .budget-table thead th{background:#eee}
+    #view-itinerary .budget-table tfoot th,
+    #view-itinerary .budget-table tfoot td{background:#fff}
+
+    #view-itinerary .budget-input{
+      height:auto;
+      max-width:none;
+      padding:0;
+      border:0;
+      border-bottom:1px solid #999;
+      border-radius:0;
+      background:#fff;
+      color:#000;
+      font-weight:600;
+    }
+
+    #view-itinerary .budget-status{color:#333 !important}
+
+    #view-itinerary .tl-group .timeline{display:block !important}
+
+    #view-itinerary .tl-toggle{
+      display:flex !important;
+      padding:2px 0;
+      color:#000;
+    }
+
+    #view-itinerary .tl-toggle-text,
+    #view-itinerary .tl-toggle svg{display:none !important}
+
+    #view-itinerary .gear-progress{display:none !important}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 19 9.5 8l4 6.5L16 11l5 8Z"/>
+          <path d="M3 19h18"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">行旅小智</span>
+        <span class="brand-sub">山野出行规划与安全助手</span>
+      </div>
+    </div>
+    <div class="topbar-badge">离线可用</div>
+  </div>
+</header>
+
+<main id="app">
+
+  <section class="view active" id="view-home" aria-labelledby="home-title">
+    <div class="hero">
+      <div class="hero-inner">
+        <p class="eyebrow">山野出行 · 安全优先</p>
+        <h1 id="home-title">行旅小智</h1>
+        <p class="hero-sub">出发之前，先把山看懂</p>
+        <p class="hero-desc">把地形、天气、装备和退路想清楚，再迈出第一步。这里没有玄学，只有出发前该做的四件事。</p>
+        <button class="btn-pill" type="button" data-target="diagnosis">
+          开始行前检查
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>
+          </svg>
+        </button>
+      </div>
+      <svg class="hero-art" viewBox="0 0 440 260" aria-hidden="true">
+        <circle cx="338" cy="66" r="36" fill="#C8853A" opacity=".16"/>
+        <g class="cloud cloud-a" fill="#FFFFFF" opacity=".88">
+          <ellipse cx="82" cy="55" rx="27" ry="11"/>
+          <ellipse cx="108" cy="50" rx="17" ry="8"/>
+          <ellipse cx="60" cy="50" rx="15" ry="7"/>
+        </g>
+        <g class="cloud cloud-b" fill="#FFFFFF" opacity=".68">
+          <ellipse cx="292" cy="108" rx="24" ry="9"/>
+          <ellipse cx="314" cy="103" rx="15" ry="7"/>
+          <ellipse cx="272" cy="103" rx="13" ry="6"/>
+        </g>
+        <g class="cloud cloud-c" fill="#FFFFFF" opacity=".5">
+          <ellipse cx="160" cy="38" rx="18" ry="7"/>
+          <ellipse cx="176" cy="34" rx="11" ry="5"/>
+        </g>
+        <path d="M0 260 112 92l66 92 62-76 92 152Z" fill="#DFEAE3"/>
+        <path d="M104 260 206 58l118 202Z" fill="#CBDCD2"/>
+        <path d="m206 58 38 66-24 22-18-27-20 30-20-24Z" fill="#FBF7F0" opacity=".86"/>
+        <path d="M0 260h440" stroke="#2E6B5B" stroke-opacity=".16" stroke-width="1.5"/>
+      </svg>
+
+      <div class="hero-mobile-art" aria-hidden="true">
+        <svg viewBox="0 0 440 170">
+          <rect width="440" height="170" rx="22" fill="#EEF4EC"/>
+          <g class="cloud cloud-a" fill="#FFFFFF" opacity=".92">
+            <ellipse cx="92" cy="42" rx="30" ry="12"/>
+            <ellipse cx="120" cy="36" rx="18" ry="8"/>
+            <ellipse cx="68" cy="37" rx="16" ry="7"/>
+          </g>
+          <circle cx="352" cy="40" r="18" fill="#C8853A" opacity=".22"/>
+          <path d="M0 150 92 62l52 62 58-76 76 102 54-52 108 52v20H0Z" fill="#D7E6DD"/>
+          <path d="M0 158 122 88l70 52 76-40 82 40 90-20v50H0Z" fill="#BFD6C7"/>
+          <path d="M0 160h440" stroke="#2E6B5B" stroke-opacity=".2"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="features section-gap" aria-label="功能入口">
+      <button class="feature" type="button" data-target="knowledge">
+        <span class="feature-no">01 · KNOWLEDGE</span>
+        <h3>知识库</h3>
+        <p>36 条地形、天气、装备与急救常识，每条都标出最容易搞混的地方。</p>
+        <span class="go">翻一翻
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        </span>
+      </button>
+
+      <button class="feature" type="button" data-target="diagnosis">
+        <span class="feature-no">02 · DIAGNOSIS</span>
+        <h3>出行诊断</h3>
+        <p>5 项条件、20 分制，出发前先看清这趟路到底有几成难度。</p>
+        <span class="go">测一测
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        </span>
+      </button>
+
+      <button class="feature" type="button" data-target="itinerary">
+        <span class="feature-no">03 · ITINERARY</span>
+        <h3>行程单助手</h3>
+        <p>套用现成模板，填好目的地和人数，自动生成提纲、装备与预算。</p>
+        <span class="go">排一排
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        </span>
+      </button>
+
+      <button class="feature" type="button" data-target="safety">
+        <span class="feature-no">04 · SAFETY</span>
+        <h3>安全自测</h3>
+        <p>24 题随机抽 10 题，答错自动进错题本，下次专门重练。</p>
+        <span class="go">测一测
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        </span>
+      </button>
+    </div>
+
+    <div class="four section-gap">
+      <div class="four-head">
+        <h2>一分钟看懂行前四件事</h2>
+        <span>说人话版 · 记住就够用</span>
+      </div>
+      <div class="four-grid">
+        <div class="four-item">
+          <span class="four-dot">01</span>
+          <div>
+            <h4>看地形</h4>
+            <p>等高线越密坡越陡，手脚并用就是 35° 往上；下雨天别往山谷里钻。</p>
+          </div>
+        </div>
+        <div class="four-item">
+          <span class="four-dot">02</span>
+          <div>
+            <h4>看天气</h4>
+            <p>出门前再刷一次最新预报，山里下午的雷阵雨常常说来就来。</p>
+          </div>
+        </div>
+        <div class="four-item">
+          <span class="four-dot">03</span>
+          <div>
+            <h4>备装备</h4>
+            <p>头灯、雨具、离线地图，就算计划白天往返也要带齐。</p>
+          </div>
+        </div>
+        <div class="four-item">
+          <span class="four-dot">04</span>
+          <div>
+            <h4>留后路</h4>
+            <p>定好最晚下撤时间，告诉家人你去哪、跟谁、几点回。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="view-knowledge" aria-labelledby="kb-title">
+    <div class="page-head">
+      <div>
+        <h2 id="kb-title">知识库</h2>
+        <p>36 条山野常识，按地形、天气、装备、急救和无痕山野收好。</p>
+      </div>
+      <span class="page-count" id="kb-count" aria-live="polite">共 36 条</span>
+    </div>
+
+    <div class="kb-scenes" id="kb-scenes" role="group" aria-label="知识库分类场景">
+      <button class="kb-scene" type="button" data-cat="地形地貌" aria-pressed="false">
+        <svg viewBox="0 0 118 72" aria-hidden="true">
+          <rect width="118" height="72" fill="#F1F7F3"/>
+          <circle cx="95" cy="15" r="8" fill="#C8853A" opacity=".3"/>
+          <path d="M0 62 26 30l17 20 21-28 22 30 16-16 16 22v14H0Z" fill="#CBDCD2"/>
+          <path d="M0 65 32 44l26 16 30-18 30 20v10H0Z" fill="#9FBEA9" opacity=".75"/>
+          <path d="M0 67h118" stroke="#2E6B5B" stroke-opacity=".25"/>
+        </svg>
+        <span>地形</span>
+      </button>
+      <button class="kb-scene" type="button" data-cat="天气判读" aria-pressed="false">
+        <svg viewBox="0 0 118 72" aria-hidden="true">
+          <rect width="118" height="72" fill="#F1F5F8"/>
+          <circle cx="86" cy="18" r="11" fill="#C8853A" opacity=".4"/>
+          <path d="M31 43a11 11 0 0 1 1-22 15 15 0 0 1 28-4 12 12 0 0 1 11 26Z" fill="#FFFFFF"/>
+          <path d="m42 52-4 8m14-8-4 8m14-8-4 8m14-8-4 8" stroke="#2E6B5B" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+          <path d="M0 66h118" stroke="#2E6B5B" stroke-opacity=".16"/>
+        </svg>
+        <span>天气</span>
+      </button>
+      <button class="kb-scene" type="button" data-cat="装备与补给" aria-pressed="false">
+        <svg viewBox="0 0 118 72" aria-hidden="true">
+          <rect width="118" height="72" fill="#F6F2E9"/>
+          <path d="M0 60 32 40l26 20 28-16 32 18v10H0Z" fill="#DDE7DF"/>
+          <rect x="45" y="24" width="30" height="34" rx="8" fill="#2E6B5B"/>
+          <path d="M52 24v-4a8 8 0 0 1 16 0v4" fill="none" stroke="#2E6B5B" stroke-width="2"/>
+          <rect x="49" y="38" width="22" height="12" rx="4" fill="#C8853A" opacity=".85"/>
+          <path d="M45 34h-5m33 0h5" stroke="#2E6B5B" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span>装备</span>
+      </button>
+      <button class="kb-scene" type="button" data-cat="安全与急救" aria-pressed="false">
+        <svg viewBox="0 0 118 72" aria-hidden="true">
+          <rect width="118" height="72" fill="#F3F7F3"/>
+          <path d="M59 13 36 21v14c0 11 9 19 23 24 14-5 23-13 23-24V21Z" fill="#E7EFEA" stroke="#2E6B5B" stroke-width="2"/>
+          <path d="M55 29h8v8h8v8h-8v8h-8v-8h-8v-8h8Z" fill="#C8853A"/>
+          <path d="M0 66h118" stroke="#2E6B5B" stroke-opacity=".14"/>
+        </svg>
+        <span>安全</span>
+      </button>
+      <button class="kb-scene" type="button" data-cat="无痕山野" aria-pressed="false">
+        <svg viewBox="0 0 118 72" aria-hidden="true">
+          <rect width="118" height="72" fill="#F1F7F1"/>
+          <path d="M0 62 30 34l20 20 22-28 24 28 12-10v18H0Z" fill="#DCEADD"/>
+          <path d="M0 67h118" stroke="#2E6B5B" stroke-opacity=".2"/>
+          <path d="M62 48c-2-12 6-20 18-22-1 13-7 21-18 22Z" fill="#2E6B5B" opacity=".8"/>
+          <path d="M62 48c5-5 9-9 14-13" stroke="#FBF7F0" stroke-width="1.4" stroke-linecap="round"/>
+          <path d="M10 62c10-4 20-4 30 0" stroke="#C8853A" stroke-width="1.5" stroke-dasharray="3 5" opacity=".8"/>
+        </svg>
+        <span>无痕</span>
+      </button>
+    </div>
+
+    <div class="kb-tools">
+      <div class="search">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/>
+        </svg>
+        <input id="kb-search" type="search" placeholder="搜地形、天气、装备、急救…" autocomplete="off" aria-label="搜索知识库">
+        <button class="search-clear" id="kb-clear" type="button" aria-label="清空搜索" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+      <div class="chips" id="kb-chips" role="group" aria-label="知识库分类筛选"></div>
+      <div class="kb-fav-bar">
+        <button class="fav-filter" id="kb-fav-filter" type="button" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true">
+            <path d="m12 3 2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z"/>
+          </svg>
+          只看收藏
+          <span id="kb-fav-count">0</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="k-grid" id="kb-grid"></div>
+
+    <div class="empty" id="kb-empty" hidden>
+      <h3>没有找到相关条目</h3>
+      <p>换个关键词，或点「全部」看看 36 条常识。</p>
+    </div>
+  </section>
+
+  <section class="view" id="view-diagnosis" aria-labelledby="diagnosis-title">
+    <div class="page-head">
+      <div>
+        <h2 id="diagnosis-title">出行诊断</h2>
+        <p>5 项条件、20 分制，把风险说清楚。</p>
+      </div>
+    </div>
+
+    <div class="diag-layout">
+      <div class="diag-form" id="diag-form">
+        <div class="diag-form-head">
+          <div>
+            <h3>出行条件</h3>
+            <p>逐项选择，结果会实时更新</p>
+          </div>
+          <button class="text-btn" id="diag-reset" type="button">恢复默认</button>
+        </div>
+        <div class="diag-groups" id="diag-groups"></div>
+      </div>
+
+      <aside class="diag-result" id="diag-result" data-tier="mid" aria-label="出行诊断结果">
+        <div class="score-head" aria-live="polite">
+          <div>
+            <p class="score-cap">本次出行风险</p>
+            <p class="score-big" id="diag-score"><span id="diag-score-num">6</span><small>/20</small></p>
+          </div>
+          <span class="tier" id="diag-tier">适中</span>
+        </div>
+
+        <div class="tier-band" id="diag-tier-band" aria-hidden="true">
+          <span class="tier-band-marker" id="diag-band-marker" style="left:30%"></span>
+        </div>
+
+        <p class="tier-advice" id="diag-advice">有一定强度，队伍里至少一人熟悉路线，装备按清单逐项确认。</p>
+
+        <div class="slope-card">
+          <div class="slope-head">
+            <strong>坡度剖面</strong>
+            <span id="diag-slope-label">落差 300–800 m</span>
+          </div>
+          <canvas id="slope-canvas" height="176" width="320" role="img" aria-label="坡度剖面示意图"></canvas>
+        </div>
+
+        <div class="breakdown" id="diag-breakdown"></div>
+
+        <div class="gear">
+          <h3>装备增补 <em>按所选条件自动触发</em></h3>
+          <ul class="gear-list" id="diag-gear"></ul>
+        </div>
+
+        <p class="diag-warning"><strong>安全提示 · </strong>天气预报只能参考出发前最新预报，本工具不替代专业领队判断</p>
+      </aside>
+    </div>
+  </section>
+
+  <section class="view" id="view-itinerary" aria-labelledby="itinerary-title">
+    <div class="page-head">
+      <div>
+        <h2 id="itinerary-title">行程单助手</h2>
+        <p>三种模板，生成能直接照着走的行程单。</p>
+      </div>
+    </div>
+
+    <div class="plan-layout">
+      <div class="plan-form">
+        <div class="plan-form-head">
+          <h3>先定下这趟怎么走</h3>
+          <p>模板与天数自动联动，选完填目的地即可</p>
+        </div>
+
+        <div class="plan-example-bar">
+          <label for="plan-example">示例目的地</label>
+          <select class="plan-select" id="plan-example" aria-label="示例目的地"></select>
+        </div>
+        <div class="example-gallery" id="plan-example-gallery" role="group" aria-label="示例目的地小图">
+          <button class="example-thumb" type="button" data-example="缙云山" aria-pressed="false">
+            <svg viewBox="0 0 118 72" aria-hidden="true">
+              <rect width="118" height="72" fill="#F1F7F3"/>
+              <path d="M0 64 24 34l18 20 20-24 22 28 16-12 18 18v8H0Z" fill="#CBDCD2"/>
+              <path d="M58 28h6v16h-6Z" fill="#2E6B5B"/>
+              <path d="m61 16 9 12H52Z" fill="#2E6B5B"/>
+              <path d="M0 67h118" stroke="#2E6B5B" stroke-opacity=".2"/>
+            </svg>
+            <span>缙云山</span>
+          </button>
+          <button class="example-thumb" type="button" data-example="歌乐山" aria-pressed="false">
+            <svg viewBox="0 0 118 72" aria-hidden="true">
+              <rect width="118" height="72" fill="#F4F7F1"/>
+              <path d="M0 62 30 32l24 22 22-18 42 24v12H0Z" fill="#DCE8DC"/>
+              <path d="M28 52 36 34l8 18Zm18 4 8-20 8 20Zm26-6 7-16 7 16Z" fill="#2E6B5B" opacity=".8"/>
+              <path d="M94 20v22" stroke="#A83A2C" stroke-width="2"/>
+              <path d="M94 20h12v8H94Z" fill="#A83A2C" opacity=".8"/>
+            </svg>
+            <span>歌乐山</span>
+          </button>
+          <button class="example-thumb" type="button" data-example="金佛山" aria-pressed="false">
+            <svg viewBox="0 0 118 72" aria-hidden="true">
+              <rect width="118" height="72" fill="#F7F3E8"/>
+              <path d="M0 67 40 22l16 22 16-12 46 35Z" fill="#C8853A" opacity=".75"/>
+              <path d="m40 22 16 22-8 6-8-10-9 14-8-6Z" fill="#FBF7F0" opacity=".9"/>
+              <path d="M12 34h28m32-6h22" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+              <path d="M0 67h118" stroke="#2E6B5B" stroke-opacity=".16"/>
+            </svg>
+            <span>金佛山</span>
+          </button>
+          <button class="example-thumb" type="button" data-example="武隆仙女山" aria-pressed="false">
+            <svg viewBox="0 0 118 72" aria-hidden="true">
+              <rect width="118" height="72" fill="#F2F7F4"/>
+              <circle cx="92" cy="16" r="8" fill="#C8853A" opacity=".35"/>
+              <path d="M0 64c22-18 42-18 60-6 20-14 38-12 58 4v10H0Z" fill="#BFD8C6"/>
+              <path d="M0 68c28-8 48-8 66 0 18-6 34-4 52 0v4H0Z" fill="#2E6B5B" opacity=".25"/>
+              <path d="m46 48 9 12h-18Z" fill="#C8853A"/>
+              <path d="M46 48v12" stroke="#7A5423" stroke-width="1.5"/>
+            </svg>
+            <span>武隆仙女山</span>
+          </button>
+          <button class="example-thumb" type="button" data-example="武隆天生三桥" aria-pressed="false">
+            <svg viewBox="0 0 118 72" aria-hidden="true">
+              <rect width="118" height="72" fill="#EEF3F0"/>
+              <path d="M0 0h38l-8 72H0Zm80 0h38v72H88Z" fill="#BCD3C4"/>
+              <path d="M34 64V38c0-14 12-24 25-24s25 10 25 24v26h-9V40c0-9-7-17-16-17s-16 8-16 17v24Z" fill="#7FA08B"/>
+              <path d="M43 64V41c0-9 7-16 16-16s16 7 16 16v23" fill="none" stroke="#FBF7F0" stroke-width="4"/>
+              <path d="M0 68h118" stroke="#2E6B5B" stroke-opacity=".2"/>
+            </svg>
+            <span>武隆天生三桥</span>
+          </button>
+          <button class="example-thumb" type="button" data-example="梵净山" aria-pressed="false">
+            <svg viewBox="0 0 118 72" aria-hidden="true">
+              <rect width="118" height="72" fill="#EFF5F6"/>
+              <path d="M0 50h118v22H0Z" fill="#FFFFFF" opacity=".9"/>
+              <path d="M0 58c18-8 34-8 50 0 14-7 28-8 42-2 10 4 18 4 26 2v14H0Z" fill="#D6E4E1"/>
+              <path d="M50 18h18l10 40H40Z" fill="#7C9A8F"/>
+              <path d="M50 18h18l-4 12H54Z" fill="#2E6B5B" opacity=".7"/>
+              <path d="M56 33h6v20h-6Z" fill="#FBF7F0" opacity=".65"/>
+              <path d="M0 68h118" stroke="#2E6B5B" stroke-opacity=".15"/>
+            </svg>
+            <span>梵净山</span>
+          </button>
+        </div>
+        <p class="plan-example-note" id="plan-example-note" hidden></p>
+
+        <div class="tpl-list" id="plan-templates" role="group" aria-label="行程模板">
+          <button class="plan-tpl" type="button" data-template="near" aria-pressed="true">
+            <span class="tpl-dot" aria-hidden="true"></span>
+            <span class="tpl-text"><strong>周末近郊一日</strong><small>1 天 · 轻装往返</small></span>
+            <span class="tpl-days">1D</span>
+          </button>
+          <button class="plan-tpl" type="button" data-template="mountain" aria-pressed="false">
+            <span class="tpl-dot" aria-hidden="true"></span>
+            <span class="tpl-text"><strong>山地两日一夜</strong><small>2 天 1 夜 · 登高露营</small></span>
+            <span class="tpl-days">2D</span>
+          </button>
+          <button class="plan-tpl" type="button" data-template="slow" aria-pressed="false">
+            <span class="tpl-dot" aria-hidden="true"></span>
+            <span class="tpl-text"><strong>梯田古镇慢游三日</strong><small>3 天 2 夜 · 慢走村寨</small></span>
+            <span class="tpl-days">3D</span>
+          </button>
+        </div>
+
+        <div class="plan-fields">
+          <div class="field field-wide">
+            <label for="plan-dest">目的地</label>
+            <input class="plan-input" id="plan-dest" type="text" placeholder="例如：武隆仙女山" autocomplete="off" maxlength="30">
+            <p class="plan-error" id="plan-dest-error" hidden>先填写目的地，再生成行程单。</p>
+          </div>
+          <div class="field">
+            <label for="plan-days">天数（天）</label>
+            <input class="plan-input" id="plan-days" type="number" min="1" max="3" step="1" value="1" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label for="plan-people">人数（人）</label>
+            <input class="plan-input" id="plan-people" type="number" min="1" max="20" step="1" value="2" inputmode="numeric">
+          </div>
+          <div class="field field-budget">
+            <label for="plan-budget">预算上限（元）</label>
+            <input class="plan-input" id="plan-budget" type="number" min="0" step="100" value="2000" inputmode="numeric">
+          </div>
+        </div>
+
+        <button class="btn-pill btn-generate" id="plan-generate" type="button">
+          生成行程单
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>
+          </svg>
+        </button>
+        <p class="plan-note">生成后可直接修改预算金额，总计会自动重算。</p>
+      </div>
+
+      <div class="plan-output-wrap">
+        <div class="plan-empty" id="plan-empty">
+          <strong>还没有行程单</strong>
+          <p>选好模板、填上目的地和人数，点「生成行程单」就能看到分时段安排、装备清单和预算表。</p>
+        </div>
+
+        <article class="plan-output" id="plan-output" hidden aria-live="polite">
+          <div class="plan-output-head">
+            <div>
+              <p class="plan-eyebrow">行程单草稿</p>
+              <h3 id="plan-title"></h3>
+              <div class="plan-meta" id="plan-meta"></div>
+            </div>
+            <button class="copy-btn" id="plan-copy" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>
+              </svg>
+              <span id="plan-copy-text">复制为 Markdown</span>
+            </button>
+          </div>
+
+          <section class="plan-section" aria-labelledby="plan-outline-title">
+            <h4 id="plan-outline-title"><span>01</span>分时段提纲</h4>
+            <div class="timeline" id="plan-timeline"></div>
+          </section>
+
+          <section class="plan-section" aria-labelledby="plan-gear-title">
+            <div class="plan-section-head">
+              <h4 id="plan-gear-title"><span>02</span>装备清单</h4>
+              <div class="plan-section-actions">
+                <div class="gear-progress" aria-label="装备完成度">
+                  <svg class="gear-ring" viewBox="0 0 40 40" aria-hidden="true">
+                    <circle class="ring-bg" cx="20" cy="20" r="14"/>
+                    <circle class="ring-fg" id="plan-gear-ring" cx="20" cy="20" r="14" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/>
+                  </svg>
+                  <span id="plan-gear-percent">0%</span>
+                </div>
+                <button class="text-btn" id="plan-gear-reset" type="button">重置清单</button>
+              </div>
+            </div>
+            <div class="gear-grid" id="plan-gear"></div>
+          </section>
+
+          <section class="plan-section" aria-labelledby="plan-budget-title">
+            <h4 id="plan-budget-title"><span>03</span>预算估算</h4>
+            <div class="budget-wrap">
+              <table class="budget-table">
+                <thead>
+                  <tr><th scope="col">项目</th><th scope="col">金额（元）</th><th scope="col">说明</th></tr>
+                </thead>
+                <tbody id="plan-budget-body"></tbody>
+                <tfoot>
+                  <tr><th scope="row">总计</th><td id="plan-total">¥0</td><td id="plan-budget-status" class="budget-status"></td></tr>
+                </tfoot>
+              </table>
+            </div>
+            <p class="budget-hint">金额可直接编辑，改动后总计与复制内容会自动更新。</p>
+          </section>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="view-safety" aria-labelledby="safety-title">
+    <div class="page-head">
+      <div>
+        <h2 id="safety-title">安全自测</h2>
+        <p>24 题随机抽 10 题，答错进错题本。</p>
+      </div>
+      <span class="page-count">16 单选 · 8 判断</span>
+    </div>
+
+    <div class="safety-shell">
+      <div class="quiz-stage">
+        <section class="quiz-card" id="quiz-card" aria-labelledby="quiz-stem">
+          <div class="quiz-top">
+            <div class="quiz-tags">
+              <span class="quiz-type" id="quiz-type">单选</span>
+              <span class="quiz-mode" id="quiz-mode" hidden>错题重练</span>
+            </div>
+            <span class="quiz-progress-text" id="quiz-progress-text">第 1 / 10 题</span>
+          </div>
+
+          <div class="quiz-progress" id="quiz-progress" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="1">
+            <span id="quiz-progress-fill"></span>
+          </div>
+
+          <div class="quiz-toolbar">
+            <label class="quiz-timed">
+              <input type="checkbox" id="quiz-timed">
+              限时模式
+            </label>
+            <span class="quiz-timer" id="quiz-timer" hidden>30s</span>
+            <span class="quiz-streak" id="quiz-streak" title="连续答对">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 21c-4 0-7-3-7-7 0-3 2-5 4-7 1 3 2 4 4 5 0-3 1-5 3-7 1 3 3 5 3 9 0 4-3 7-7 7Z"/>
+              </svg>
+              <span class="quiz-streak-label">连对</span>
+              <span id="quiz-streak-num">0</span>
+            </span>
+          </div>
+
+          <h3 class="quiz-stem" id="quiz-stem" aria-live="polite"></h3>
+          <div class="quiz-options" id="quiz-options"></div>
+
+          <div class="quiz-explain" id="quiz-explain" aria-live="polite" hidden>
+            <p class="explain-verdict" id="explain-verdict"></p>
+            <p class="explain-answer" id="explain-answer"></p>
+            <p class="explain-text" id="explain-text"></p>
+            <div class="explain-actions">
+              <span class="explain-hint" id="explain-hint"></span>
+              <button class="btn-pill btn-next" id="quiz-next" type="button">下一题</button>
+            </div>
+          </div>
+
+          <div class="quiz-foot">
+            <button class="text-btn" id="quiz-restart" type="button">重新抽题</button>
+            <span class="quiz-foot-note">每次重置都会重新随机抽 10 题</span>
+          </div>
+        </section>
+
+        <section class="quiz-result" id="quiz-result" hidden aria-labelledby="result-title">
+          <div class="result-head">
+            <p class="plan-eyebrow">自测结算</p>
+            <h3 id="result-title">本次自测结果</h3>
+            <p id="result-sub"></p>
+          </div>
+
+          <div class="result-body">
+            <div class="result-chart">
+              <canvas id="result-chart" width="160" height="160" role="img" aria-label="答题正确率"></canvas>
+            </div>
+            <div class="result-stats">
+              <p class="result-score"><strong id="result-score">0</strong><small id="result-total">/10</small></p>
+              <p class="result-accuracy" id="result-accuracy">正确率 0%</p>
+              <div class="type-stats" id="result-types"></div>
+            </div>
+          </div>
+
+          <div class="result-actions">
+            <button class="btn-pill btn-compact" id="result-again" type="button">再测一次</button>
+            <button class="btn-ghost" id="result-retry" type="button">重练错题</button>
+          </div>
+        </section>
+      </div>
+
+      <section class="wrong-book" aria-labelledby="wrong-title">
+        <div class="wrong-head">
+          <div>
+            <h3 id="wrong-title">错题本 <span id="wrong-count">0</span></h3>
+            <p>答错的题会留在这里，重练答对后自动移出。</p>
+          </div>
+          <button class="btn-ghost" id="wrong-retry-all" type="button">重练全部</button>
+        </div>
+        <div class="wrong-empty" id="wrong-empty">还没有错题。答错的题会自动收进这里，方便集中重练。</div>
+        <div class="wrong-list" id="wrong-list" hidden></div>
+      </section>
+    </div>
+  </section>
+
+  <section class="view" id="view-toolbox" aria-labelledby="toolbox-title">
+    <div class="page-head">
+      <div>
+        <h2 id="toolbox-title">行前工具</h2>
+        <p>四个能算出结果的小工具，填好条件即时给建议。</p>
+      </div>
+      <span class="page-count">结果仅供参考</span>
+    </div>
+
+    <div class="tool-grid">
+      <section class="tool-card" aria-labelledby="walk-title">
+        <div class="tool-head">
+          <span class="tool-no">01</span>
+          <div>
+            <h3 id="walk-title">步行耗时估算</h3>
+            <p>Naismith 法则 · 误差约 ±30%</p>
+          </div>
+        </div>
+
+        <div class="tool-fields">
+          <div class="tool-field">
+            <label for="walk-distance">水平距离（km）</label>
+            <input class="tool-input" id="walk-distance" type="number" min="0" max="100" step="0.1" value="10" inputmode="decimal">
+            <input class="tool-range" id="walk-distance-range" type="range" min="0" max="100" step="0.1" value="10" aria-label="水平距离滑杆">
+          </div>
+          <div class="tool-field">
+            <label for="walk-ascent">累计爬升（m）</label>
+            <input class="tool-input" id="walk-ascent" type="number" min="0" max="5000" step="10" value="600" inputmode="numeric">
+            <input class="tool-range" id="walk-ascent-range" type="range" min="0" max="5000" step="10" value="600" aria-label="累计爬升滑杆">
+          </div>
+          <div class="tool-field is-wide">
+            <label for="walk-sunset">日落时间</label>
+            <input class="tool-input" id="walk-sunset" type="time" value="18:30">
+          </div>
+        </div>
+
+        <div class="seg-row">
+          <span class="seg-label">下坡缓急</span>
+          <div class="seg-group" role="group" aria-label="下坡缓急">
+            <button class="seg-btn" type="button" data-group="slope" data-value="gentle" aria-pressed="true">缓坡</button>
+            <button class="seg-btn" type="button" data-group="slope" data-value="steep" aria-pressed="false">陡坡</button>
+          </div>
+        </div>
+
+        <div class="tool-result" aria-live="polite">
+          <div class="tool-main">
+            <span>预计耗时</span>
+            <strong id="walk-hours">3.5</strong>
+            <small>小时</small>
+          </div>
+          <p class="tool-formula" id="walk-formula"></p>
+          <p class="tool-times" id="walk-times"></p>
+          <p class="tool-note">Naismith 法则把爬升折算成额外时间：每爬 300 m 多加半小时；实际受路况和体能影响，误差约 ±30%。</p>
+          <p class="tool-note">出发与下撤时刻按原路返回、返程按总耗时一半估算，并预留 1 小时缓冲。</p>
+        </div>
+      </section>
+
+      <section class="tool-card" aria-labelledby="water-title">
+        <div class="tool-head">
+          <span class="tool-no">02</span>
+          <div>
+            <h3 id="water-title">饮水与路餐计算</h3>
+            <p>按小时、气温档和强度折算</p>
+          </div>
+        </div>
+
+        <div class="tool-fields">
+          <div class="tool-field is-wide">
+            <label for="water-hours">步行小时（h）</label>
+            <input class="tool-input" id="water-hours" type="number" min="0" max="24" step="0.5" value="4" inputmode="decimal">
+            <input class="tool-range" id="water-hours-range" type="range" min="0" max="24" step="0.5" value="4" aria-label="步行小时滑杆">
+          </div>
+        </div>
+
+        <div class="seg-row">
+          <span class="seg-label">气温档</span>
+          <div class="seg-group" role="group" aria-label="气温档">
+            <button class="seg-btn" type="button" data-group="temp" data-value="cool" aria-pressed="true">凉爽</button>
+            <button class="seg-btn" type="button" data-group="temp" data-value="hot" aria-pressed="false">炎热</button>
+          </div>
+        </div>
+
+        <div class="seg-row">
+          <span class="seg-label">强度</span>
+          <div class="seg-group" role="group" aria-label="强度">
+            <button class="seg-btn" type="button" data-group="intensity" data-value="light" aria-pressed="true">轻松</button>
+            <button class="seg-btn" type="button" data-group="intensity" data-value="hard" aria-pressed="false">高强度</button>
+          </div>
+        </div>
+
+        <div class="tool-result" aria-live="polite">
+          <div class="tool-main">
+            <span>建议带水</span>
+            <strong id="water-liters">2.0</strong>
+            <small>L</small>
+          </div>
+          <p class="tool-formula" id="water-formula"></p>
+          <div class="tool-main">
+            <span>路餐热量</span>
+            <strong id="water-calories">1000</strong>
+            <small>kcal</small>
+          </div>
+          <p class="tool-formula">路餐按 200–300 kcal/h 取中值 250 kcal/h 估算。</p>
+          <p class="tool-note is-warn">另留一份应急食物不动。</p>
+        </div>
+      </section>
+
+      <section class="tool-card" aria-labelledby="weather-title">
+        <div class="tool-head">
+          <span class="tool-no">03</span>
+          <div>
+            <h3 id="weather-title">天气决策表</h3>
+            <p>把查到的预报填进来，按固定规则对照</p>
+          </div>
+        </div>
+
+        <div class="tool-fields">
+          <div class="tool-field">
+            <label for="weather-rain-chance">降雨概率（%）</label>
+            <input class="tool-input" id="weather-rain-chance" type="number" min="0" max="100" step="1" value="20" inputmode="numeric">
+            <input class="tool-range" id="weather-rain-chance-range" type="range" min="0" max="100" step="1" value="20" aria-label="降雨概率滑杆">
+          </div>
+          <div class="tool-field">
+            <label for="weather-rain-mm">预计降雨量（mm）</label>
+            <input class="tool-input" id="weather-rain-mm" type="number" min="0" max="200" step="1" value="0" inputmode="decimal">
+            <input class="tool-range" id="weather-rain-mm-range" type="range" min="0" max="200" step="1" value="0" aria-label="预计降雨量滑杆">
+          </div>
+          <div class="tool-field">
+            <label for="weather-gust">最大阵风（级）</label>
+            <input class="tool-input" id="weather-gust" type="number" min="0" max="12" step="1" value="2" inputmode="numeric">
+            <input class="tool-range" id="weather-gust-range" type="range" min="0" max="12" step="1" value="2" aria-label="最大阵风滑杆">
+          </div>
+          <div class="tool-field">
+            <label for="weather-temp-diff">山顶与山下温差（℃）</label>
+            <input class="tool-input" id="weather-temp-diff" type="number" min="0" max="30" step="1" value="6" inputmode="numeric">
+            <input class="tool-range" id="weather-temp-diff-range" type="range" min="0" max="30" step="1" value="6" aria-label="山顶与山下温差滑杆">
+          </div>
+        </div>
+
+        <div class="tool-result" aria-live="polite">
+          <div class="weather-verdict" id="weather-verdict" data-level="ok">
+            <span id="weather-level">可按计划出行</span>
+            <small>规则对照</small>
+          </div>
+          <ul class="weather-reasons" id="weather-reasons"></ul>
+          <p class="tool-note">固定规则：降雨量 ≥25 mm、阵风 ≥8 级、温差 ≥10℃ 且伴降水 → 建议改期；降雨概率 ≥60%、降雨量 ≥10 mm、阵风 ≥6 级 → 缩减路线。改期优先。</p>
+          <p class="weather-fixed">数据由用户填入，本工具只做规则对照，不提供天气预报</p>
+        </div>
+      </section>
+
+      <section class="tool-card" aria-labelledby="report-title">
+        <div class="tool-head">
+          <span class="tool-no">04</span>
+          <div>
+            <h3 id="report-title">行程报备卡</h3>
+            <p>生成一段纯文本，出发前发给家人或朋友</p>
+          </div>
+        </div>
+
+        <div class="tool-fields">
+          <div class="tool-field is-wide">
+            <label for="report-dest">目的地</label>
+            <input class="tool-input" id="report-dest" type="text" placeholder="例如：武隆仙女山" autocomplete="off" maxlength="40">
+          </div>
+          <div class="tool-field is-wide">
+            <label for="report-route">路线</label>
+            <input class="tool-input" id="report-route" type="text" placeholder="例如：景区大门—大草原—原路返回" autocomplete="off" maxlength="80">
+          </div>
+          <div class="tool-field">
+            <label for="report-turnback">计划下撤时间</label>
+            <input class="tool-input" id="report-turnback" type="time" value="16:00">
+          </div>
+          <div class="tool-field">
+            <label for="report-people">同行人数（人）</label>
+            <input class="tool-input" id="report-people" type="number" min="1" max="30" step="1" value="2" inputmode="numeric">
+          </div>
+          <div class="tool-field">
+            <label for="report-contact">紧急联系人姓名</label>
+            <input class="tool-input" id="report-contact" type="text" placeholder="例如：张三" autocomplete="off" maxlength="20">
+          </div>
+          <div class="tool-field">
+            <label for="report-phone">紧急联系人电话</label>
+            <input class="tool-input" id="report-phone" type="tel" placeholder="例如：13800138000" autocomplete="off" maxlength="20">
+          </div>
+        </div>
+
+        <p class="tool-error" id="report-error" hidden>请把目的地、路线、下撤时间、同行人数和紧急联系人填完整。</p>
+
+        <button class="btn-pill btn-compact" id="report-generate" type="button">生成报备卡</button>
+
+        <div class="report-output" id="report-output" hidden>
+          <pre class="report-card" id="report-card"></pre>
+          <div class="report-actions">
+            <button class="btn-pill btn-compact" id="report-copy" type="button">复制报备卡</button>
+          </div>
+        </div>
+        <p class="tool-foot-hint">出发前把这张卡发给家人或朋友</p>
+      </section>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<nav class="tabbar" aria-label="主导航">
+  <button class="tab-btn" type="button" data-view="home" aria-selected="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V21h13V9.5"/>
+    </svg>
+    <span>首页</span>
+  </button>
+  <button class="tab-btn" type="button" data-view="knowledge" aria-selected="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v18H6.5A2.5 2.5 0 0 1 4 18.5z"/><path d="M4 18.5h16"/>
+    </svg>
+    <span>知识库</span>
+  </button>
+  <button class="tab-btn" type="button" data-view="diagnosis" aria-selected="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>
+    </svg>
+    <span>出行诊断</span>
+  </button>
+  <button class="tab-btn" type="button" data-view="itinerary" aria-selected="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M9 10h6M9 14h6M9 18h4"/>
+    </svg>
+    <span>行程单助手</span>
+  </button>
+  <button class="tab-btn" type="button" data-view="safety" aria-selected="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 3 5 6v6c0 4.4 3 7.6 7 9 4-1.4 7-4.6 7-9V6z"/><path d="m9 12 2 2 4-4"/>
+    </svg>
+    <span>安全自测</span>
+  </button>
+  <button class="tab-btn" type="button" data-view="toolbox" aria-selected="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V5h8v3"/><path d="M3 13h18"/><path d="M9 13v2h6v-2"/>
+    </svg>
+    <span>行前工具</span>
+  </button>
+</nav>
+
+<noscript>
+  <p class="noscript">本应用需要启用 JavaScript 才能使用知识库检索、筛选与后续诊断功能。</p>
+</noscript>
+
+<script>
+const KNOWLEDGE = [
+  {n:1,cat:'地形地貌',title:'山脊与山谷',point:'沿山脊走视野好、风大；山谷有水但易聚冷空气和突发山洪。',confuse:'易混：山谷平坦≠安全，雨季山谷是行洪道。'},
+  {n:2,cat:'地形地貌',title:'坡度怎么估',point:'手机指南针/地图等高线越密坡越陡；体感上"要手脚并用"约超 35°。',confuse:'易混：直线距离短≠省力，陡坡直线最耗体力。'},
+  {n:3,cat:'地形地貌',title:'等高线读图',point:'等高线闭合圈是山头，V 形尖端指向上游是山谷。',confuse:'易混：V 形开口方向，顺水流方向才是下游。'},
+  {n:4,cat:'地形地貌',title:'梯田地貌',point:'田埂窄而滑，雨后泥泞；走田埂不抄近道踩田面。',confuse:'易混：看着平缓的梯田，下撤路线其实绕远。'},
+  {n:5,cat:'地形地貌',title:'峡谷地形',point:'谷底信号弱、落石多；午后对流雨易发山洪。',confuse:'易混：晴天进谷也要看上游天气。'},
+  {n:6,cat:'地形地貌',title:'喀斯特山区',point:'石漠化地表存不住水，补给点稀少，要多带水。',confuse:'易混：地图上蓝线（季节河）旱季可能没水。'},
+  {n:7,cat:'地形地貌',title:'垭口与鞍部',point:'风口风速翻倍，体感温度骤降，是补衣和休整点。',confuse:'易混：垭口不是终点，只是地形转折点。'},
+  {n:8,cat:'地形地貌',title:'碎石坡（石海）',point:'石头松动，横切通过要逐个试探落脚。',confuse:'易混：干碎石比湿苔藓更滑，别只防雨天。'},
+  {n:9,cat:'天气判读',title:'对流雨信号',point:'午后云团垂直发展、闷热无风，是雷阵雨前兆。',confuse:'易混：早上晴好不代表下午安全。'},
+  {n:10,cat:'天气判读',title:'雷电避险',point:'听雷声 30 秒内闪电即在 10 km 内，应下撤到低处避开孤树和金属。',confuse:'易混：雨伞和高尔夫式举手都引雷，别站山顶。'},
+  {n:11,cat:'天气判读',title:'山地温差',point:'海拔每升 1000 m 约降 6℃，按平原温度备衣必冻。',confuse:'易混：预报温度是山下县城的，不是山顶的。'},
+  {n:12,cat:'天气判读',title:'雾与能见度',point:'雾起先停后辨向，原路标记比摸索前进可靠。',confuse:'易混：雾中方向感失真，直线感觉是错的。'},
+  {n:13,cat:'天气判读',title:'暴雨与山洪',point:'上游下雨下游涨水，水变浑、带杂物、轰鸣声是撤离信号。',confuse:'易混：本段没下雨≠河道安全。'},
+  {n:14,cat:'天气判读',title:'大风预警',point:'垭口和山脊阵风可掀人，扎营避开风口和孤树。',confuse:'易混：帐篷地钉和风绳是保命件不是装饰。'},
+  {n:15,cat:'天气判读',title:'紫外线',point:'高海拔紫外线更强，阴天也能晒伤。',confuse:'易混：凉快≠没紫外线。'},
+  {n:16,cat:'天气判读',title:'季节窗口',point:'西南山区雨季（5–10 月）滑坡塌方高发，出行优先旱季窗口。',confuse:'易混：天气预报"多云"在山区可能等于阵雨。'},
+  {n:17,cat:'装备与补给',title:'背包分层',point:'重物贴背居中，常用物品放顶仓和侧袋。',confuse:'易混：把水放包底是最常见的错误。'},
+  {n:18,cat:'装备与补给',title:'鞋的选择',point:'防滑纹路和护踝比品牌重要，新鞋必须磨合后再进山。',confuse:'易混：运动鞋≠徒步鞋，湿石板上差别巨大。'},
+  {n:19,cat:'装备与补给',title:'饮水规划',point:'徒步每小时约补水 0.5 L，高温翻倍；不确定的水源按没有算。',confuse:'易混：渴了再喝已经晚了，要定时喝。'},
+  {n:20,cat:'装备与补给',title:'食物能量',point:'按每小时 200–300 kcal 备路餐，另留一份应急食物不动。',confuse:'易混：正餐思维不适用山上，要少量多次。'},
+  {n:21,cat:'装备与补给',title:'雨具优先级',point:'冲锋衣或雨衣优于雨伞（占手、怕风）。',confuse:'易混：一次性雨衣在荆棘段一挂就烂。'},
+  {n:22,cat:'装备与补给',title:'头灯必带',point:'计划白天往返也要带，天黑下山是事故高发场景。',confuse:'易混：手机电筒耗电快且占手。'},
+  {n:23,cat:'装备与补给',title:'离线地图',point:'进山前下载离线地图和轨迹，飞行模式省电。',confuse:'易混：有信号≠有电，省电同样重要。'},
+  {n:24,cat:'装备与补给',title:'急救小包',point:'创可贴、弹性绷带、碘伏棉片、防蚊液、个人常用药。',confuse:'易混：急救包不是重量负担，是保险。'},
+  {n:25,cat:'安全与急救',title:'失温识别',point:'发抖停不下来、说话含糊就是失温前兆，立即避风换干衣补热量。',confuse:'易混：夏天也会失温，湿＋风最危险。'},
+  {n:26,cat:'安全与急救',title:'中暑处理',point:'先转移阴凉、物理降温、少量多次补水盐。',confuse:'易混：藿香正气不能替代降温。'},
+  {n:27,cat:'安全与急救',title:'崴脚处理',point:'制动、冷敷、加压、抬高，勉强续走最伤。',confuse:'易混：热敷是 48 小时以后的事。'},
+  {n:28,cat:'安全与急救',title:'蜂蛇防范',point:'草丛用登山杖先打草惊蛇，被咬保持制动并尽快就医。',confuse:'易混：不要用嘴吸毒液，不要扎过紧止血带。'},
+  {n:29,cat:'安全与急救',title:'落石应对',point:'听见上方哗啦声先护头贴壁，别往开阔处乱跑。',confuse:'易混：喊"落石"要朝上喊给上方的人听。'},
+  {n:30,cat:'安全与急救',title:'求救信号',point:'哨声三声一组反复吹，夜间用头灯三闪；报告位置优先报地标和轨迹点。',confuse:'易混：没信号时往高处移动再尝试，短信比电话更易发出。'},
+  {n:31,cat:'无痕山野',title:'带走一切垃圾',point:'包括果皮和湿巾——果皮在高海拔要数年才分解。',confuse:'易混："天然的"不等于"可降解得快"。'},
+  {n:32,cat:'无痕山野',title:'走现成路径',point:'不踩新路、不抄近道，防踩踏和坡面侵蚀。',confuse:'易混：一条近道多人走，就是一条新冲沟。'},
+  {n:33,cat:'无痕山野',title:'水源保护',point:'洗漱取水离水源 30 m 以上，不在溪流里用洗涤剂。',confuse:'易混：可降解洗涤剂在野外也一样污染。'},
+  {n:34,cat:'无痕山野',title:'野生动物距离',point:'不投喂、不追拍幼崽，食物密封防招动物。',confuse:'易混：动物不怕人往往是被投喂惯了，更危险。'},
+  {n:35,cat:'无痕山野',title:'用火纪律',point:'非指定区域不生火，离开时确认火种全灭、土掩降温。',confuse:'易混：看着没烟不等于灭了，要摸温度。'},
+  {n:36,cat:'无痕山野',title:'尊重当地',point:'梯田、茶园是生产用地，拍照先询问，不踩田埂菜地。',confuse:'易混：网红机位可能正站在别人的生计上。'}
+];
+
+const CATEGORIES = ['地形地貌','天气判读','装备与补给','安全与急救','无痕山野'];
+
+const state = {cat:'all', keyword:''};
+
+const els = {
+  chips: document.getElementById('kb-chips'),
+  grid: document.getElementById('kb-grid'),
+  empty: document.getElementById('kb-empty'),
+  count: document.getElementById('kb-count'),
+  search: document.getElementById('kb-search'),
+  clear: document.getElementById('kb-clear'),
+  favFilter: document.getElementById('kb-fav-filter'),
+  favCount: document.getElementById('kb-fav-count'),
+  scenes: document.getElementById('kb-scenes')
+};
+
+const KB_FAVORITES_KEY = 'xlx-kb-favorites-v1';
+let favoriteOnly = false;
+let favoriteIds = new Set();
+
+try {
+  const savedFavorites = JSON.parse(localStorage.getItem(KB_FAVORITES_KEY) || '[]');
+  favoriteIds = new Set(Array.isArray(savedFavorites) ? savedFavorites.map(Number) : []);
+} catch (error) {
+  favoriteIds = new Set();
+}
+
+function saveFavorites(){
+  try {
+    localStorage.setItem(KB_FAVORITES_KEY, JSON.stringify(Array.from(favoriteIds)));
+  } catch (error) {
+    /* 本机存储不可用时只保留当前页面状态 */
+  }
+}
+
+function firstSentence(text){
+  const match = text.match(/^[^；。]*[；。]?/);
+  return (match ? match[0] : text).trim();
+}
+
+function syncKnowledgeMeta(){
+  els.favCount.textContent = String(favoriteIds.size);
+  els.favFilter.setAttribute('aria-pressed', String(favoriteOnly));
+  els.scenes.querySelectorAll('.kb-scene').forEach((btn) => {
+    btn.setAttribute('aria-pressed', String(btn.dataset.cat === state.cat));
+  });
+}
+
+function escapeHTML(value){
+  return String(value).replace(/[&<>"']/g, (ch) => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[ch]));
+}
+
+function countByCategory(cat){
+  return KNOWLEDGE.filter((item) => item.cat === cat).length;
+}
+
+function renderChips(){
+  const all = `<button class="chip" type="button" data-cat="all" aria-pressed="${state.cat === 'all'}">全部<span class="chip-count">${KNOWLEDGE.length}</span></button>`;
+  const rest = CATEGORIES.map((cat) => {
+    return `<button class="chip" type="button" data-cat="${escapeHTML(cat)}" aria-pressed="${state.cat === cat}">${escapeHTML(cat)}<span class="chip-count">${countByCategory(cat)}</span></button>`;
+  }).join('');
+  els.chips.innerHTML = all + rest;
+}
+
+function filteredList(){
+  const keyword = state.keyword.trim().toLowerCase();
+  return KNOWLEDGE.filter((item) => {
+    if (favoriteOnly && !favoriteIds.has(item.n)) return false;
+    if (state.cat !== 'all' && item.cat !== state.cat) return false;
+    if (!keyword) return true;
+    return [item.title, item.point, item.confuse].some((text) => text.toLowerCase().includes(keyword));
+  });
+}
+
+function cardHTML(item){
+  const favorite = favoriteIds.has(item.n);
+  const preview = firstSentence(item.point);
+  const previewText = preview === item.point ? preview : `${preview}…`;
+  return `<article class="k-card" data-id="${item.n}">
+    <div class="k-meta">
+      <span class="k-no">NO.${String(item.n).padStart(2,'0')}</span>
+      <div class="k-actions">
+        <span class="k-cat">${escapeHTML(item.cat)}</span>
+        <button class="k-star" type="button" data-action="favorite" aria-pressed="${favorite}" aria-label="${favorite ? '取消收藏' : '收藏'}：${escapeHTML(item.title)}" title="${favorite ? '取消收藏' : '收藏'}">
+          <svg viewBox="0 0 24 24" fill="${favorite ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true">
+            <path d="m12 3 2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <h3 class="k-title">${escapeHTML(item.title)}</h3>
+    <p class="k-point k-preview">${escapeHTML(previewText)}</p>
+    <div class="k-full">
+      <p class="k-point-full">${escapeHTML(item.point)}</p>
+      <p class="k-confuse">${escapeHTML(item.confuse)}</p>
+    </div>
+    <button class="k-expand" type="button" data-action="expand" aria-expanded="false">展开全文</button>
+  </article>`;
+}
+
+function renderCards(){
+  const list = filteredList();
+  els.count.textContent = `共 ${list.length} 条`;
+  els.grid.innerHTML = list.map(cardHTML).join('');
+  els.grid.hidden = list.length === 0;
+  els.empty.hidden = list.length !== 0;
+
+  const emptyTitle = els.empty.querySelector('h3');
+  const emptyText = els.empty.querySelector('p');
+  if (favoriteOnly && favoriteIds.size === 0) {
+    emptyTitle.textContent = '还没有收藏';
+    emptyText.textContent = '点卡片右上角的星标收藏，再来这里集中看。';
+  } else {
+    emptyTitle.textContent = '没有找到相关条目';
+    emptyText.textContent = '换个关键词，或点「全部」看看 36 条常识。';
+  }
+
+  syncKnowledgeMeta();
+}
+
+/* ---------- 出行诊断 ---------- */
+const DIAG_GROUPS = [
+  {
+    key:'terrain', label:'地形类型', short:'地形', hint:'单选 · 最高 6 分',
+    options:[
+      {value:'平原古镇', score:0, basis:'地势平缓、路径清晰，主要风险来自天气与人群。'},
+      {value:'丘陵梯田', score:2, basis:'有起伏但坡度温和，田埂雨后湿滑。'},
+      {value:'一般山地', score:4, basis:'坡度和落差明显，需预留体力与下撤时间。'},
+      {value:'峡谷高山', score:6, basis:'谷深坡陡、信号弱，落石与山洪风险叠加。'}
+    ]
+  },
+  {
+    key:'weather', label:'季节天气', short:'天气', hint:'单选 · 最高 4 分',
+    options:[
+      {value:'旱季晴好', score:0, basis:'天气窗口稳定，仍需出发前复核最新预报。'},
+      {value:'旱季多变', score:1, basis:'旱季也可能起风起雾，留出机动时间。'},
+      {value:'雨季晴好', score:2, basis:'雨季窗口短暂，上游降雨仍可能引发涨水。'},
+      {value:'雨季多雨', score:4, basis:'持续降雨，滑坡、塌方与山洪风险显著升高。'}
+    ]
+  },
+  {
+    key:'drop', label:'海拔落差', short:'落差', hint:'单选 · 最高 4 分',
+    options:[
+      {value:'＜300 m', score:0, basis:'起伏很小，普通体力即可应对。'},
+      {value:'300–800 m', score:2, basis:'有持续爬升，注意节奏和补水。'},
+      {value:'800–1500 m', score:3, basis:'长距离爬升，对体能与膝盖压力明显。'},
+      {value:'＞1500 m', score:4, basis:'大幅爬升，需按高海拔节奏预留时间。'}
+    ]
+  },
+  {
+    key:'team', label:'同行结构', short:'队伍', hint:'单选 · 最高 3 分',
+    options:[
+      {value:'结伴有经验者', score:0, basis:'有经验同伴同行，决策与互助有保障。'},
+      {value:'结伴新手', score:1, basis:'有人同行但经验不足，路线判断需由你承担。'},
+      {value:'独自一人', score:3, basis:'无人互助，一旦受伤或迷路风险成倍放大。'}
+    ]
+  },
+  {
+    key:'duration', label:'单日步行', short:'时长', hint:'单选 · 最高 3 分',
+    options:[
+      {value:'＜3 h', score:0, basis:'短时活动，留足返程余量即可。'},
+      {value:'3–5 h', score:1, basis:'半日行程，注意午餐与天气窗口。'},
+      {value:'5–8 h', score:2, basis:'全天行程，头灯和应急食物必须随身。'},
+      {value:'＞8 h', score:3, basis:'超长行程，摸黑下山概率高，需严肃评估。'}
+    ]
+  }
+];
+
+const DIAG_TIERS = [
+  {max:5, key:'easy', label:'轻松', advice:'整体强度低，按计划走即可；仍要留意午后天气变化和返程时间。'},
+  {max:10, key:'mid', label:'适中', advice:'有一定强度，队伍里至少一人熟悉路线，装备按清单逐项确认。'},
+  {max:15, key:'hard', label:'挑战', advice:'强度偏高，建议缩短里程、提前出发，并把最晚下撤时间告诉家人。'},
+  {max:20, key:'high', label:'高风险', advice:'风险很高，建议改线或请专业领队；若坚持出行，必须结伴并准备撤退方案。'}
+];
+
+const DIAG_DEFAULT = {
+  terrain:'丘陵梯田',
+  weather:'旱季晴好',
+  drop:'300–800 m',
+  team:'结伴新手',
+  duration:'3–5 h'
+};
+
+const diagState = Object.assign({}, DIAG_DEFAULT);
+
+const DROP_T = {'＜300 m':0.12, '300–800 m':0.32, '800–1500 m':0.62, '＞1500 m':0.9};
+const SLOPE_WORD = {'＜300 m':'缓坡', '300–800 m':'中等坡度', '800–1500 m':'较陡', '＞1500 m':'很陡'};
+
+const diagGroupsEl = document.getElementById('diag-groups');
+const diagResultEl = document.getElementById('diag-result');
+const diagScoreEl = document.getElementById('diag-score');
+const diagScoreNumEl = document.getElementById('diag-score-num');
+const diagTierEl = document.getElementById('diag-tier');
+const diagAdviceEl = document.getElementById('diag-advice');
+const diagBreakdownEl = document.getElementById('diag-breakdown');
+const diagGearEl = document.getElementById('diag-gear');
+const diagSlopeLabelEl = document.getElementById('diag-slope-label');
+const diagResetEl = document.getElementById('diag-reset');
+const diagBandMarker = document.getElementById('diag-band-marker');
+const slopeCanvas = document.getElementById('slope-canvas');
+const slopeCtx = slopeCanvas.getContext('2d');
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+let lastDiagScore = -1;
+let displayedDiagScore = 6;
+let diagScoreRaf = 0;
+let slopeW = 0;
+let slopeH = 176;
+let slopeCurrent = DROP_T[DIAG_DEFAULT.drop];
+let slopeFrom = slopeCurrent;
+let slopeTo = slopeCurrent;
+let slopeRaf = 0;
+
+function getDiagGroup(key){
+  return DIAG_GROUPS.find((group) => group.key === key);
+}
+
+function getDiagOption(key, value){
+  return getDiagGroup(key).options.find((option) => option.value === value);
+}
+
+function slopeWord(dropValue){
+  return SLOPE_WORD[dropValue] || '中等坡度';
+}
+
+function buildDiagForm(){
+  diagGroupsEl.innerHTML = DIAG_GROUPS.map((group) => {
+    const selectedIndex = group.options.findIndex((option) => option.value === diagState[group.key]);
+    return `
+    <div class="diag-group" role="group" aria-labelledby="dg-${group.key}">
+      <div class="diag-group-head">
+        <span class="diag-label" id="dg-${group.key}">${group.label}</span>
+        <span class="diag-hint">${group.hint}</span>
+      </div>
+      <div class="diag-options">
+        ${group.options.map((option) => `
+          <button class="diag-opt" type="button" data-key="${group.key}" data-value="${escapeHTML(option.value)}" aria-pressed="${diagState[group.key] === option.value}">
+            <span class="opt-label">${escapeHTML(option.value)}</span>
+            <span class="opt-score">${option.score}</span>
+          </button>`).join('')}
+      </div>
+      <input class="diag-slider" type="range" min="0" max="${group.options.length - 1}" step="1" value="${selectedIndex}" data-key="${group.key}" aria-label="${group.label}滑杆">
+    </div>`;
+  }).join('');
+}
+
+function syncDiagButtons(){
+  diagGroupsEl.querySelectorAll('.diag-opt').forEach((btn) => {
+    btn.setAttribute('aria-pressed', String(diagState[btn.dataset.key] === btn.dataset.value));
+  });
+  diagGroupsEl.querySelectorAll('.diag-slider').forEach((slider) => {
+    const group = getDiagGroup(slider.dataset.key);
+    slider.value = String(group.options.findIndex((option) => option.value === diagState[group.key]));
+  });
+}
+
+function setDisplayedDiagScore(value){
+  displayedDiagScore = value;
+  diagScoreNumEl.textContent = String(Math.round(value));
+  if (slopeW) drawSlope(slopeCurrent);
+}
+
+function animateDiagScore(target, animate){
+  cancelAnimationFrame(diagScoreRaf);
+  if (!animate || reduceMotion) {
+    setDisplayedDiagScore(target);
+    return;
+  }
+  const start = displayedDiagScore;
+  const started = performance.now();
+  const duration = 380;
+  const tick = (now) => {
+    const progress = Math.min(1, (now - started) / duration);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    setDisplayedDiagScore(start + (target - start) * eased);
+    if (progress < 1) diagScoreRaf = requestAnimationFrame(tick);
+    else setDisplayedDiagScore(target);
+  };
+  diagScoreRaf = requestAnimationFrame(tick);
+}
+
+function updateDiag(animateScore){
+  let total = 0;
+  const rows = DIAG_GROUPS.map((group) => {
+    const option = getDiagOption(group.key, diagState[group.key]);
+    total += option.score;
+    const max = Math.max(...group.options.map((item) => item.score));
+    const percent = max === 0 ? 0 : Math.round((option.score / max) * 100);
+    return `<div class="bd-row">
+      <div class="bd-top">
+        <span class="bd-label">${group.short}</span>
+        <span class="bd-opt">${escapeHTML(option.value)}</span>
+        <span class="bd-score">+${option.score} / ${max}</span>
+      </div>
+      <div class="bd-bar" role="progressbar" aria-label="${group.label}得分" aria-valuemin="0" aria-valuemax="${max}" aria-valuenow="${option.score}">
+        <span class="bd-fill" style="width:${percent}%"></span>
+      </div>
+      <p class="bd-basis">依据：${escapeHTML(option.basis)}</p>
+    </div>`;
+  });
+
+  const tier = DIAG_TIERS.find((item) => total <= item.max) || DIAG_TIERS[DIAG_TIERS.length - 1];
+  diagResultEl.dataset.tier = tier.key;
+  diagTierEl.textContent = tier.label;
+  diagAdviceEl.textContent = tier.advice;
+  diagBreakdownEl.innerHTML = rows.join('');
+  diagBandMarker.style.left = `${Math.max(0, Math.min(100, (total / 20) * 100))}%`;
+  animateDiagScore(total, animateScore);
+
+  if (animateScore && total !== lastDiagScore) {
+    diagScoreEl.classList.remove('is-bump');
+    void diagScoreEl.offsetWidth;
+    diagScoreEl.classList.add('is-bump');
+  }
+  lastDiagScore = total;
+
+  const dropOption = getDiagOption('drop', diagState.drop);
+  const gear = [];
+  if (diagState.weather.indexOf('雨季') !== -1) {
+    gear.push({title:'雨具与备用干衣', text:'雨季按“会下雨”准备，湿身加风最容易失温。'});
+  }
+  if (dropOption.score >= 3) {
+    gear.push({title:'登山杖与头灯', text:'长距离爬升护膝省力，头灯防摸黑下山。'});
+  }
+  if (diagState.team === '独自一人') {
+    gear.push({title:'报备行程与离线轨迹', text:'把路线和最晚下撤时间发给家人，提前下载离线地图。'});
+  }
+  if (diagState.terrain === '峡谷高山') {
+    gear.push({title:'山洪撤离提示', text:'听到上游轰鸣、水变浑，立即向高处撤离，不要沿谷底跑。'});
+  }
+
+  diagGearEl.innerHTML = gear.length
+    ? gear.map((item) => `<li><div><strong>${item.title}</strong>${item.text}</div></li>`).join('')
+    : '<li class="gear-none">暂无额外增补，按基础清单准备即可。</li>';
+
+  const word = slopeWord(diagState.drop);
+  diagSlopeLabelEl.textContent = `落差 ${diagState.drop} · ${word}`;
+  slopeCanvas.setAttribute('aria-label', `坡度剖面示意图：落差 ${diagState.drop}，坡度为${word}。`);
+  animateSlope(diagState.drop);
+}
+
+/* ---------- Canvas 坡度剖面 ---------- */
+function sizeSlopeCanvas(){
+  const rect = slopeCanvas.getBoundingClientRect();
+  if (rect.width < 20) {
+    slopeW = 0;
+    return;
+  }
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  slopeW = rect.width;
+  slopeH = rect.height || 176;
+  slopeCanvas.width = Math.round(slopeW * dpr);
+  slopeCanvas.height = Math.round(slopeH * dpr);
+  slopeCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  drawSlope(slopeCurrent);
+}
+
+function ridgePoints(rise, baseY, left, right, wobble){
+  const points = [];
+  const steps = 56;
+  for (let i = 0; i <= steps; i += 1) {
+    const u = i / steps;
+    const x = left + (right - left) * u;
+    const smooth = u * u * (3 - 2 * u);
+    const y = baseY - rise * smooth + Math.sin(u * Math.PI) * wobble;
+    points.push([x, y]);
+  }
+  return points;
+}
+
+function drawSlope(t){
+  if (!slopeW || !slopeCtx) return;
+  const ctx = slopeCtx;
+  const w = slopeW;
+  const h = slopeH;
+
+  ctx.clearRect(0, 0, w, h);
+
+  const background = ctx.createLinearGradient(0, 0, 0, h);
+  background.addColorStop(0, '#F1F8F3');
+  background.addColorStop(1, '#FBF7F0');
+  ctx.fillStyle = background;
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.strokeStyle = 'rgba(46,107,91,.07)';
+  ctx.lineWidth = 1;
+  for (let y = 34; y < h - 14; y += 34) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(w, y);
+    ctx.stroke();
+  }
+
+  ctx.beginPath();
+  ctx.arc(w - 38, 34, 15, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(200,133,58,.22)';
+  ctx.fill();
+
+  const baseY = h - 26;
+  const left = 16;
+  const right = w - 16;
+
+  const back = ridgePoints(12 + t * 46, baseY, left, right, 0);
+  const backFill = ctx.createLinearGradient(0, baseY - 60, 0, baseY);
+  backFill.addColorStop(0, 'rgba(46,107,91,.14)');
+  backFill.addColorStop(1, 'rgba(46,107,91,.03)');
+  ctx.beginPath();
+  ctx.moveTo(left, baseY);
+  back.forEach(([x, y]) => ctx.lineTo(x, y));
+  ctx.lineTo(right, baseY);
+  ctx.closePath();
+  ctx.fillStyle = backFill;
+  ctx.fill();
+
+  const rise = 16 + t * (h - 86);
+  const front = ridgePoints(rise, baseY, left, right, 5 + t * 8);
+  const frontFill = ctx.createLinearGradient(0, baseY - rise, 0, baseY);
+  frontFill.addColorStop(0, 'rgba(46,107,91,.30)');
+  frontFill.addColorStop(1, 'rgba(46,107,91,.08)');
+  ctx.beginPath();
+  ctx.moveTo(left, baseY);
+  front.forEach(([x, y]) => ctx.lineTo(x, y));
+  ctx.lineTo(right, baseY);
+  ctx.closePath();
+  ctx.fillStyle = frontFill;
+  ctx.fill();
+
+  ctx.beginPath();
+  front.forEach(([x, y], index) => {
+    if (index === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.lineWidth = 2.2;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = '#2E6B5B';
+  ctx.stroke();
+
+  ctx.save();
+  ctx.setLineDash([4, 7]);
+  ctx.lineWidth = 1.6;
+  ctx.strokeStyle = 'rgba(255,255,255,.9)';
+  ctx.beginPath();
+  front.forEach(([x, y], index) => {
+    if (index === 0) ctx.moveTo(x, y - 8);
+    else ctx.lineTo(x, y - 8);
+  });
+  ctx.stroke();
+  ctx.restore();
+
+  const start = front[0];
+  const end = front[front.length - 1];
+
+  ctx.beginPath();
+  ctx.arc(start[0], start[1], 3.4, 0, Math.PI * 2);
+  ctx.fillStyle = '#2E6B5B';
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(end[0], end[1], 4.4, 0, Math.PI * 2);
+  ctx.fillStyle = '#C8853A';
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(end[0], end[1]);
+  ctx.lineTo(end[0], end[1] - 20);
+  ctx.strokeStyle = '#C8853A';
+  ctx.lineWidth = 1.6;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(end[0], end[1] - 20);
+  ctx.lineTo(end[0] + 13, end[1] - 16);
+  ctx.lineTo(end[0], end[1] - 12);
+  ctx.closePath();
+  ctx.fillStyle = '#C8853A';
+  ctx.fill();
+
+  const hikeProgress = Math.max(0, Math.min(1, displayedDiagScore / 20));
+  const hikeU = 0.15 + hikeProgress * 0.7;
+  const hikePoint = front[Math.round(hikeU * (front.length - 1))];
+  const hx = hikePoint[0];
+  const hy = hikePoint[1];
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(29,36,33,.12)';
+  ctx.beginPath();
+  ctx.ellipse(hx, hy + 1.5, 7, 2, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = '#1D2421';
+  ctx.fillStyle = '#1D2421';
+  ctx.lineWidth = 1.6;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.arc(hx, hy - 13, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(hx, hy - 10);
+  ctx.lineTo(hx, hy - 4);
+  ctx.moveTo(hx, hy - 8);
+  ctx.lineTo(hx + 4, hy - 6);
+  ctx.moveTo(hx, hy - 8);
+  ctx.lineTo(hx - 3, hy - 5);
+  ctx.moveTo(hx, hy - 4);
+  ctx.lineTo(hx - 4, hy + 1);
+  ctx.moveTo(hx, hy - 4);
+  ctx.lineTo(hx + 4, hy + 1);
+  ctx.stroke();
+
+  ctx.fillStyle = '#C8853A';
+  ctx.fillRect(hx - 2.2, hy - 10.5, 4.4, 6);
+  ctx.restore();
+
+  ctx.font = '10px "HarmonyOS Sans SC","PingFang SC",sans-serif';
+  ctx.fillStyle = 'rgba(29,36,33,.55)';
+  ctx.textAlign = 'left';
+  ctx.fillText('起点', left, baseY + 16);
+  ctx.textAlign = 'right';
+  ctx.fillText('终点', right, baseY + 16);
+
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#2E6B5B';
+  ctx.font = '600 10.5px "HarmonyOS Sans SC","PingFang SC",sans-serif';
+  ctx.fillText(slopeWord(diagState.drop), left + 2, 20);
+}
+
+function animateSlope(dropValue){
+  const target = DROP_T[dropValue] || 0.32;
+  if (target === slopeTo && slopeW) return;
+  slopeFrom = slopeCurrent;
+  slopeTo = target;
+
+  if (reduceMotion || !slopeW) {
+    slopeCurrent = target;
+    if (slopeW) drawSlope(target);
+    return;
+  }
+
+  cancelAnimationFrame(slopeRaf);
+  const started = performance.now();
+  const duration = 440;
+  const tick = (now) => {
+    const progress = Math.min(1, (now - started) / duration);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    slopeCurrent = slopeFrom + (slopeTo - slopeFrom) * eased;
+    drawSlope(slopeCurrent);
+    if (progress < 1) slopeRaf = requestAnimationFrame(tick);
+  };
+  slopeRaf = requestAnimationFrame(tick);
+}
+
+buildDiagForm();
+updateDiag(false);
+
+diagGroupsEl.addEventListener('click', (event) => {
+  const btn = event.target.closest('.diag-opt');
+  if (!btn) return;
+  diagState[btn.dataset.key] = btn.dataset.value;
+  syncDiagButtons();
+  updateDiag(true);
+});
+
+diagGroupsEl.addEventListener('input', (event) => {
+  const slider = event.target.closest('.diag-slider');
+  if (!slider) return;
+  const group = getDiagGroup(slider.dataset.key);
+  const option = group.options[Number(slider.value)];
+  if (!option) return;
+  diagState[group.key] = option.value;
+  syncDiagButtons();
+  updateDiag(true);
+});
+
+diagResetEl.addEventListener('click', () => {
+  Object.assign(diagState, DIAG_DEFAULT);
+  syncDiagButtons();
+  updateDiag(true);
+});
+
+if ('ResizeObserver' in window) {
+  new ResizeObserver(() => sizeSlopeCanvas()).observe(slopeCanvas);
+} else {
+  window.addEventListener('resize', sizeSlopeCanvas);
+}
+
+/* ---------- 行程单助手 ---------- */
+const PLAN_TEMPLATES = {
+  near: {
+    name:'周末近郊一日',
+    days:1,
+    rates:{transport:80, food:60, ticketStay:40, emergency:30},
+    outline:[
+      {day:1, time:'07:30', title:'出发前检查', detail:'看当天最新天气，装好饮水、雨具和头灯，把路线发给家人。'},
+      {day:1, time:'08:00', title:'交通', detail:'自驾或公交前往{dest}，按 1 小时车程预留，避开早高峰。'},
+      {day:1, time:'09:30', title:'路线节点', detail:'沿主路走到观景平台，遇到岔路不临时探险，按计划折返。'},
+      {day:1, time:'12:00', title:'午餐点', detail:'回镇上吃热饭，或在背风处吃路餐，休息 30 分钟再走。'},
+      {day:1, time:'15:30', title:'最晚下撤时间', detail:'到点还没走完就原路返回，别为了打卡拖到天黑。'},
+      {day:1, time:'17:00', title:'返程', detail:'天黑前回到停车点，清点人数和垃圾，给家人报平安。'}
+    ],
+    gear:['防滑徒步鞋','雨具（雨衣优先）','1 L 饮水','路餐与能量棒','头灯','离线地图','急救小包','充电宝']
+  },
+  mountain: {
+    name:'山地两日一夜',
+    days:2,
+    rates:{transport:180, food:150, ticketStay:260, emergency:100},
+    outline:[
+      {day:1, time:'07:00', title:'出发', detail:'早餐后装车，头灯、雨具和保暖层放在随手能拿的位置。'},
+      {day:1, time:'10:30', title:'登山口', detail:'到{dest}登山口热身，确认轨迹、水源和撤退路线。'},
+      {day:1, time:'12:30', title:'路餐', detail:'找背风处吃路餐，少量多次补水，别一次喝太急。'},
+      {day:1, time:'15:30', title:'营地或住宿', detail:'到预定营地或客栈，先搭帐或办入住，别摸黑干活。'},
+      {day:1, time:'16:30', title:'水源补给', detail:'确认取水点，晚餐前把第二天要用的水补齐。'},
+      {day:1, time:'18:30', title:'日落', detail:'日落前加衣，天黑前吃完晚饭，头灯放在手边。'},
+      {day:2, time:'05:30', title:'日出（可选）', detail:'想看日出就提前 30 分钟到位，风大时注意保暖。'},
+      {day:2, time:'07:30', title:'早餐收营', detail:'吃完收帐，带走全部垃圾，确认火种完全熄灭。'},
+      {day:2, time:'09:00', title:'下撤', detail:'按原路下撤，碎石段放慢，队尾留人收队。'},
+      {day:2, time:'12:00', title:'补给点', detail:'到山脚补水、吃午饭，检查有没有落东西。'},
+      {day:2, time:'15:00', title:'返程', detail:'上车前清点人数和装备，给家人报平安。'},
+      {day:2, time:'备用', title:'撤退方案', detail:'遇大雨、雷电或队员受伤，立即下撤到最近补给点，不硬撑。'}
+    ],
+    gear:['登山杖','头灯与备用电池','雨具与备用干衣','保暖层（抓绒/薄羽绒）','帐篷睡袋（按营地）','炉具与两餐食材','2 L 饮水与净水片','离线地图与轨迹','急救包','垃圾袋']
+  },
+  slow: {
+    name:'梯田古镇慢游三日',
+    days:3,
+    rates:{transport:320, food:300, ticketStay:480, emergency:140},
+    outline:[
+      {day:1, time:'10:00', title:'抵达', detail:'到{dest}先放行李，问清村寨作息和拍照禁忌。'},
+      {day:1, time:'12:00', title:'古镇午饭', detail:'吃当地家常菜，避开网红店排队，饭后歇一会儿。'},
+      {day:1, time:'14:30', title:'观景时段', detail:'下午光线柔和，走主街和观景台，不踩田埂抄近道。'},
+      {day:1, time:'18:00', title:'傍晚散步', detail:'日落前后在村口走走，天黑前回住处。'},
+      {day:2, time:'06:30', title:'梯田日出', detail:'提前看天气，日出前 30 分钟到机位，脚下只走田埂。'},
+      {day:2, time:'09:30', title:'村寨礼仪', detail:'进寨先问能不能拍照，不追拍老人小孩，不踩菜地。'},
+      {day:2, time:'12:00', title:'午饭', detail:'回镇上吃饭，正午强光时回住处歇一会儿。'},
+      {day:2, time:'15:00', title:'茶山慢走', detail:'走现成步道，茶垄和菜地不进去，垃圾随手带走。'},
+      {day:2, time:'18:30', title:'日落', detail:'找西向开阔处看日落，带件外套，天黑前回村。'},
+      {day:3, time:'07:00', title:'早市', detail:'逛早市吃早饭，备点现金，垃圾自己带走。'},
+      {day:3, time:'09:30', title:'退房', detail:'检查充电器、证件和随身物品，把行李装车。'},
+      {day:3, time:'11:00', title:'返程衔接', detail:'按班车或高铁时间提前 1 小时出发，留足余量。'},
+      {day:3, time:'14:00', title:'路上', detail:'服务区休息一次，别疲劳驾驶。'}
+    ],
+    gear:['轻装背包','防滑徒步鞋','雨具','防晒帽与防晒霜','水壶','相机（可选）','少量现金','垃圾袋']
+  }
+};
+
+const PLAN_EXAMPLES = {
+  '缙云山': {
+    drop:'300–600 m',
+    duration:'3–5 h',
+    template:'near',
+    tips:['主城出发约 1 小时，周末停车紧张，尽量早到。','石阶雨后湿滑，下坡放慢，不钻野路。']
+  },
+  '歌乐山': {
+    drop:'200–400 m',
+    duration:'2–4 h',
+    template:'near',
+    tips:['步道岔路多，按主路走，不钻野路。','红色旅游区正午人流大，尽量早出发。']
+  },
+  '金佛山': {
+    drop:'800–1500 m',
+    duration:'6–8 h',
+    template:'mountain',
+    tips:['山顶与山下温差明显，保暖层随身带。','索道和摆渡车末班较早，先确认返程时间。']
+  },
+  '武隆仙女山': {
+    drop:'300–800 m',
+    duration:'4–6 h',
+    template:'mountain',
+    tips:['草原午后风大，带一件防风外套。','景区摆渡车末班较早，提前确认返程时间。']
+  },
+  '武隆天生三桥': {
+    drop:'200–500 m',
+    duration:'3–5 h',
+    template:'near',
+    tips:['谷底湿滑，走栈道不翻越护栏。','节假日排队久，预留 1 小时机动时间。']
+  },
+  '梵净山': {
+    drop:'1000–1600 m',
+    duration:'6–9 h',
+    template:'mountain',
+    tips:['山顶风大温低，雨具和保暖层都带上。','门票与索道需提前预约，按预约时段进山。']
+  }
+};
+
+const BUDGET_ITEMS = [
+  {key:'transport', label:'交通', desc:'往返车费、油费、停车或包车分摊'},
+  {key:'food', label:'餐饮', desc:'正餐、路餐与饮用水'},
+  {key:'ticketStay', label:'门票住宿', desc:'门票、营地/客栈与洗澡'},
+  {key:'emergency', label:'应急', desc:'备用药品、临时改签与不可预见开销'}
+];
+
+const planTemplatesEl = document.getElementById('plan-templates');
+const planExample = document.getElementById('plan-example');
+const planExampleGallery = document.getElementById('plan-example-gallery');
+const planExampleNote = document.getElementById('plan-example-note');
+const planDest = document.getElementById('plan-dest');
+const planDestError = document.getElementById('plan-dest-error');
+const planDays = document.getElementById('plan-days');
+const planPeople = document.getElementById('plan-people');
+const planBudget = document.getElementById('plan-budget');
+const planGenerate = document.getElementById('plan-generate');
+const planEmpty = document.getElementById('plan-empty');
+const planOutput = document.getElementById('plan-output');
+const planTitle = document.getElementById('plan-title');
+const planMeta = document.getElementById('plan-meta');
+const planTimeline = document.getElementById('plan-timeline');
+const planGear = document.getElementById('plan-gear');
+const planGearReset = document.getElementById('plan-gear-reset');
+const planGearRing = document.getElementById('plan-gear-ring');
+const planGearPercent = document.getElementById('plan-gear-percent');
+const planBudgetBody = document.getElementById('plan-budget-body');
+const planTotal = document.getElementById('plan-total');
+const planStatus = document.getElementById('plan-budget-status');
+const planCopy = document.getElementById('plan-copy');
+const planCopyText = document.getElementById('plan-copy-text');
+const toastEl = document.getElementById('toast');
+
+let currentTemplateKey = 'near';
+let currentPlan = null;
+let selectedPlanExample = null;
+let toastTimer = 0;
+let copyTimer = 0;
+
+const GEAR_STORAGE_KEY = 'xlx-plan-gear-v1';
+const PLAN_STORAGE_KEY = 'xlx-plan-state-v1';
+
+function money(value){
+  return Math.round(value).toLocaleString('zh-CN');
+}
+
+function loadGearState(){
+  try {
+    const raw = localStorage.getItem(GEAR_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function saveGearState(){
+  const stored = loadGearState();
+  planGear.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+    stored[checkbox.value] = checkbox.checked;
+  });
+  try {
+    localStorage.setItem(GEAR_STORAGE_KEY, JSON.stringify(stored));
+  } catch (error) {
+    /* 本机存储不可用时只保留当前页面状态 */
+  }
+}
+
+function findTemplateByDays(days){
+  return Object.entries(PLAN_TEMPLATES).find(([, template]) => template.days === days);
+}
+
+function selectPlanTemplate(key, syncDays){
+  if (!PLAN_TEMPLATES[key]) return;
+  currentTemplateKey = key;
+  planTemplatesEl.querySelectorAll('.plan-tpl').forEach((btn) => {
+    btn.setAttribute('aria-pressed', String(btn.dataset.template === key));
+  });
+  if (syncDays) planDays.value = String(PLAN_TEMPLATES[key].days);
+}
+
+function applyPlanExample(name){
+  const example = PLAN_EXAMPLES[name];
+  if (!example) {
+    selectedPlanExample = null;
+    planExampleNote.hidden = true;
+    syncExampleGallery();
+    return;
+  }
+
+  selectedPlanExample = Object.assign({name}, example);
+  planExample.value = name;
+  planDest.value = name;
+  clearDestError();
+  selectPlanTemplate(example.template, true);
+  showPlanExampleNote(selectedPlanExample);
+  syncExampleGallery();
+  generatePlan();
+}
+
+function syncExampleGallery(){
+  const selected = planExample.value;
+  planExampleGallery.querySelectorAll('.example-thumb').forEach((btn) => {
+    btn.setAttribute('aria-pressed', String(btn.dataset.example === selected));
+  });
+}
+
+function updateGearProgress(){
+  const boxes = Array.from(planGear.querySelectorAll('input[type="checkbox"]'));
+  const checked = boxes.filter((box) => box.checked).length;
+  const percent = boxes.length ? Math.round((checked / boxes.length) * 100) : 0;
+  planGearPercent.textContent = `${percent}%`;
+  planGearRing.style.strokeDashoffset = String(100 - percent);
+  planGearPercent.parentElement.setAttribute('aria-label', `装备完成度 ${percent}%`);
+}
+
+function showPlanExampleNote(example){
+  planExampleNote.textContent = `参考海拔落差 ${example.drop} · 常见步行 ${example.duration} · 适合「${PLAN_TEMPLATES[example.template].name}」；${example.tips[0]} ${example.tips[1]}（参考值，以景区当日公告为准）`;
+  planExampleNote.hidden = false;
+}
+
+function savePlanState(){
+  if (!currentPlan) return;
+  try {
+    localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify({
+      destination: currentPlan.destination,
+      templateKey: currentPlan.templateKey,
+      days: currentPlan.days,
+      people: currentPlan.people,
+      cap: currentPlan.cap,
+      example: currentPlan.example ? currentPlan.example.name : ''
+    }));
+  } catch (error) {
+    /* 本机存储不可用时只保留当前页面状态 */
+  }
+}
+
+function restorePlanState(){
+  let saved = null;
+  try {
+    const raw = localStorage.getItem(PLAN_STORAGE_KEY);
+    saved = raw ? JSON.parse(raw) : null;
+  } catch (error) {
+    return;
+  }
+  if (!saved || !saved.destination || !PLAN_TEMPLATES[saved.templateKey]) return;
+
+  planDest.value = saved.destination;
+  selectPlanTemplate(saved.templateKey, false);
+  planDays.value = String(Math.min(3, Math.max(1, Math.round(Number(saved.days) || 1))));
+  planPeople.value = String(Math.min(20, Math.max(1, Math.round(Number(saved.people) || 1))));
+  planBudget.value = String(Math.max(0, Math.round(Number(saved.cap) || 0)));
+
+  if (saved.example && PLAN_EXAMPLES[saved.example]) {
+    selectedPlanExample = Object.assign({name:saved.example}, PLAN_EXAMPLES[saved.example]);
+    planExample.value = saved.example;
+    showPlanExampleNote(selectedPlanExample);
+  } else {
+    selectedPlanExample = null;
+    planExample.value = '';
+    planExampleNote.hidden = true;
+  }
+
+  syncExampleGallery();
+  generatePlan();
+}
+
+function clearDestError(){
+  planDest.classList.remove('is-error');
+  planDestError.hidden = true;
+}
+
+function generatePlan(){
+  const destination = planDest.value.trim();
+  if (!destination) {
+    planDest.classList.add('is-error');
+    planDestError.hidden = false;
+    planDest.focus();
+    return;
+  }
+  clearDestError();
+
+  const days = Math.min(3, Math.max(1, Math.round(Number(planDays.value) || 1)));
+  planDays.value = String(days);
+  const matched = findTemplateByDays(days);
+  if (matched) selectPlanTemplate(matched[0], false);
+
+  const people = Math.min(20, Math.max(1, Math.round(Number(planPeople.value) || 1)));
+  planPeople.value = String(people);
+  const cap = Math.max(0, Math.round(Number(planBudget.value) || 0));
+  planBudget.value = String(cap);
+
+  const template = PLAN_TEMPLATES[currentTemplateKey];
+  const amounts = {};
+  BUDGET_ITEMS.forEach((item) => {
+    amounts[item.key] = template.rates[item.key] * people;
+  });
+
+  currentPlan = {
+    templateKey: currentTemplateKey,
+    destination,
+    days,
+    people,
+    cap,
+    amounts,
+    total: Object.values(amounts).reduce((sum, value) => sum + value, 0),
+    example: selectedPlanExample && selectedPlanExample.name === destination ? selectedPlanExample : null,
+    outline: template.outline.map((item) => ({
+      day: item.day,
+      time: item.time,
+      title: item.title,
+      detail: item.detail.replaceAll('{dest}', destination)
+    }))
+  };
+
+  renderPlan();
+  savePlanState();
+}
+
+function renderPlan(){
+  if (!currentPlan) return;
+  const template = PLAN_TEMPLATES[currentPlan.templateKey];
+
+  planTitle.textContent = `${currentPlan.destination} · ${template.name}`;
+  planMeta.innerHTML = `<span>${currentPlan.days} 天</span><span>${currentPlan.people} 人</span><span>预算上限 ¥${money(currentPlan.cap)}</span>`;
+
+  let timelineHTML = '';
+  if (currentPlan.example) {
+    const example = currentPlan.example;
+    timelineHTML += `<div class="example-brief">
+      <span class="example-badge">示例目的地参数 · 参考值</span>
+      <p>参考海拔落差 ${escapeHTML(example.drop)} · 常见步行 ${escapeHTML(example.duration)} · 适合「${escapeHTML(PLAN_TEMPLATES[example.template].name)}」</p>
+      <ul>${example.tips.map((tip) => `<li>${escapeHTML(tip)}</li>`).join('')}</ul>
+      <p class="example-source">参考值，以景区当日公告为准。</p>
+    </div>`;
+  }
+  let currentDay = null;
+  currentPlan.outline.forEach((item) => {
+    if (item.day !== currentDay) {
+      if (currentDay !== null) timelineHTML += '</div></section>';
+      timelineHTML += `<section class="tl-group is-open">
+        <button class="tl-toggle" type="button" aria-expanded="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+          <span>第 ${item.day} 天</span>
+          <span class="tl-toggle-text">收起</span>
+        </button>
+        <div class="timeline">`;
+      currentDay = item.day;
+    }
+    timelineHTML += `<div class="tl-item">
+      <div class="tl-time">${escapeHTML(item.time)}</div>
+      <div class="tl-title">${escapeHTML(item.title)}</div>
+      <p class="tl-detail">${escapeHTML(item.detail)}</p>
+    </div>`;
+  });
+  if (currentDay !== null) timelineHTML += '</div></section>';
+  planTimeline.innerHTML = timelineHTML;
+
+  planGear.innerHTML = template.gear.map((label, index) => `
+    <label class="check">
+      <input type="checkbox" id="gear-${index}" value="${escapeHTML(label)}">
+      <span>${escapeHTML(label)}</span>
+    </label>`).join('');
+
+  const savedGear = loadGearState();
+  planGear.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+    checkbox.checked = Boolean(savedGear[checkbox.value]);
+  });
+  updateGearProgress();
+
+  planBudgetBody.innerHTML = BUDGET_ITEMS.map((item) => `
+    <tr>
+      <th scope="row">${item.label}</th>
+      <td><input class="budget-input" type="number" min="0" step="10" value="${currentPlan.amounts[item.key]}" data-budget="${item.key}" aria-label="${item.label}金额"></td>
+      <td class="budget-desc">${item.desc}</td>
+    </tr>`).join('');
+
+  updateBudget();
+  planEmpty.hidden = true;
+  planOutput.hidden = false;
+
+  if (window.matchMedia('(max-width:900px)').matches) {
+    setTimeout(() => planOutput.scrollIntoView({behavior:'smooth', block:'start'}), 60);
+  }
+}
+
+function updateBudget(){
+  if (!currentPlan) return;
+  const amounts = {};
+  let total = 0;
+  planBudgetBody.querySelectorAll('.budget-input').forEach((input) => {
+    const value = Math.max(0, Math.round(Number(input.value) || 0));
+    amounts[input.dataset.budget] = value;
+    total += value;
+  });
+  currentPlan.amounts = amounts;
+  currentPlan.total = total;
+
+  planTotal.textContent = `¥${money(total)}`;
+  let statusText = '';
+  let statusClass = '';
+  if (currentPlan.cap > 0 && total > currentPlan.cap) {
+    statusText = `超上限 ¥${money(total - currentPlan.cap)}`;
+    statusClass = 'over';
+  } else if (currentPlan.cap > 0) {
+    statusText = `预算内，剩余 ¥${money(currentPlan.cap - total)}`;
+    statusClass = 'within';
+  } else {
+    statusText = '未设预算上限';
+  }
+  planStatus.textContent = statusText;
+  planStatus.className = `budget-status ${statusClass}`.trim();
+}
+
+function buildMarkdown(){
+  if (!currentPlan) return '';
+  const template = PLAN_TEMPLATES[currentPlan.templateKey];
+  const lines = [];
+  lines.push(`# ${currentPlan.destination} · ${template.name}`, '');
+  lines.push(`- 出行天数：${currentPlan.days} 天`);
+  lines.push(`- 出行人数：${currentPlan.people} 人`);
+  lines.push(`- 预算上限：¥${money(currentPlan.cap)}`, '');
+  lines.push('## 分时段提纲', '');
+
+  if (currentPlan.example) {
+    const example = currentPlan.example;
+    lines.push(`> 示例参数：参考海拔落差 ${example.drop} · 常见步行 ${example.duration} · 适合「${template.name}」。`);
+    example.tips.forEach((tip) => lines.push(`> - ${tip}`));
+    lines.push('> 参考值，以景区当日公告为准。', '');
+  }
+
+  let currentDay = null;
+  currentPlan.outline.forEach((item) => {
+    if (item.day !== currentDay) {
+      if (currentDay !== null) lines.push('');
+      lines.push(`### 第 ${item.day} 天`, '');
+      currentDay = item.day;
+    }
+    lines.push(`- **${item.time} ${item.title}**：${item.detail}`);
+  });
+
+  lines.push('', '## 装备清单', '');
+  planGear.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+    lines.push(`- [${checkbox.checked ? 'x' : ' '}] ${checkbox.value}`);
+  });
+
+  lines.push('', '## 预算估算', '', '| 项目 | 金额（元） | 说明 |', '| --- | ---: | --- |');
+  BUDGET_ITEMS.forEach((item) => {
+    lines.push(`| ${item.label} | ${currentPlan.amounts[item.key]} | ${item.desc} |`);
+  });
+  lines.push(`| **总计** | **${currentPlan.total}** | 预算上限 ¥${money(currentPlan.cap)} |`);
+
+  return lines.join('\n');
+}
+
+function showToast(message){
+  toastEl.textContent = message;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1800);
+}
+
+async function copyPlanMarkdown(){
+  const markdown = buildMarkdown();
+  if (!markdown) return;
+  let copied = true;
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(markdown);
+    } else {
+      throw new Error('clipboard unavailable');
+    }
+  } catch (error) {
+    const textarea = document.createElement('textarea');
+    textarea.value = markdown;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.top = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      copied = document.execCommand('copy');
+    } catch (fallbackError) {
+      copied = false;
+    }
+    textarea.remove();
+  }
+
+  if (copied) {
+    showToast('已复制 Markdown');
+    clearTimeout(copyTimer);
+    planCopyText.textContent = '已复制';
+    copyTimer = setTimeout(() => {
+      planCopyText.textContent = '复制为 Markdown';
+    }, 1600);
+  } else {
+    showToast('复制失败，请手动选择文本');
+  }
+}
+
+planTemplatesEl.addEventListener('click', (event) => {
+  const btn = event.target.closest('.plan-tpl');
+  if (!btn) return;
+  selectPlanTemplate(btn.dataset.template, true);
+});
+
+planDays.addEventListener('input', () => {
+  const days = Number(planDays.value);
+  const matched = findTemplateByDays(days);
+  if (matched) selectPlanTemplate(matched[0], false);
+});
+
+planDays.addEventListener('blur', () => {
+  const days = Math.min(3, Math.max(1, Math.round(Number(planDays.value) || 1)));
+  planDays.value = String(days);
+  const matched = findTemplateByDays(days);
+  if (matched) selectPlanTemplate(matched[0], false);
+});
+
+planPeople.addEventListener('blur', () => {
+  const people = Math.min(20, Math.max(1, Math.round(Number(planPeople.value) || 1)));
+  planPeople.value = String(people);
+});
+
+planBudget.addEventListener('blur', () => {
+  const cap = Math.max(0, Math.round(Number(planBudget.value) || 0));
+  planBudget.value = String(cap);
+});
+
+planDest.addEventListener('input', () => {
+  if (planDest.value.trim()) clearDestError();
+  if (selectedPlanExample && planDest.value.trim() !== selectedPlanExample.name) {
+    selectedPlanExample = null;
+    planExample.value = '';
+    planExampleNote.hidden = true;
+  }
+});
+
+planExample.innerHTML = '<option value="">不选示例（自己填）</option>' + Object.keys(PLAN_EXAMPLES)
+  .map((name) => `<option value="${escapeHTML(name)}">${escapeHTML(name)}</option>`)
+  .join('');
+syncExampleGallery();
+
+planExample.addEventListener('change', () => {
+  if (planExample.value) {
+    applyPlanExample(planExample.value);
+  } else {
+    selectedPlanExample = null;
+    planExampleNote.hidden = true;
+    syncExampleGallery();
+  }
+});
+
+planExampleGallery.addEventListener('click', (event) => {
+  const btn = event.target.closest('.example-thumb');
+  if (!btn) return;
+  planExample.value = btn.dataset.example;
+  syncExampleGallery();
+  applyPlanExample(btn.dataset.example);
+});
+
+planGear.addEventListener('change', (event) => {
+  if (event.target.matches('input[type="checkbox"]')) {
+    saveGearState();
+    updateGearProgress();
+  }
+});
+
+planGearReset.addEventListener('click', () => {
+  try {
+    localStorage.removeItem(GEAR_STORAGE_KEY);
+  } catch (error) {
+    /* 本机存储不可用时只清空当前页面 */
+  }
+  planGear.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+    checkbox.checked = false;
+  });
+  updateGearProgress();
+  showToast('装备清单已重置');
+});
+
+planTimeline.addEventListener('click', (event) => {
+  const btn = event.target.closest('.tl-toggle');
+  if (!btn) return;
+  const group = btn.closest('.tl-group');
+  const open = group.classList.toggle('is-open');
+  btn.setAttribute('aria-expanded', String(open));
+  const text = btn.querySelector('.tl-toggle-text');
+  if (text) text.textContent = open ? '收起' : '展开';
+});
+
+planGenerate.addEventListener('click', generatePlan);
+
+planOutput.addEventListener('input', (event) => {
+  if (event.target.classList.contains('budget-input')) updateBudget();
+});
+
+planCopy.addEventListener('click', copyPlanMarkdown);
+
+restorePlanState();
+
+/* ---------- 安全自测 ---------- */
+const SAFETY_QUESTIONS = [
+  {n:1, type:'single', stem:'听到雷声后几秒内看到闪电说明雷暴较近？', options:['5 秒内','30 秒内','2 分钟内'], answer:1, explain:'声速约 340 m/s，30 秒约 10 km，已进入危险范围应避险。'},
+  {n:2, type:'single', stem:'海拔每升高 1000 m，气温约下降？', options:['2℃','4℃','6℃'], answer:2, explain:'气温直减率约 6℃/1000 m。'},
+  {n:3, type:'single', stem:'雨季在峡谷听到轰鸣、水变浑，首先应该？', options:['拍照','迅速向高处撤离','下水查看'], answer:1, explain:'是山洪前兆。'},
+  {n:4, type:'single', stem:'等高线越密表示？', options:['坡越缓','坡越陡','海拔越低'], answer:1, explain:'等高线疏密表示坡度。'},
+  {n:5, type:'single', stem:'徒步每小时大约补水？', options:['0.1 L','0.5 L','2 L'], answer:1, explain:'高温时还要加量。'},
+  {n:6, type:'single', stem:'失温最早的信号是？', options:['不停发抖','昏迷','不出汗'], answer:0, explain:'发抖是身体产热代偿。'},
+  {n:7, type:'single', stem:'崴脚后第一时间应该？', options:['热敷','制动冷敷','继续走活动开'], answer:1, explain:'48 小时内冷敷制动。'},
+  {n:8, type:'single', stem:'新鞋进山前应该？', options:['直接穿','先磨合','泡水软化'], answer:1, explain:'磨合防磨脚起泡。'},
+  {n:9, type:'single', stem:'离线地图要在什么时候下载？', options:['进山后','出发前','没信号时'], answer:1, explain:'没信号时已无法下载。'},
+  {n:10, type:'single', stem:'山洪最容易发生在？', options:['只有本地暴雨时','上游暴雨下游晴天也可能','旱季'], answer:1, explain:'洪水来自上游汇水。'},
+  {n:11, type:'single', stem:'扎营应避开？', options:['平坦高地','河滩和风口','有水源的平地（保持距离）'], answer:1, explain:'河滩防山洪、风口防大风。'},
+  {n:12, type:'single', stem:'登山杖在碎石坡的作用？', options:['装饰','增加支撑点防滑倒','赶动物'], answer:1, explain:'三点支撑更稳。'},
+  {n:13, type:'single', stem:'迷路时更可靠的做法是？', options:['凭感觉直走','沿标记原路返回到已知点','往低处走总能到村'], answer:1, explain:'原路最有把握。'},
+  {n:14, type:'single', stem:'高海拔防晒的要点是？', options:['阴天不用','阴天也要','只涂脸'], answer:1, explain:'阴天紫外线仍强。'},
+  {n:15, type:'single', stem:'应急食物的原则是？', options:['先吃完','留到最后不动','只带正餐'], answer:1, explain:'应急储备非到必要不动。'},
+  {n:16, type:'single', stem:'求救哨声的国际通用节奏是？', options:['长吹一声','三声一组反复','随便吹'], answer:1, explain:'三声一组是求救信号。'},
+  {n:17, type:'judge', stem:'果皮是天然的，可以留在山上。', options:['对','错'], answer:1, explain:'高海拔分解极慢，属垃圾要带走。'},
+  {n:18, type:'judge', stem:'本地下雨才要防山洪，自己这段晴天就没事。', options:['对','错'], answer:1, explain:'上游暴雨可致下游山洪。'},
+  {n:19, type:'judge', stem:'一次性雨衣足够应对荆棘密布的山路。', options:['对','错'], answer:1, explain:'易挂烂，应备耐用雨具。'},
+  {n:20, type:'judge', stem:'雾天里跟着感觉走直线最省事。', options:['对','错'], answer:1, explain:'雾中方向感失真，应停靠标记辨向。'},
+  {n:21, type:'judge', stem:'夏天不会失温。', options:['对','错'], answer:1, explain:'湿身加大风同样失温。'},
+  {n:22, type:'judge', stem:'手机短信在弱信号时比电话更容易发出去。', options:['对','错'], answer:0, explain:'短信对信号要求低。'},
+  {n:23, type:'judge', stem:'梯田田埂可以随意抄近道。', options:['对','错'], answer:1, explain:'田埂是生产设施且湿滑危险。'},
+  {n:24, type:'judge', stem:'头灯只是夜爬才需要。', options:['对','错'], answer:1, explain:'延误下山时是保命装备，白天也要带。'}
+];
+
+const safetyState = {
+  mode:'exam',
+  pool:[],
+  index:0,
+  answers:[],
+  locked:false
+};
+
+const wrongIds = new Set();
+const expandedWrongIds = new Set();
+let quizAutoTimer = 0;
+let quizTimerId = 0;
+let quizTimeLeft = 30;
+let quizTimed = false;
+let quizStreak = 0;
+let resultChartRaf = 0;
+
+const quizCard = document.getElementById('quiz-card');
+const quizTypeEl = document.getElementById('quiz-type');
+const quizModeEl = document.getElementById('quiz-mode');
+const quizTimedToggle = document.getElementById('quiz-timed');
+const quizTimerEl = document.getElementById('quiz-timer');
+const quizStreakEl = document.getElementById('quiz-streak');
+const quizStreakNum = document.getElementById('quiz-streak-num');
+const quizProgressEl = document.getElementById('quiz-progress');
+const quizProgressFill = document.getElementById('quiz-progress-fill');
+const quizProgressText = document.getElementById('quiz-progress-text');
+const quizStem = document.getElementById('quiz-stem');
+const quizOptions = document.getElementById('quiz-options');
+const quizExplain = document.getElementById('quiz-explain');
+const explainVerdict = document.getElementById('explain-verdict');
+const explainAnswer = document.getElementById('explain-answer');
+const explainText = document.getElementById('explain-text');
+const explainHint = document.getElementById('explain-hint');
+const quizNext = document.getElementById('quiz-next');
+const quizRestart = document.getElementById('quiz-restart');
+const quizResult = document.getElementById('quiz-result');
+const resultTitle = document.getElementById('result-title');
+const resultSub = document.getElementById('result-sub');
+const resultChart = document.getElementById('result-chart');
+const resultCtx = resultChart.getContext('2d');
+const resultScore = document.getElementById('result-score');
+const resultTotal = document.getElementById('result-total');
+const resultAccuracy = document.getElementById('result-accuracy');
+const resultTypes = document.getElementById('result-types');
+const resultAgain = document.getElementById('result-again');
+const resultRetry = document.getElementById('result-retry');
+const wrongCount = document.getElementById('wrong-count');
+const wrongRetryAll = document.getElementById('wrong-retry-all');
+const wrongEmpty = document.getElementById('wrong-empty');
+const wrongList = document.getElementById('wrong-list');
+
+function shuffle(list){
+  const arr = list.slice();
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function typeLabel(type){
+  return type === 'judge' ? '判断' : '单选';
+}
+
+function optionLabel(question, index){
+  return question.type === 'judge' ? question.options[index] : String.fromCharCode(65 + index);
+}
+
+function answerText(question){
+  const text = question.options[question.answer];
+  return question.type === 'judge' ? text : `${optionLabel(question, question.answer)} · ${text}`;
+}
+
+function updateQuizStreak(){
+  quizStreakNum.textContent = String(quizStreak);
+  quizStreakEl.classList.toggle('is-hot', quizStreak > 0);
+}
+
+function updateQuizTimerDisplay(){
+  quizTimerEl.textContent = `${quizTimeLeft}s`;
+  quizTimerEl.hidden = !quizTimed;
+  quizTimerEl.classList.toggle('is-urgent', quizTimeLeft <= 10);
+}
+
+function clearQuizTimer(){
+  if (quizTimerId) {
+    clearInterval(quizTimerId);
+    quizTimerId = 0;
+  }
+  quizTimerEl.hidden = true;
+}
+
+function startQuizTimer(){
+  clearQuizTimer();
+  if (!quizTimed) return;
+  quizTimeLeft = 30;
+  updateQuizTimerDisplay();
+  quizTimerId = setInterval(() => {
+    quizTimeLeft -= 1;
+    if (quizTimeLeft <= 0) {
+      clearQuizTimer();
+      if (!safetyState.locked) answerSafetyQuestion(null, true);
+      return;
+    }
+    updateQuizTimerDisplay();
+  }, 1000);
+}
+
+function startSafetyExam(){
+  clearTimeout(quizAutoTimer);
+  clearQuizTimer();
+  quizStreak = 0;
+  updateQuizStreak();
+  safetyState.mode = 'exam';
+  safetyState.pool = shuffle(SAFETY_QUESTIONS).slice(0, 10);
+  safetyState.index = 0;
+  safetyState.answers = [];
+  safetyState.locked = false;
+  quizCard.hidden = false;
+  quizResult.hidden = true;
+  quizCard.dataset.pool = safetyState.pool.map((question) => question.n).join(',');
+  renderSafetyQuestion();
+}
+
+function startSafetyPractice(ids){
+  const questions = Array.from(new Set(ids))
+    .map((id) => SAFETY_QUESTIONS.find((question) => question.n === id))
+    .filter(Boolean);
+  if (!questions.length) return;
+
+  clearTimeout(quizAutoTimer);
+  clearQuizTimer();
+  quizStreak = 0;
+  updateQuizStreak();
+  safetyState.mode = 'practice';
+  safetyState.pool = shuffle(questions);
+  safetyState.index = 0;
+  safetyState.answers = [];
+  safetyState.locked = false;
+  quizCard.hidden = false;
+  quizResult.hidden = true;
+  quizCard.dataset.pool = safetyState.pool.map((question) => question.n).join(',');
+  renderSafetyQuestion();
+  quizCard.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function renderSafetyQuestion(){
+  const question = safetyState.pool[safetyState.index];
+  const total = safetyState.pool.length;
+
+  quizCard.dataset.qid = String(question.n);
+  quizCard.dataset.index = String(safetyState.index);
+  quizTypeEl.textContent = typeLabel(question.type);
+  quizModeEl.hidden = safetyState.mode !== 'practice';
+
+  quizProgressText.textContent = `第 ${safetyState.index + 1} / ${total} 题`;
+  quizProgressEl.setAttribute('aria-valuemax', String(total));
+  quizProgressEl.setAttribute('aria-valuenow', String(safetyState.index + 1));
+  quizProgressFill.style.width = `${Math.round(((safetyState.index + 1) / total) * 100)}%`;
+
+  quizStem.textContent = question.stem;
+  quizOptions.classList.toggle('is-judge', question.type === 'judge');
+  quizOptions.innerHTML = question.options.map((text, index) => {
+    const label = optionLabel(question, index);
+    const aria = question.type === 'judge' ? `选择${label}` : `${label}：${text}`;
+    const textHTML = question.type === 'judge' ? '' : `<span class="opt-text">${escapeHTML(text)}</span>`;
+    return `<button class="quiz-opt${question.type === 'judge' ? ' is-judge' : ''}" type="button" data-index="${index}" aria-label="${escapeHTML(aria)}">
+      <span class="opt-key">${escapeHTML(label)}</span>${textHTML}
+    </button>`;
+  }).join('');
+
+  quizExplain.hidden = true;
+  quizExplain.classList.remove('is-ok', 'is-bad');
+  explainVerdict.textContent = '';
+  explainAnswer.textContent = '';
+  explainText.textContent = '';
+  explainHint.textContent = '';
+  quizNext.textContent = safetyState.index === total - 1 ? '看结果' : '下一题';
+  safetyState.locked = false;
+  startQuizTimer();
+}
+
+function answerSafetyQuestion(selected, timedOut){
+  if (safetyState.locked) return;
+  const question = safetyState.pool[safetyState.index];
+  const correct = !timedOut && selected === question.answer;
+  safetyState.locked = true;
+  safetyState.answers.push({n:question.n, type:question.type, selected, correct, timedOut:Boolean(timedOut)});
+
+  if (correct) {
+    if (safetyState.mode === 'practice') wrongIds.delete(question.n);
+  } else {
+    wrongIds.add(question.n);
+  }
+
+  clearQuizTimer();
+  quizStreak = correct ? quizStreak + 1 : 0;
+  updateQuizStreak();
+
+  Array.from(quizOptions.children).forEach((btn, index) => {
+    btn.disabled = true;
+    if (index === question.answer) btn.classList.add('is-correct');
+    if (selected !== null && index === selected && !correct) btn.classList.add('is-wrong');
+  });
+
+  quizExplain.hidden = false;
+  quizExplain.classList.add(correct ? 'is-ok' : 'is-bad');
+  explainVerdict.textContent = timedOut ? '超时未作答，按答错处理' : (correct ? '答对了' : '答错了');
+  explainAnswer.textContent = `正确答案：${answerText(question)}`;
+  explainText.textContent = question.explain;
+  explainHint.textContent = timedOut ? '2 秒后自动进入下一题…' : (correct ? '答对了，马上进入下一题…' : '看完解析，点「下一题」继续');
+
+  const total = safetyState.pool.length;
+  quizProgressFill.style.width = `${Math.round(((safetyState.index + 1) / total) * 100)}%`;
+  quizProgressEl.setAttribute('aria-valuenow', String(safetyState.index + 1));
+
+  renderWrongBook();
+
+  clearTimeout(quizAutoTimer);
+  if (correct) {
+    quizAutoTimer = setTimeout(advanceSafetyQuestion, 1100);
+  } else if (timedOut) {
+    quizAutoTimer = setTimeout(advanceSafetyQuestion, 2000);
+  }
+}
+
+function advanceSafetyQuestion(){
+  clearTimeout(quizAutoTimer);
+  if (safetyState.index >= safetyState.pool.length - 1) {
+    showSafetyResult();
+    return;
+  }
+  safetyState.index += 1;
+  renderSafetyQuestion();
+}
+
+function showSafetyResult(){
+  clearTimeout(quizAutoTimer);
+  clearQuizTimer();
+  const total = safetyState.answers.length;
+  const score = safetyState.answers.filter((answer) => answer.correct).length;
+  const accuracy = total ? Math.round((score / total) * 100) : 0;
+
+  quizCard.hidden = true;
+  quizResult.hidden = false;
+  resultTitle.textContent = safetyState.mode === 'practice' ? '错题重练完成' : '本次自测结果';
+  resultSub.textContent = safetyState.mode === 'practice'
+    ? `重练 ${total} 道 · 答对 ${score} 道 · 剩余错题 ${wrongIds.size} 道`
+    : `随机抽取 ${total} 题 · 答对 ${score} 道 · 错题 ${total - score} 道`;
+
+  resultScore.textContent = String(score);
+  resultTotal.textContent = `/${total}`;
+  resultAccuracy.textContent = `正确率 ${accuracy}%`;
+
+  const types = [{key:'single', label:'单选'}, {key:'judge', label:'判断'}];
+  resultTypes.innerHTML = types.map((type) => {
+    const inType = safetyState.pool.filter((question) => question.type === type.key);
+    const ok = safetyState.answers.filter((answer) => answer.type === type.key && answer.correct).length;
+    const percent = inType.length ? Math.round((ok / inType.length) * 100) : 0;
+    return `<div class="type-row">
+      <div class="type-top"><span>${type.label}</span><span>${ok} / ${inType.length}</span></div>
+      <div class="type-bar"><span style="width:${percent}%"></span></div>
+    </div>`;
+  }).join('');
+
+  animateResultChart(score, total);
+  resultChart.setAttribute('aria-label', `正确率 ${accuracy}%，答对 ${score} 题，答错 ${total - score} 题。`);
+
+  if (wrongIds.size > 0) {
+    resultRetry.hidden = false;
+    resultRetry.textContent = `重练错题（${wrongIds.size}）`;
+  } else {
+    resultRetry.hidden = true;
+  }
+
+  renderWrongBook();
+  if (window.matchMedia('(max-width:900px)').matches) {
+    quizResult.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+}
+
+function drawResultChart(score, total, progress = 1){
+  const size = 160;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  resultChart.width = Math.round(size * dpr);
+  resultChart.height = Math.round(size * dpr);
+  resultCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  resultCtx.clearRect(0, 0, size, size);
+
+  const center = size / 2;
+  const radius = 56;
+  const ratio = total ? score / total : 0;
+  const visibleRatio = ratio * progress;
+  const start = -Math.PI / 2;
+
+  resultCtx.lineWidth = 14;
+  resultCtx.lineCap = 'butt';
+  resultCtx.strokeStyle = '#F0ECE3';
+  resultCtx.beginPath();
+  resultCtx.arc(center, center, radius, 0, Math.PI * 2);
+  resultCtx.stroke();
+
+  if (visibleRatio > 0) {
+    resultCtx.strokeStyle = '#2E6B5B';
+    resultCtx.beginPath();
+    resultCtx.arc(center, center, radius, start, start + Math.PI * 2 * visibleRatio);
+    resultCtx.stroke();
+  }
+
+  if (visibleRatio < 1) {
+    resultCtx.strokeStyle = '#C8853A';
+    resultCtx.beginPath();
+    resultCtx.arc(center, center, radius, start + Math.PI * 2 * visibleRatio, start + Math.PI * 2);
+    resultCtx.stroke();
+  }
+
+  resultCtx.fillStyle = '#1D2421';
+  resultCtx.font = '700 24px "HarmonyOS Sans SC","PingFang SC",sans-serif';
+  resultCtx.textAlign = 'center';
+  resultCtx.textBaseline = 'middle';
+  resultCtx.fillText(`${Math.round(visibleRatio * 100)}%`, center, center - 3);
+
+  resultCtx.fillStyle = '#6E736D';
+  resultCtx.font = '10px "HarmonyOS Sans SC","PingFang SC",sans-serif';
+  resultCtx.fillText('正确率', center, center + 20);
+}
+
+function animateResultChart(score, total){
+  cancelAnimationFrame(resultChartRaf);
+  if (reduceMotion) {
+    drawResultChart(score, total, 1);
+    return;
+  }
+  const started = performance.now();
+  const duration = 650;
+  const tick = (now) => {
+    const progress = Math.min(1, (now - started) / duration);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    drawResultChart(score, total, eased);
+    if (progress < 1) resultChartRaf = requestAnimationFrame(tick);
+    else drawResultChart(score, total, 1);
+  };
+  resultChartRaf = requestAnimationFrame(tick);
+}
+
+function renderWrongBook(){
+  const ids = Array.from(wrongIds);
+  wrongCount.textContent = String(ids.length);
+  wrongRetryAll.disabled = ids.length === 0;
+  wrongEmpty.hidden = ids.length !== 0;
+  wrongList.hidden = ids.length === 0;
+
+  wrongList.innerHTML = ids.map((id) => {
+    const question = SAFETY_QUESTIONS.find((item) => item.n === id);
+    if (!question) return '';
+    const expanded = expandedWrongIds.has(id);
+    return `<article class="wrong-item">
+      <div class="wrong-top">
+        <span class="wrong-type">${typeLabel(question.type)}</span>
+        <span class="wrong-src">题库第 ${question.n} 题</span>
+        <button class="text-btn wrong-retry" type="button" data-id="${question.n}">重练</button>
+      </div>
+      <p class="wrong-stem">${escapeHTML(question.stem)}</p>
+      <p class="wrong-answer">正确答案：${escapeHTML(answerText(question))}</p>
+      <button class="text-btn wrong-toggle" type="button" data-id="${question.n}" aria-expanded="${expanded}">${expanded ? '收起解析' : '展开解析'}</button>
+      <p class="wrong-explain" ${expanded ? '' : 'hidden'}>解析：${escapeHTML(question.explain)}</p>
+    </article>`;
+  }).join('');
+}
+
+quizOptions.addEventListener('click', (event) => {
+  const btn = event.target.closest('.quiz-opt');
+  if (!btn || safetyState.locked) return;
+  answerSafetyQuestion(Number(btn.dataset.index));
+});
+
+quizNext.addEventListener('click', advanceSafetyQuestion);
+quizRestart.addEventListener('click', startSafetyExam);
+resultAgain.addEventListener('click', startSafetyExam);
+resultRetry.addEventListener('click', () => startSafetyPractice(Array.from(wrongIds)));
+wrongRetryAll.addEventListener('click', () => startSafetyPractice(Array.from(wrongIds)));
+
+wrongList.addEventListener('click', (event) => {
+  const retry = event.target.closest('.wrong-retry');
+  if (retry) {
+    startSafetyPractice([Number(retry.dataset.id)]);
+    return;
+  }
+
+  const toggle = event.target.closest('.wrong-toggle');
+  if (!toggle) return;
+  const id = Number(toggle.dataset.id);
+  if (expandedWrongIds.has(id)) expandedWrongIds.delete(id);
+  else expandedWrongIds.add(id);
+  renderWrongBook();
+});
+
+quizTimedToggle.addEventListener('change', () => {
+  quizTimed = quizTimedToggle.checked;
+  if (!quizTimed) {
+    clearQuizTimer();
+  } else if (!quizCard.hidden && !safetyState.locked) {
+    startQuizTimer();
+  }
+});
+
+renderWrongBook();
+startSafetyExam();
+
+/* ---------- 行前工具 ---------- */
+const toolState = {slope:'gentle', temp:'cool', intensity:'light'};
+let currentReportText = '';
+
+const walkDistance = document.getElementById('walk-distance');
+const walkDistanceRange = document.getElementById('walk-distance-range');
+const walkAscent = document.getElementById('walk-ascent');
+const walkAscentRange = document.getElementById('walk-ascent-range');
+const walkSunset = document.getElementById('walk-sunset');
+const walkHours = document.getElementById('walk-hours');
+const walkFormula = document.getElementById('walk-formula');
+const walkTimes = document.getElementById('walk-times');
+
+const waterHours = document.getElementById('water-hours');
+const waterHoursRange = document.getElementById('water-hours-range');
+const waterLiters = document.getElementById('water-liters');
+const waterFormula = document.getElementById('water-formula');
+const waterCalories = document.getElementById('water-calories');
+
+const weatherRainChance = document.getElementById('weather-rain-chance');
+const weatherRainChanceRange = document.getElementById('weather-rain-chance-range');
+const weatherRainMm = document.getElementById('weather-rain-mm');
+const weatherRainMmRange = document.getElementById('weather-rain-mm-range');
+const weatherGust = document.getElementById('weather-gust');
+const weatherGustRange = document.getElementById('weather-gust-range');
+const weatherTempDiff = document.getElementById('weather-temp-diff');
+const weatherTempDiffRange = document.getElementById('weather-temp-diff-range');
+const weatherVerdict = document.getElementById('weather-verdict');
+const weatherLevel = document.getElementById('weather-level');
+const weatherReasons = document.getElementById('weather-reasons');
+
+const reportDest = document.getElementById('report-dest');
+const reportRoute = document.getElementById('report-route');
+const reportTurnback = document.getElementById('report-turnback');
+const reportPeople = document.getElementById('report-people');
+const reportContact = document.getElementById('report-contact');
+const reportPhone = document.getElementById('report-phone');
+const reportError = document.getElementById('report-error');
+const reportGenerate = document.getElementById('report-generate');
+const reportOutput = document.getElementById('report-output');
+const reportCard = document.getElementById('report-card');
+const reportCopy = document.getElementById('report-copy');
+
+function toolNumber(input, min, max){
+  const value = Number(input.value);
+  if (!Number.isFinite(value)) return min;
+  return Math.min(max, Math.max(min, value));
+}
+
+function formatCalc(value){
+  return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(3)));
+}
+
+function parseClock(value){
+  if (!value) return null;
+  const parts = value.split(':').map(Number);
+  if (parts.length !== 2 || !Number.isFinite(parts[0]) || !Number.isFinite(parts[1])) return null;
+  return parts[0] * 60 + parts[1];
+}
+
+function formatClock(totalMinutes){
+  let minutes = Math.round(totalMinutes);
+  const previousDay = minutes < 0;
+  minutes = ((minutes % 1440) + 1440) % 1440;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return `${String(hours).padStart(2,'0')}:${String(rest).padStart(2,'0')}${previousDay ? '（前一日）' : ''}`;
+}
+
+function updateWalkTool(){
+  const distance = toolNumber(walkDistance, 0, 100);
+  const ascent = toolNumber(walkAscent, 0, 5000);
+  const baseHours = distance / 4;
+  const climbHours = (ascent / 300) * 0.5;
+  let total = baseHours + climbHours;
+  const steep = toolState.slope === 'steep';
+  if (steep) total *= 1.1;
+
+  walkHours.textContent = total.toFixed(1);
+  walkFormula.textContent = `${formatCalc(distance)} ÷ 4 = ${baseHours.toFixed(1)} h ＋ ${formatCalc(ascent)} ÷ 300 × 0.5 = ${climbHours.toFixed(1)} h${steep ? '，陡坡下坡再加 10%' : ''}`;
+
+  const sunset = parseClock(walkSunset.value);
+  if (sunset === null) {
+    walkTimes.textContent = '填上日落时间后，可倒推最晚出发与下撤时刻。';
+    return;
+  }
+  const latestStart = sunset - total * 60 - 60;
+  const latestTurnback = sunset - (total * 60) / 2 - 60;
+  walkTimes.textContent = `建议最晚 ${formatClock(latestStart)} 出发 · 最晚 ${formatClock(latestTurnback)} 下撤（已预留 1 h 缓冲）`;
+}
+
+function updateWaterTool(){
+  const hours = toolNumber(waterHours, 0, 24);
+  const hot = toolState.temp === 'hot';
+  const hard = toolState.intensity === 'hard';
+  let factor = 1;
+  if (hot) factor *= 1.5;
+  if (hard) factor *= 1.3;
+
+  const raw = 0.5 * hours * factor;
+  const liters = Math.ceil(raw * 2) / 2;
+  const calories = 250 * hours;
+
+  waterLiters.textContent = liters.toFixed(1);
+  waterFormula.textContent = `0.5 L/h × ${formatCalc(hours)} h${hot ? ' × 1.5（炎热）' : ''}${hard ? ' × 1.3（高强度）' : ''} = ${formatCalc(raw)} L，向上取整到 0.5 → ${liters.toFixed(1)} L`;
+  waterCalories.textContent = String(Math.round(calories));
+}
+
+function updateWeatherTool(){
+  const chance = toolNumber(weatherRainChance, 0, 100);
+  const rain = toolNumber(weatherRainMm, 0, 200);
+  const gust = toolNumber(weatherGust, 0, 12);
+  const tempDiff = toolNumber(weatherTempDiff, 0, 30);
+
+  const reasons = [];
+  let severe = false;
+  let reduce = false;
+
+  if (rain >= 25) {
+    severe = true;
+    reasons.push({level:'bad', text:`降雨量 ${formatCalc(rain)} mm ≥ 25 mm`});
+  } else if (rain >= 10) {
+    reduce = true;
+    reasons.push({level:'reduce', text:`降雨量 ${formatCalc(rain)} mm ≥ 10 mm`});
+  }
+
+  if (gust >= 8) {
+    severe = true;
+    reasons.push({level:'bad', text:`最大阵风 ${formatCalc(gust)} 级 ≥ 8 级`});
+  } else if (gust >= 6) {
+    reduce = true;
+    reasons.push({level:'reduce', text:`最大阵风 ${formatCalc(gust)} 级 ≥ 6 级`});
+  }
+
+  if (chance >= 60) {
+    reduce = true;
+    reasons.push({level:'reduce', text:`降雨概率 ${formatCalc(chance)}% ≥ 60%`});
+  }
+
+  if (tempDiff >= 10 && rain > 0) {
+    severe = true;
+    reasons.push({level:'bad', text:`山顶与山下温差 ${formatCalc(tempDiff)}℃ ≥ 10℃ 且伴降水`});
+  }
+
+  if (severe) {
+    weatherLevel.textContent = '建议改期';
+    weatherVerdict.dataset.level = 'bad';
+  } else if (reduce) {
+    weatherLevel.textContent = '缩减路线';
+    weatherVerdict.dataset.level = 'reduce';
+  } else {
+    weatherLevel.textContent = '可按计划出行';
+    weatherVerdict.dataset.level = 'ok';
+  }
+
+  weatherReasons.innerHTML = reasons.length
+    ? reasons.map((reason) => `<li>${reason.level === 'bad' ? '改期依据' : '缩减依据'}：${reason.text}</li>`).join('')
+    : '<li>四项指标均在阈值内，仍请出发前复核最新预报。</li>';
+}
+
+function generateReportCard(){
+  const inputs = [reportDest, reportRoute, reportTurnback, reportPeople, reportContact, reportPhone];
+  let invalid = false;
+  inputs.forEach((input) => {
+    const empty = input.value.trim() === '';
+    input.classList.toggle('is-error', empty);
+    if (empty) invalid = true;
+  });
+
+  if (invalid) {
+    reportError.hidden = false;
+    reportOutput.hidden = true;
+    const firstEmpty = inputs.find((input) => input.value.trim() === '');
+    if (firstEmpty) firstEmpty.focus();
+    return;
+  }
+
+  reportError.hidden = true;
+  const people = Math.min(30, Math.max(1, Math.round(Number(reportPeople.value) || 1)));
+  reportPeople.value = String(people);
+
+  const now = new Date().toLocaleString('zh-CN', {hour12:false});
+  currentReportText = `【行旅小智 · 行程报备卡】
+目的地：${reportDest.value.trim()}
+路线：${reportRoute.value.trim()}
+计划下撤时间：${reportTurnback.value}
+同行人数：${people} 人
+紧急联系人：${reportContact.value.trim()}（${reportPhone.value.trim()}）
+生成时间：${now}
+
+如超过计划下撤时间 2 小时仍未联系，请主动联系我或报警。`;
+
+  reportCard.textContent = currentReportText;
+  reportOutput.hidden = false;
+  showToast('报备卡已生成');
+}
+
+async function copyReportCard(){
+  if (!currentReportText) return;
+  let copied = true;
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(currentReportText);
+    } else {
+      throw new Error('clipboard unavailable');
+    }
+  } catch (error) {
+    const textarea = document.createElement('textarea');
+    textarea.value = currentReportText;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.top = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      copied = document.execCommand('copy');
+    } catch (fallbackError) {
+      copied = false;
+    }
+    textarea.remove();
+  }
+
+  if (copied) {
+    showToast('报备卡已复制');
+    reportCopy.textContent = '已复制';
+    setTimeout(() => { reportCopy.textContent = '复制报备卡'; }, 1500);
+  } else {
+    showToast('复制失败，请手动选择文本');
+  }
+}
+
+document.querySelectorAll('.seg-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const group = btn.dataset.group;
+    toolState[group] = btn.dataset.value;
+    document.querySelectorAll(`.seg-btn[data-group="${group}"]`).forEach((item) => {
+      item.setAttribute('aria-pressed', String(item === btn));
+    });
+    if (group === 'slope') updateWalkTool();
+    else updateWaterTool();
+  });
+});
+
+walkDistance.addEventListener('input', updateWalkTool);
+walkAscent.addEventListener('input', updateWalkTool);
+walkSunset.addEventListener('input', updateWalkTool);
+waterHours.addEventListener('input', updateWaterTool);
+
+[weatherRainChance, weatherRainMm, weatherGust, weatherTempDiff].forEach((input) => {
+  input.addEventListener('input', updateWeatherTool);
+});
+
+function bindToolSlider(numberInput, rangeInput, update){
+  numberInput.addEventListener('input', () => {
+    const min = Number(rangeInput.min) || 0;
+    const max = Number(rangeInput.max) || 100;
+    const value = Number(numberInput.value);
+    if (Number.isFinite(value)) {
+      rangeInput.value = String(Math.min(max, Math.max(min, value)));
+    }
+    update();
+  });
+
+  rangeInput.addEventListener('input', () => {
+    numberInput.value = rangeInput.value;
+    update();
+  });
+}
+
+bindToolSlider(walkDistance, walkDistanceRange, updateWalkTool);
+bindToolSlider(walkAscent, walkAscentRange, updateWalkTool);
+bindToolSlider(waterHours, waterHoursRange, updateWaterTool);
+bindToolSlider(weatherRainChance, weatherRainChanceRange, updateWeatherTool);
+bindToolSlider(weatherRainMm, weatherRainMmRange, updateWeatherTool);
+bindToolSlider(weatherGust, weatherGustRange, updateWeatherTool);
+bindToolSlider(weatherTempDiff, weatherTempDiffRange, updateWeatherTool);
+
+[reportDest, reportRoute, reportTurnback, reportPeople, reportContact, reportPhone].forEach((input) => {
+  input.addEventListener('input', () => {
+    input.classList.remove('is-error');
+    reportError.hidden = true;
+  });
+});
+
+reportGenerate.addEventListener('click', generateReportCard);
+reportCopy.addEventListener('click', copyReportCard);
+
+updateWalkTool();
+updateWaterTool();
+updateWeatherTool();
+
+function switchView(view){
+  document.querySelectorAll('.view').forEach((section) => {
+    section.classList.toggle('active', section.id === `view-${view}`);
+  });
+  document.querySelectorAll('.tab-btn').forEach((btn) => {
+    btn.setAttribute('aria-selected', String(btn.dataset.view === view));
+  });
+  window.scrollTo({top:0, behavior:'auto'});
+  if (view === 'diagnosis') requestAnimationFrame(sizeSlopeCanvas);
+}
+
+document.querySelectorAll('.tab-btn').forEach((btn) => {
+  btn.addEventListener('click', () => switchView(btn.dataset.view));
+});
+
+document.querySelectorAll('[data-target]').forEach((btn) => {
+  btn.addEventListener('click', () => switchView(btn.dataset.target));
+});
+
+els.chips.addEventListener('click', (event) => {
+  const chip = event.target.closest('.chip');
+  if (!chip) return;
+  state.cat = chip.dataset.cat;
+  renderChips();
+  renderCards();
+});
+
+els.search.addEventListener('input', () => {
+  state.keyword = els.search.value;
+  els.clear.hidden = els.search.value.length === 0;
+  renderCards();
+});
+
+els.clear.addEventListener('click', () => {
+  els.search.value = '';
+  state.keyword = '';
+  els.clear.hidden = true;
+  renderCards();
+  els.search.focus();
+});
+
+els.grid.addEventListener('click', (event) => {
+  const action = event.target.closest('[data-action]');
+  if (!action) return;
+  const card = action.closest('.k-card');
+  if (!card) return;
+  const id = Number(card.dataset.id);
+
+  if (action.dataset.action === 'favorite') {
+    if (favoriteIds.has(id)) favoriteIds.delete(id);
+    else favoriteIds.add(id);
+    saveFavorites();
+    renderCards();
+    return;
+  }
+
+  if (action.dataset.action === 'expand') {
+    const open = card.classList.toggle('is-open');
+    action.setAttribute('aria-expanded', String(open));
+    action.textContent = open ? '收起全文' : '展开全文';
+  }
+});
+
+els.favFilter.addEventListener('click', () => {
+  favoriteOnly = !favoriteOnly;
+  if (favoriteOnly) {
+    state.cat = 'all';
+    state.keyword = '';
+    els.search.value = '';
+    els.clear.hidden = true;
+    renderChips();
+  }
+  renderCards();
+});
+
+els.scenes.addEventListener('click', (event) => {
+  const btn = event.target.closest('.kb-scene');
+  if (!btn) return;
+  state.cat = btn.dataset.cat;
+  renderChips();
+  renderCards();
+});
+
+renderChips();
+renderCards();
+</script>
+
+</body>
+</html>
