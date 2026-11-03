@@ -179,7 +179,7 @@
       </div>
       <div class="stats">
         <div class="stat"><b><span class="count" data-n="6">0</span></b>个 AI 智能体</div>
-        <div class="stat"><b><span class="count" data-n="4">0</span></b>部科普短片</div>
+        <div class="stat"><b><span class="count" data-n="5">0</span></b>部短片</div>
         <div class="stat"><b><span class="count" data-n="0">0</span> 元</b>全站免费打开</div>
       </div>
     </div>
@@ -196,7 +196,7 @@
   <div class="marquee"><div class="mq-track" id="mq"></div></div>
 
   <section id="works">
-    <div class="sec-head"><span class="no">01</span><h2>作品墙 · 小智家族</h2><span>AI 智能体系列</span></div>
+    <div class="sec-head"><span class="no">01</span><h2>作品墙 · 小智家族</h2><span>AI 智能体系列 · 附小工具</span></div>
     <p class="sec-desc">每一个小智都是一个能直接打开使用的智能体作品。点任意一张卡片，看它的详细介绍和讲解视频。</p>
     <div class="tabs">
       <button class="tab act" data-f="all">全部作品</button>
@@ -208,8 +208,8 @@
   </section>
 
   <section id="cinema">
-    <div class="sec-head"><span class="no">02</span><h2>放映厅</h2><span>AI 科普短视频</span></div>
-    <p class="sec-desc">全部由代码和 AI 一起做出来的科普小片。点开就能直接在网页里看，不用下载。（新片《37% 法则》正在制作中，敬请期待）</p>
+    <div class="sec-head"><span class="no">02</span><h2>放映厅</h2><span>AI 短视频</span></div>
+    <p class="sec-desc">全部由代码和 AI 一起做出来的小片：四部科普，外加小白龙本龙出镜的一支舞。点开就能直接在网页里看，不用下载。（新片《37% 法则》正在制作中，敬请期待）</p>
     <div class="vgrid" id="videoGrid"></div>
   </section>
 
@@ -284,12 +284,17 @@ const WORKS = [
   desc:"星空探索助手：今晚看什么星、往哪儿看，它带你抬头认识头顶的那片天。",
   long:"正在孵化中的观星向导：等它上线，今晚出门抬头看什么，它都会提前告诉你。",
   feats:["今晚可见星体推荐","观星地点与时间建议","星座故事慢慢讲"]},
+ {slug:"qiuzhao",name:"一页秋招",icon:"📋",cls:"t2",status:"live",badge:"已上线",bcls:"b-live",
+  desc:"秋招工作台：把投递进度、面试安排和 Offer 对比，全都收进一页里。",
+  long:"秋招季最怕投了几十家之后脑子一团乱：谁走到哪一步了、哪个 Offer 更好，全凭记忆。一页秋招把这些都收进一个页面，打开就一清二楚。",
+  feats:["投递进度一页看全：岗位、公司、状态清清楚楚","进度统计自动汇总，投了多少、走到哪步心里有数","多个 Offer 并排对比分析，选哪个不纠结"]},
 ];
 const VIDEOS = [
  {title:"闪电为什么是锯齿形",cls:"p1",file:"film-lightning",dur:"1:02",line:"闪电为什么不走直线？一分钟看懂空气里的“分叉之路”。"},
  {title:"十二生肖为什么没有猫",cls:"p2",file:"film-zodiac",dur:"2:01",line:"猫到底错过了什么，才没挤进十二生肖？一个流传很久的小问题。"},
  {title:"一滴雨搬走一座山",cls:"p3",file:"film-rain",dur:"1:25",line:"一滴雨的力量小得可笑，可亿万滴雨，真的能搬走一座山。"},
  {title:"雨后土香从哪来",cls:"p4",file:"film-petrichor",dur:"1:20",line:"下过雨的泥土为什么香？这股味道，其实等了你很久。"},
+ {title:"小白龙 · 富士山下跳舞",cls:"p2",file:"film-fuji-dance",dur:"0:16",line:"本龙亲自出镜：在富士山下跳一支舞，快乐不用讲道理。"},
 ];
 /* 作品墙渲染 */
 const grid = document.getElementById('workGrid');
