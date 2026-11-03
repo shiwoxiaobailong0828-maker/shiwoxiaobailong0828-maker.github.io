@@ -1,0 +1,3401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="体衡小智：大学生运动健康与体能实验室。身体档案、BMI、体脂、BMR、TDEE 与补水估算，全部数值为教学估算。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%231F2430'/%3E%3Cpath d='M12 18S6 14.5 6 10.5A3 3 0 0 1 12 9a3 3 0 0 1 6 1.5C18 14.5 12 18 12 18z' fill='%23E4572E'/%3E%3C/svg%3E">
+<title>体衡小智 · 运动健康与体能实验室</title>
+<style>
+/* ================= 样式变量：集中定义 ================= */
+:root{
+  --ink:#1F2430;
+  --ink-2:#2B3240;
+  --ink-3:#3C4453;
+  --orange:#E4572E;
+  --orange-deep:#C9451F;
+  --orange-soft:#FBE8E1;
+  --teal:#2E7D6B;
+  --teal-deep:#226354;
+  --teal-soft:#E4F0EC;
+  --bg:#FAF7F2;
+  --surface:#FFFFFF;
+  --surface-2:#F4EFE7;
+  --line:#E7DFD4;
+  --line-2:#D6CBB9;
+  --muted:#756E64;
+  --muted-2:#9B9388;
+  --light-text:#A9AFBA;
+  --radius:18px;
+  --radius-sm:12px;
+  --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --shadow:0 1px 2px rgba(31,36,48,.045),0 18px 40px -26px rgba(31,36,48,.24);
+  --shadow-deep:0 24px 60px -32px rgba(31,36,48,.6);
+}
+
+/* ================= 基础 ================= */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(31,36,48,.028) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(31,36,48,.028) 1px,transparent 1px);
+  background-size:34px 34px;
+  -webkit-mask-image:radial-gradient(120% 80% at 50% 0%,#000 0%,transparent 78%);
+  mask-image:radial-gradient(120% 80% at 50% 0%,#000 0%,transparent 78%);
+}
+h1,h2,h3,p,ul{margin:0}
+h1{font-size:clamp(30px,4vw,48px);line-height:1.1;letter-spacing:-.045em;font-weight:680}
+h2{font-size:19px;line-height:1.35;letter-spacing:-.02em;font-weight:650}
+h3{font-size:15px;line-height:1.4;letter-spacing:-.01em;font-weight:640}
+button{font:inherit}
+a{color:var(--orange)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.muted{color:var(--muted)}
+.small{font-size:12.5px;line-height:1.55}
+.tiny{font-size:11px;letter-spacing:.02em}
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+
+/* ================= 布局骨架 ================= */
+.shell{position:relative;z-index:1;display:grid;grid-template-columns:244px minmax(0,1fr);min-height:100dvh}
+.sidebar{
+  position:sticky;top:0;height:100dvh;display:flex;flex-direction:column;gap:18px;
+  padding:24px 15px 18px;background:var(--ink);color:#F5F1E9;z-index:6;
+}
+.brand{display:flex;align-items:center;gap:11px;padding:0 8px 16px;border-bottom:1px solid rgba(255,255,255,.09)}
+.brand-mark{
+  width:38px;height:38px;border-radius:11px;background:var(--orange);color:#fff;flex:none;
+  display:grid;place-items:center;box-shadow:0 10px 22px -12px rgba(228,87,46,.9),inset 0 1px 0 rgba(255,255,255,.28);
+}
+.brand-mark svg{width:20px;height:20px}
+.brand strong{display:block;font-size:16px;letter-spacing:-.02em;line-height:1.2}
+.brand span{display:block;font-size:10px;letter-spacing:.06em;color:var(--light-text);margin-top:3px}
+.nav{display:flex;flex-direction:column;gap:2px;flex:1;overflow-y:auto;padding-right:2px}
+.nav-group{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;color:#7E8794;padding:13px 11px 6px;text-transform:uppercase}
+.tab{
+  display:flex;align-items:center;gap:10px;width:100%;padding:9px 11px;border:0;border-radius:9px;
+  background:transparent;color:#AEB5C0;cursor:pointer;text-align:left;font-size:13.5px;
+  transition:background .18s ease,color .18s ease,transform .12s ease;
+}
+.tab svg{width:17px;height:17px;flex:none;opacity:.85}
+.tab:hover{background:rgba(255,255,255,.07);color:#fff}
+.tab:active{transform:scale(.985)}
+.tab[aria-selected="true"]{background:var(--orange);color:#fff;box-shadow:0 10px 24px -14px rgba(228,87,46,.95)}
+.tab[aria-selected="true"] svg{opacity:1}
+.tab .idx{margin-left:auto;font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.45)}
+.tab[aria-selected="true"] .idx{color:rgba(255,255,255,.75)}
+.side-foot{border-top:1px solid rgba(255,255,255,.09);padding:12px 9px 0;display:flex;flex-direction:column;gap:7px}
+.build-tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:#D9DEE5}
+.build-tag i{width:6px;height:6px;border-radius:2px;background:var(--orange);display:inline-block}
+.side-foot p{font-size:10.5px;color:#8D95A1;line-height:1.5}
+
+.main{display:flex;flex-direction:column;min-height:100dvh;padding:32px 40px 0;min-width:0}
+.content{width:100%;max-width:1180px;margin:0 auto;flex:1}
+.view{animation:rise .32s cubic-bezier(.16,1,.3,1) both}
+.view[hidden]{display:none}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+}
+
+/* ================= 通用组件 ================= */
+.eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--orange);margin-bottom:10px;text-transform:uppercase}
+.lede{color:var(--muted);font-size:14px;line-height:1.7;max-width:60ch}
+.panel{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:21px 23px;box-shadow:var(--shadow);
+}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:13px;flex-wrap:wrap}
+.panel-head h2{display:flex;align-items:center;gap:8px}
+.panel-head svg{width:17px;height:17px;color:var(--teal);flex:none}
+.panel-head .hint{font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.02em}
+.panel-note{font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:12px;padding-top:11px;border-top:1px dashed var(--line)}
+.tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.tag.teal{color:var(--teal)}
+.tag.orange{color:var(--orange)}
+.tag.dim{color:var(--light-text)}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:10.5px;font-weight:600;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);white-space:nowrap}
+.badge.orange{background:var(--orange-soft);border-color:#F2C9BB;color:#96391F}
+.badge.teal{background:var(--teal-soft);border-color:#C3DED5;color:#1F6354}
+.badge.dim{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);color:#C6CDD7}
+.badge.amber{background:#F7EDD9;border-color:#E8D2AA;color:#7A5417}
+.badge.live::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 16px;border-radius:9px;
+  border:1px solid var(--line-2);background:var(--surface);color:var(--ink);font-size:13px;font-weight:620;
+  cursor:pointer;transition:transform .12s ease,background .18s ease,border-color .18s ease,box-shadow .18s ease;
+  text-decoration:none;
+}
+.btn:hover{background:var(--surface-2)}
+.btn:active{transform:translateY(1px) scale(.99)}
+.btn:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+.btn.primary{background:var(--orange);border-color:var(--orange);color:#fff;box-shadow:0 10px 22px -14px rgba(228,87,46,.95)}
+.btn.primary:hover{background:var(--orange-deep);border-color:var(--orange-deep)}
+.btn.dark{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn.ghost-light{background:transparent;border-color:rgba(255,255,255,.24);color:#F5F1E9}
+.btn.ghost-light:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.35)}
+.btn svg{width:14px;height:14px}
+
+/* ================= 首页 ================= */
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:26px;margin-bottom:24px}
+.page-head .hl{color:var(--orange)}
+.date-block{flex:none;text-align:right;display:flex;flex-direction:column;gap:4px;align-items:flex-end}
+.date-block .num{font-family:var(--mono);font-size:13px;letter-spacing:.04em;color:var(--ink-2)}
+.date-block b{font-size:11px;font-weight:500;color:var(--muted)}
+.date-block .badge{margin-top:3px}
+
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.58fr) minmax(268px,.82fr);gap:16px}
+.profile-panel{
+  position:relative;overflow:hidden;background:var(--ink);color:#F5F1E9;border-color:#2B3240;
+  padding:24px 26px;border-radius:22px;box-shadow:var(--shadow-deep);display:flex;flex-direction:column;
+}
+.profile-panel::before{
+  content:"";position:absolute;right:-90px;top:-120px;width:320px;height:320px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(228,87,46,.24),transparent 68%);
+}
+.profile-panel::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,var(--orange),transparent 60%);
+}
+.profile-top{display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative;z-index:1}
+.profile-title{font-size:clamp(22px,2.8vw,30px);letter-spacing:-.035em;line-height:1.2;margin-top:14px;font-weight:650;position:relative;z-index:1}
+.profile-sub{font-size:12.5px;line-height:1.65;color:var(--light-text);margin-top:7px;max-width:42ch;position:relative;z-index:1}
+.gauge-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:24px;position:relative;z-index:1}
+.gauge{border-top:1px solid rgba(255,255,255,.16);padding-top:11px;min-width:0}
+.gauge > span{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:var(--light-text);text-transform:uppercase;white-space:nowrap}
+.gauge b{display:block;font-family:var(--mono);font-size:clamp(30px,3.4vw,42px);font-weight:600;letter-spacing:-.05em;line-height:1.05;margin-top:3px;color:#F5F1E9}
+.gauge b.hi{color:var(--orange)}
+.gauge small{font-size:9.5px;color:#8D95A1;margin-left:2px;letter-spacing:0}
+.gauge em{display:block;font-style:normal;font-size:9px;color:#7E8794;margin-top:4px;letter-spacing:.06em}
+.profile-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:22px;position:relative;z-index:1;flex-wrap:wrap}
+.profile-foot .tiny{color:#7E8794}
+
+.side-stack{display:flex;flex-direction:column;gap:16px;min-width:0}
+.stage-card{padding:19px 20px}
+.stage-card h2{font-size:17px;margin-top:8px}
+.checklist{list-style:none;padding:0;margin:12px 0 0;display:flex;flex-direction:column;gap:7px}
+.checklist li{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-3)}
+.checklist svg{width:14px;height:14px;color:var(--teal);flex:none}
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:13px;overflow:hidden}
+.quick{background:var(--surface);border:0;padding:13px 13px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px;transition:background .16s ease}
+.quick:hover{background:var(--surface-2)}
+.quick:active{background:var(--orange-soft)}
+.quick .qk{font-family:var(--mono);font-size:9px;color:var(--orange);letter-spacing:.08em}
+.quick b{font-size:12px;font-weight:620;letter-spacing:-.01em}
+.quick span{font-size:10px;color:var(--muted);line-height:1.35}
+
+.zone-panel{margin-top:16px}
+.zone-band{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:4px}
+.zone{
+  border-radius:9px;padding:11px 11px 9px;min-height:76px;min-width:0;
+  display:flex;flex-direction:column;justify-content:space-between;gap:2px;color:#fff;
+  transition:transform .18s ease;box-shadow:inset 0 1px 0 rgba(255,255,255,.26);
+}
+.zone:hover{transform:translateY(-3px)}
+.zone.light{color:var(--ink)}
+.zone .key{font-family:var(--mono);font-size:9px;letter-spacing:.16em;opacity:.88}
+.zone .range{font-family:var(--mono);font-size:15.5px;font-weight:600;letter-spacing:-.02em;line-height:1.1;white-space:nowrap}
+.zone .name{font-size:9.5px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.zone-axis{display:flex;justify-content:space-between;gap:4px;margin-top:12px;padding-top:7px;position:relative;font-family:var(--mono);font-size:10px;color:var(--muted)}
+.zone-axis::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:repeating-linear-gradient(90deg,var(--line-2) 0 1px,transparent 1px 9px)}
+
+.bottom-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(260px,.75fr);gap:16px;margin-top:16px}
+.load-hero{display:flex;align-items:baseline;gap:7px;margin-top:2px}
+.load-hero b{font-family:var(--mono);font-size:clamp(44px,5vw,60px);font-weight:600;letter-spacing:-.06em;line-height:1;color:var(--ink)}
+.load-hero span{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.08em}
+.load-track{display:flex;gap:4px;height:7px;margin-top:16px}
+.load-track i{display:block;border-radius:3px;opacity:.55}
+.load-track .l1{flex:600;background:#B7D2C9}
+.load-track .l2{flex:600;background:#7FAE9F}
+.load-track .l3{flex:800;background:#C98A52}
+.load-track .l4{flex:600;background:var(--orange)}
+.load-labels{display:flex;justify-content:space-between;gap:4px;margin-top:5px;font-size:9px;color:var(--muted-2)}
+.safety-panel{padding:19px 20px;background:var(--teal-soft);border-color:#CFE3DC}
+.safety-panel .panel-head{margin-bottom:7px}
+.safety-panel .panel-head svg{color:var(--teal)}
+.safety-panel p{font-size:12px;line-height:1.65;color:#204F44}
+.safety-panel .badge{margin-top:11px}
+
+/* ================= 占位页 ================= */
+.placeholder{display:grid;grid-template-columns:132px minmax(0,1fr);gap:38px;padding-top:26px}
+.ph-index{
+  font-family:var(--mono);font-size:clamp(74px,10vw,122px);font-weight:600;line-height:.9;letter-spacing:-.06em;
+  color:transparent;-webkit-text-stroke:1px var(--line-2);user-select:none;
+}
+.ph-body{padding-top:8px;max-width:760px}
+.ph-body h1{font-size:clamp(30px,4vw,44px);margin-top:4px}
+.ph-body .lede{margin-top:12px;max-width:54ch}
+.ph-modules{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.ph-modules span{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:11.5px;color:var(--ink-3);box-shadow:0 1px 0 rgba(31,36,48,.02)}
+.ph-note{
+  margin-top:24px;padding:12px 15px;border-left:3px solid var(--orange);background:var(--orange-soft);
+  color:#7A3520;font-size:12px;line-height:1.6;border-radius:0 9px 9px 0;max-width:560px;
+}
+.ph-foot{display:flex;gap:10px;margin-top:22px}
+
+/* ================= 页脚（固定口径句 + CHANGELOG） ================= */
+.global-foot{
+  width:100%;max-width:1180px;margin:50px auto 0;padding:17px 0 25px;border-top:1px solid var(--line);
+  display:flex;flex-direction:column;align-items:stretch;gap:10px;
+}
+.foot-main{display:flex;align-items:center;gap:16px;flex-wrap:wrap;width:100%}
+.foot-brand{display:flex;align-items:center;gap:8px;flex:none}
+.foot-brand i{width:7px;height:7px;border-radius:2px;background:var(--orange);display:block}
+.foot-brand b{font-size:11.5px;letter-spacing:.02em}
+.foot-ver{font-family:var(--mono);font-size:9px;letter-spacing:.08em;color:var(--orange);background:var(--orange-soft);border:1px solid #F2C9BB;border-radius:999px;padding:1px 7px}
+.foot-main p{flex:1;min-width:260px;font-size:11.5px;line-height:1.55;color:var(--ink-2);font-weight:520}
+.foot-meta{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--muted-2);white-space:nowrap}
+.changelog{display:flex;align-items:baseline;gap:10px;width:100%;padding-top:9px;border-top:1px dashed var(--line);font-size:10.5px;color:var(--muted);line-height:1.55}
+.cl-tag{font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;color:var(--orange);flex:none}
+.cl-text{flex:1;min-width:240px}
+
+/* ================= 响应式 ================= */
+@media (max-width:1080px){
+  .shell{grid-template-columns:212px minmax(0,1fr)}
+  .main{padding:28px 26px 0}
+  .hero-grid{grid-template-columns:1fr}
+  .side-stack{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .bottom-grid{grid-template-columns:1fr}
+  .gauge-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media (max-width:820px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{
+    position:sticky;top:0;height:auto;min-width:0;max-width:100vw;padding:10px 14px 9px;
+    flex-direction:row;align-items:center;gap:11px;
+  }
+  .brand{padding:0;border:0;flex:none}
+  .brand span{display:none}
+  .brand strong{font-size:14px}
+  .brand-mark{width:31px;height:31px;border-radius:9px}
+  .brand-mark svg{width:17px;height:17px}
+  .nav{flex:1 1 auto;min-width:0;max-width:100%;flex-direction:row;overflow-x:auto;overflow-y:hidden;gap:3px;padding:0 0 2px;scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  .nav-group,.side-foot{display:none}
+  .tab{width:auto;padding:7px 10px;font-size:12px;white-space:nowrap;border-radius:7px}
+  .tab .idx{display:none}
+  .main{padding:20px 16px 0}
+  .page-head{flex-direction:column;align-items:flex-start;gap:12px;margin-bottom:18px}
+  .date-block{align-items:flex-start;text-align:left}
+  .panel{padding:17px 16px;border-radius:14px}
+  .profile-panel{padding:20px 18px;border-radius:17px}
+  .gauge-grid{grid-template-columns:1fr 1fr;gap:14px 10px;margin-top:20px}
+  .side-stack{grid-template-columns:1fr}
+  .placeholder{grid-template-columns:1fr;gap:8px;padding-top:10px}
+  .ph-index{font-size:64px}
+  .ph-body{padding-top:0}
+  .zone-band{gap:3px}
+  .zone{padding:8px 6px;min-height:66px}
+  .zone .range{font-size:11px}
+  .zone .key{font-size:8px}
+  .zone .name{font-size:8px}
+  .global-foot{padding:15px 0 22px;gap:10px}
+  .global-foot p{min-width:100%;order:3}
+  .foot-meta{display:none}
+}
+@media (max-width:520px){
+  .gauge b{font-size:31px}
+  .quick-grid{grid-template-columns:1fr 1fr}
+  .profile-foot .tiny{display:none}
+  .load-hero b{font-size:48px}
+}
+/* ================= 模型页：表单与结果 ================= */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid .full{grid-column:1/-1}
+.field{display:grid;gap:6px}
+.field > label{font-size:12px;font-weight:620;color:var(--ink-2);display:flex;justify-content:space-between;gap:8px}
+.field > label span{font-weight:400;color:var(--muted-2);font-size:10.5px}
+.field .help{font-size:10.5px;color:var(--muted)}
+input[type=number],input[type=text]{
+  width:100%;padding:9px 11px;border:1px solid var(--line-2);border-radius:9px;background:var(--surface);
+  color:var(--ink);font:inherit;font-size:14px;transition:border-color .16s,box-shadow .16s;
+}
+input[type=number]{font-family:var(--mono);font-variant-numeric:tabular-nums}
+input:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(228,87,46,.13)}
+input.invalid{border-color:var(--orange);box-shadow:0 0 0 3px rgba(228,87,46,.12)}
+.seg{display:inline-flex;padding:3px;background:var(--surface-2);border-radius:9px;gap:2px}
+.seg label{position:relative}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:block;padding:6px 18px;border-radius:7px;font-size:12.5px;color:var(--muted);cursor:pointer;transition:.16s}
+.seg input:checked+span{background:var(--surface);color:var(--ink);font-weight:650;box-shadow:0 1px 3px rgba(31,36,48,.14)}
+.seg input:focus-visible+span{outline:2px solid var(--orange);outline-offset:1px}
+
+.profile-layout{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:16px;align-items:start}
+.form-panel{display:flex;flex-direction:column;gap:16px}
+.result-stack{display:grid;gap:16px}
+.big-metric{display:flex;align-items:baseline;gap:8px;margin:2px 0 4px}
+.big-metric b{font-family:var(--mono);font-size:clamp(46px,5.4vw,64px);font-weight:600;letter-spacing:-.06em;line-height:1;color:var(--ink)}
+.big-metric.orange b{color:var(--orange)}
+.big-metric span{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em}
+.bmi-scale{position:relative;display:grid;grid-template-columns:3.5fr 5.5fr 4fr 4fr;height:11px;border-radius:6px;overflow:hidden;margin-top:14px}
+.bmi-scale i{display:block}
+.bmi-scale .s1{background:#B7D2C9}
+.bmi-scale .s2{background:var(--teal)}
+.bmi-scale .s3{background:#D08B52}
+.bmi-scale .s4{background:var(--orange)}
+.bmi-pointer{position:absolute;top:-5px;width:3px;height:21px;border-radius:2px;background:var(--ink);box-shadow:0 0 0 2px var(--surface);left:35%;transition:left .25s cubic-bezier(.16,1,.3,1)}
+.bmi-legend{display:grid;grid-template-columns:3.5fr 5.5fr 4fr 4fr;margin-top:5px;font-size:9px;color:var(--muted-2);line-height:1.35}
+.bmi-legend b{display:block;font-family:var(--mono);font-weight:500;color:var(--muted)}
+.formula-line{font-family:var(--mono);font-size:10.5px;color:var(--muted);background:var(--surface-2);border-radius:7px;padding:7px 9px;margin-top:6px;line-height:1.5}
+.mini-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+.mini{padding:15px 16px;display:flex;flex-direction:column;gap:2px}
+.mini > span{font-size:10.5px;color:var(--muted)}
+.mini b{font-family:var(--mono);font-size:25px;font-weight:600;letter-spacing:-.04em;line-height:1.1}
+.mini small{font-size:9.5px;color:var(--muted-2)}
+.sample-block{border-top:1px dashed var(--line);padding-top:13px}
+.sample-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.sample-chip{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:5px 9px;font-size:11px;cursor:pointer;transition:.16s;color:var(--ink-2)}
+.sample-chip:hover{border-color:var(--orange);background:var(--orange-soft);color:#96391F}
+.sample-chip:active{transform:scale(.98)}
+.saved-badge{font-size:10px}
+.empty-note{display:none;margin-top:13px;padding:12px 14px;border-left:3px solid var(--orange);background:var(--orange-soft);color:#7A3520;font-size:12px;line-height:1.6;border-radius:0 8px 8px 0}
+.empty-note.show{display:block}
+
+.energy-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:16px;align-items:start}
+.activity-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.activity{border:1px solid var(--line);background:var(--surface);border-radius:11px;padding:10px 12px;text-align:left;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:1px 8px;transition:.16s;color:var(--ink)}
+.activity:hover{border-color:var(--line-2);background:var(--surface-2)}
+.activity[aria-pressed="true"]{border-color:var(--orange);background:var(--orange-soft);box-shadow:inset 0 0 0 1px var(--orange)}
+.activity b{font-size:12.5px;font-weight:650}
+.activity .f{font-family:var(--mono);font-size:12px;color:var(--orange);font-weight:600}
+.activity em{grid-column:1/-1;font-style:normal;font-size:9.5px;color:var(--muted);line-height:1.35}
+.energy-metrics{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:13px;overflow:hidden;margin-top:2px}
+.energy-metrics > div{background:var(--surface);padding:15px 16px}
+.energy-metrics span{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+.energy-metrics b{display:block;font-family:var(--mono);font-size:clamp(30px,3.6vw,40px);font-weight:600;letter-spacing:-.05em;line-height:1.1;margin-top:2px;color:var(--ink)}
+.energy-metrics .orange b{color:var(--orange)}
+.energy-metrics small{font-size:9.5px;color:var(--muted-2);margin-left:2px}
+.energy-side{display:grid;gap:16px}
+.water-result{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:12px 13px;border-radius:10px;background:var(--teal-soft);border:1px solid #CFE3DC;margin-top:13px}
+.water-result b{font-family:var(--mono);font-size:29px;font-weight:600;letter-spacing:-.04em;line-height:1;color:var(--teal)}
+.water-result span{font-size:11px;color:#2B5F53}
+.water-result strong{margin-left:auto;font-size:12px;color:#1F6354;font-weight:650}
+.split-bar{display:flex;justify-content:space-between;font-size:11.5px;margin:10px 0 4px}
+.split-track{height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden;margin-bottom:10px}
+.split-track i{display:block;height:100%;background:var(--teal);border-radius:4px;transition:width .3s ease}
+.split-track.alt i{background:#C98A52}
+.energy-empty{display:none;margin-top:13px;padding:13px 14px;border:1px dashed var(--line-2);border-radius:10px;text-align:center;font-size:12px;color:var(--muted)}
+.energy-empty.show{display:block}
+
+@media (max-width:1080px){
+  .profile-layout,.energy-layout{grid-template-columns:1fr}
+  .result-stack{grid-template-columns:1fr 1fr}
+}
+@media (max-width:820px){
+  .form-grid{grid-template-columns:1fr}
+  .result-stack{grid-template-columns:1fr}
+  .mini-metrics{grid-template-columns:1fr}
+  .bmi-legend{font-size:8.5px}
+}
+@media (max-width:520px){
+  .activity-grid{grid-template-columns:1fr}
+  .energy-metrics{grid-template-columns:1fr}
+  .water-result strong{margin-left:0;width:100%}
+}
+/* ================= 心率实验室 ================= */
+.heart-layout{display:grid;grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr);gap:16px;align-items:start}
+.heart-input{display:flex;flex-direction:column;gap:16px}
+.heart-metrics{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.heart-metrics > div{background:var(--surface);padding:13px 14px}
+.heart-metrics span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--muted)}
+.heart-metrics b{display:block;font-family:var(--mono);font-size:34px;font-weight:600;letter-spacing:-.05em;line-height:1.1;margin-top:2px}
+.heart-metrics small{font-size:9px;color:var(--muted-2);margin-left:2px}
+.intensity .split-bar{margin-top:0}
+.intensity input[type=range]{width:100%;accent-color:var(--orange);height:22px}
+.intensity-read{display:flex;align-items:baseline;gap:8px;margin-top:2px;flex-wrap:wrap}
+.intensity-read b{font-family:var(--mono);font-size:38px;font-weight:600;letter-spacing:-.05em;line-height:1}
+.intensity-read span{font-size:11px;color:var(--muted)}
+.intensity-read .badge{margin-left:auto}
+.zone-table-wrap{overflow-x:auto;margin-top:14px}
+.zone-table{width:100%;border-collapse:collapse;font-size:12px}
+.zone-table th{font-size:9px;letter-spacing:.08em;color:var(--muted);font-weight:600;text-align:left;padding:0 6px 7px;border-bottom:1px solid var(--line);white-space:nowrap}
+.zone-table td{padding:8px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+.zone-table tr:last-child td{border-bottom:0}
+.zone-table .swatch{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:1px}
+.zone-table tr.current{background:var(--orange-soft)}
+.zone-table tr.current td{font-weight:620}
+.zone-table td:last-child{white-space:normal;min-width:120px}
+.heart-safety{margin-top:16px}
+.heart-safety p{font-size:12.5px;line-height:1.7;max-width:88ch}
+@media (max-width:1080px){
+  .heart-layout{grid-template-columns:1fr}
+}
+@media (max-width:520px){
+  .heart-metrics b{font-size:28px}
+  .intensity-read b{font-size:31px}
+}
+/* ================= 体能评估 ================= */
+.tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:stretch}
+.tool{display:flex;flex-direction:column;gap:13px}
+.tool .panel-head{margin-bottom:0}
+.tool-result{display:flex;align-items:baseline;gap:8px;padding:12px 14px;border-radius:11px;background:var(--teal-soft);border:1px solid #CFE3DC;margin-top:auto;flex-wrap:wrap}
+.tool-result b{font-family:var(--mono);font-size:clamp(30px,3.2vw,38px);font-weight:600;letter-spacing:-.05em;line-height:1.05;color:var(--teal-deep)}
+.tool-result > span{font-size:11px;color:#2B5F53}
+.tool-result small{margin-left:auto;font-size:11px;color:#1F6354;font-weight:620;white-space:nowrap}
+.tool .panel-note{margin-top:0;padding-top:9px}
+@media (max-width:1080px){
+  .tool-grid{grid-template-columns:1fr}
+}
+@media (max-width:520px){
+  .tool-result b{font-size:28px}
+}
+/* ================= 训练规划 ================= */
+.plan-layout{display:grid;grid-template-columns:minmax(0,.94fr) minmax(0,1.06fr);gap:16px;align-items:start}
+.srpe-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:4px}
+.srpe-grid > div{background:var(--surface);padding:14px 15px}
+.srpe-grid span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+.srpe-grid b{display:block;font-family:var(--mono);font-size:32px;font-weight:600;letter-spacing:-.05em;line-height:1.1;margin-top:2px}
+.srpe-grid .orange b{color:var(--orange)}
+.srpe-grid small{font-size:9.5px;color:var(--muted-2);margin-left:2px}
+.load-class-row{display:flex;align-items:center;gap:8px;margin-top:12px}
+.template-tabs{display:flex;gap:4px;padding:3px;background:var(--surface-2);border-radius:9px;flex-wrap:wrap;margin-top:2px}
+.template-tabs button{border:0;background:transparent;padding:6px 13px;border-radius:7px;font-size:12px;color:var(--muted);cursor:pointer;transition:.16s}
+.template-tabs button:hover{color:var(--ink)}
+.template-tabs button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:650;box-shadow:0 1px 3px rgba(31,36,48,.12)}
+.template-desc{font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:10px;min-height:38px}
+.template-list{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:11px;overflow:hidden;margin-top:10px}
+.tday{display:grid;grid-template-columns:46px minmax(0,1fr) auto;gap:8px;align-items:center;background:var(--surface);padding:8px 11px;font-size:11.5px}
+.tday .d{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.tday .t{font-weight:600}
+.tday .len{font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap}
+.tday.rest .t{color:var(--muted);font-weight:400}
+
+/* ================= 运动模拟 ================= */
+.sim-table-wrap{overflow-x:auto;margin-top:2px}
+.sim-table{width:100%;border-collapse:collapse;font-size:12px}
+.sim-table th{font-size:9px;letter-spacing:.08em;color:var(--muted);font-weight:600;text-align:left;padding:0 5px 7px;border-bottom:1px solid var(--line);white-space:nowrap}
+.sim-table td{padding:6px 4px;border-bottom:1px solid var(--line)}
+.sim-table tr:last-child td{border-bottom:0}
+.sim-table input,.sim-table select{padding:6px 7px;font-size:11.5px;border-radius:7px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink)}
+.sim-table input:focus,.sim-table select:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 2px rgba(228,87,46,.12)}
+.sim-table input[type=number]{width:68px;font-family:var(--mono)}
+.sim-table input:disabled{background:var(--surface-2);color:var(--muted-2)}
+.sim-table .day{font-family:var(--mono);font-size:10.5px;color:var(--muted);white-space:nowrap}
+.sim-table .srpe{font-family:var(--mono);font-weight:600;text-align:right;white-space:nowrap}
+.sim-total{display:flex;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:14px;flex-wrap:wrap}
+.sim-total > div{background:var(--surface);padding:12px 14px;flex:1;min-width:118px}
+.sim-total span{display:block;font-size:10px;color:var(--muted)}
+.sim-total b{font-family:var(--mono);font-size:23px;font-weight:600;letter-spacing:-.04em;line-height:1.2}
+.sim-total b.small-label{font-size:15px}
+.sim-total small{font-size:9.5px;color:var(--muted-2);margin-left:2px}
+
+/* ================= 样本安全提示 ================= */
+.sample-safety{margin-top:16px;padding:13px 15px;border-radius:11px;background:var(--orange-soft);border:1px solid #F2C9BB;color:#7A3520;font-size:12px;line-height:1.65;display:flex;gap:10px;align-items:flex-start}
+.sample-safety svg{width:18px;height:18px;flex:none;color:var(--orange);margin-top:1px}
+.sample-safety b{font-weight:650}
+.sample-safety[hidden]{display:none}
+.safety-panel.warn{background:var(--orange-soft);border-color:#F2C9BB}
+.safety-panel.warn .panel-head svg{color:var(--orange)}
+.safety-panel.warn p{color:#7A3520}
+.safety-panel.warn .badge{background:#F6D5C8;border-color:#EFC0AE;color:#96391F}
+.heart-safety.warn{background:var(--orange-soft);border-color:#F2C9BB}
+.heart-safety.warn .panel-head svg{color:var(--orange)}
+.heart-safety.warn p{color:#7A3520}
+
+@media (max-width:1080px){
+  .plan-layout{grid-template-columns:1fr}
+}
+@media (max-width:820px){
+  .sim-table{font-size:11px}
+  .sim-table input[type=number]{width:56px}
+  .sim-table th,.sim-table td{padding:5px 2px}
+  .sim-table .day{font-size:9.5px}
+}
+@media (max-width:520px){
+  .sim-total > div{min-width:calc(50% - 1px)}
+  .srpe-grid b{font-size:28px}
+}
+/* ================= 知识卡 ================= */
+.card-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line-2);background:var(--surface);color:var(--muted);padding:5px 11px;border-radius:999px;font-size:11.5px;cursor:pointer;transition:.16s}
+.chip:hover{border-color:var(--orange);color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
+.search{position:relative;width:220px;flex:none}
+.search input{width:100%;padding:7px 10px 7px 30px;font-size:12px;border:1px solid var(--line-2);border-radius:9px;background:var(--surface);color:var(--ink)}
+.search input:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(228,87,46,.12)}
+.search svg{position:absolute;left:9px;top:9px;width:14px;height:14px;color:var(--muted)}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:11px}
+.kcard{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:13px 14px 15px;transition:transform .16s,box-shadow .16s,border-color .16s}
+.kcard:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--line-2)}
+.kcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--teal);opacity:.65}
+.kcard[data-cat="能量与营养"]::before{background:#C98A52}
+.kcard[data-cat="心肺训练"]::before{background:var(--orange)}
+.kcard[data-cat="力量训练"]::before{background:#4E6E62}
+.kcard[data-cat="柔韧恢复"]::before{background:#8B9B63}
+.kcard[data-cat="运动安全"]::before{background:#C9451F}
+.kcard .cat{font-family:var(--mono);font-size:9px;letter-spacing:.08em;color:var(--muted);margin-bottom:5px}
+.kcard h3{font-size:13px;line-height:1.4;margin-bottom:4px}
+.kcard p{font-size:11.5px;color:var(--muted);line-height:1.55}
+.kcard .idx{position:absolute;right:10px;bottom:7px;font-family:var(--mono);font-size:9px;color:var(--muted-2)}
+.empty-state{padding:34px 18px;text-align:center;border:1px dashed var(--line-2);border-radius:12px;color:var(--muted);font-size:12px;background:var(--surface)}
+
+/* ================= 知识测验 ================= */
+.btn.sm{padding:6px 11px;font-size:12px;border-radius:8px}
+.quiz-summary{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:14px 16px;border:1px solid var(--line);border-radius:13px;background:var(--surface);margin-bottom:16px;box-shadow:var(--shadow)}
+.quiz-stat{display:flex;align-items:baseline;gap:5px}
+.quiz-stat span{font-size:10.5px;color:var(--muted)}
+.quiz-stat b{font-family:var(--mono);font-size:23px;font-weight:600;letter-spacing:-.04em;line-height:1}
+.quiz-stat small{font-size:10px;color:var(--muted-2)}
+.quiz-actions{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.quiz-layout{display:grid;grid-template-columns:minmax(0,1fr) 224px;gap:16px;align-items:start}
+.q-list{display:flex;flex-direction:column;gap:10px}
+.q{border:1px solid var(--line);border-radius:12px;padding:14px 15px;background:var(--surface)}
+.q-head{display:flex;gap:9px;align-items:flex-start;margin-bottom:10px}
+.q-no{font-family:var(--mono);font-size:10.5px;color:var(--muted);padding-top:2px;flex:none;width:24px}
+.q-text{font-size:13px;font-weight:600;line-height:1.55}
+.q-type{font-size:9px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:5px;vertical-align:1px;font-weight:500;white-space:nowrap}
+.opts{display:grid;gap:6px;padding-left:33px}
+.opt{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:9px;cursor:pointer;font-size:12px;line-height:1.5;transition:.15s}
+.opt:hover{border-color:var(--line-2);background:var(--surface-2)}
+.opt input{margin:2px 0 0;accent-color:var(--orange);flex:none}
+.opt.correct{border-color:#7FB3A6;background:var(--teal-soft)}
+.opt.wrong{border-color:#E8A58F;background:var(--orange-soft)}
+.opt .key{font-family:var(--mono);font-size:10.5px;color:var(--muted);flex:none;padding-top:1px}
+.q-explanation{display:none;margin-top:9px;padding:8px 10px;border-radius:8px;background:var(--surface-2);border-left:2px solid var(--orange);font-size:11px;color:var(--ink-3);line-height:1.6}
+.q.revealed .q-explanation{display:block}
+.q.revealed .opt{cursor:default}
+.quiz-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px}
+.quiz-side .panel{padding:15px 16px}
+.quiz-progress{height:6px;border-radius:4px;background:var(--surface-2);overflow:hidden;margin:6px 0 10px}
+.quiz-progress i{display:block;height:100%;width:0;background:var(--teal);border-radius:4px;transition:width .3s ease}
+.quiz-dots{display:flex;gap:4px;flex-wrap:wrap}
+.quiz-dots button{width:23px;height:23px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-family:var(--mono);font-size:9.5px;cursor:pointer}
+.quiz-dots button.dot-correct{background:var(--teal-soft);border-color:#B7D2C9;color:var(--teal-deep)}
+.quiz-dots button.dot-wrong{background:var(--orange-soft);border-color:#E8A58F;color:#96391F}
+.quiz-dots button.current{background:var(--ink);color:#fff;border-color:var(--ink)}
+.review-panel{margin-top:16px;border:1px solid #F2C9BB;background:var(--orange-soft);border-radius:13px;padding:16px 18px}
+.review-panel[hidden]{display:none}
+.review-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.review-head h2{font-size:16px}
+.review-head .btn{margin-left:auto}
+.review-item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-top:8px}
+.review-item .rq{font-family:var(--mono);font-size:9.5px;color:var(--orange);letter-spacing:.04em;margin-bottom:3px}
+.review-item p{font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:3px}
+.review-item b{color:var(--orange)}
+
+@media (max-width:1080px){
+  .quiz-layout{grid-template-columns:1fr}
+  .quiz-side .panel{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .quiz-side .panel > div{flex:1;min-width:160px}
+  .quiz-side p{width:100%;margin:0}
+}
+@media (max-width:820px){
+  .card-grid{grid-template-columns:1fr 1fr}
+  .search{width:100%}
+  .card-toolbar{align-items:stretch}
+  .quiz-summary{gap:12px}
+  .quiz-actions{margin-left:0;width:100%}
+  .quiz-actions .btn{flex:1}
+  .opt{padding:7px 9px}
+  .opts{padding-left:0}
+}
+@media (max-width:520px){
+  .card-grid{grid-template-columns:1fr}
+  .quiz-stat b{font-size:20px}
+}
+/* ================= 健康手记 ================= */
+.log-layout{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:16px;align-items:start}
+.log-form{display:flex;flex-direction:column;gap:12px}
+.log-form .panel-head{margin-bottom:0}
+.log-srpe{display:flex;align-items:baseline;gap:8px;padding:12px 13px;border-radius:10px;background:var(--teal-soft);border:1px solid #CFE3DC}
+.log-srpe > span{font-size:11px;color:#2B5F53}
+.log-srpe b{font-family:var(--mono);font-size:34px;font-weight:600;letter-spacing:-.05em;line-height:1;color:var(--teal-deep)}
+.log-srpe small{margin-left:auto;font-size:10px;color:#1F6354;font-weight:620}
+.week-hero{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:2px}
+.week-hero b{font-family:var(--mono);font-size:clamp(46px,5vw,60px);font-weight:600;letter-spacing:-.06em;line-height:1;color:var(--orange)}
+.week-hero > span{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em}
+.week-hero .badge{margin-left:auto}
+.log-stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:11px;overflow:hidden;margin-top:13px}
+.log-stats > div{background:var(--surface);padding:11px 13px}
+.log-stats span{display:block;font-size:10px;color:var(--muted)}
+.log-stats b{font-family:var(--mono);font-size:22px;font-weight:600;letter-spacing:-.03em;line-height:1.2}
+.log-stats small{font-size:9px;color:var(--muted-2);margin-left:2px}
+.log-list{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:11px;overflow:hidden;max-height:430px;overflow-y:auto}
+.log-item{background:var(--surface);padding:10px 12px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start}
+.log-item .what{font-size:12.5px;font-weight:600}
+.log-item .kind{display:inline-block;font-size:9px;font-weight:500;color:var(--teal-deep);background:var(--teal-soft);border-radius:4px;padding:0 5px;margin-right:6px;vertical-align:1px}
+.log-item .meta{font-size:10.5px;color:var(--muted);margin-top:2px}
+.log-item .note{font-size:10.5px;color:var(--muted);margin-top:3px}
+.log-item .right{text-align:right;white-space:nowrap}
+.log-item .right b{display:block;font-family:var(--mono);font-size:15px;font-weight:600;line-height:1.2}
+.log-item .right span{font-size:8.5px;color:var(--muted-2)}
+.log-item .del{border:0;background:transparent;color:var(--muted-2);cursor:pointer;font-size:9.5px;padding:2px 0 0}
+.log-item .del:hover{color:var(--orange)}
+.log-empty{padding:30px 16px;text-align:center;color:var(--muted);font-size:11.5px;background:var(--surface)}
+
+/* ================= v1.0 视觉打磨 ================= */
+.page-head{margin-bottom:26px}
+.profile-title{font-size:clamp(24px,3vw,32px)}
+.hero-stat b{font-size:23px}
+.zone{padding:12px 11px 10px;min-height:80px}
+.zone .range{font-size:16px}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:translateY(1px) scale(.99)}
+
+@media (max-width:1080px){
+  .log-layout{grid-template-columns:1fr}
+}
+@media (max-width:820px){
+  .log-layout{grid-template-columns:1fr}
+  .global-foot{padding:15px 0 22px}
+  .foot-main p{min-width:100%;order:3}
+  .foot-meta{display:none}
+  .changelog{flex-direction:column;gap:3px}
+}
+@media (max-width:520px){
+  .week-hero b{font-size:44px}
+  .log-srpe b{font-size:29px}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20.5c.8-4 3.7-6.1 7.5-6.1s6.7 2.1 7.5 6.1"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12z"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5S4 15.6 4 9.9A4.3 4.3 0 0 1 12 7a4.3 4.3 0 0 1 8 2.9c0 5.7-8 10.6-8 10.6z"/><path d="M7 10h2l1-2 2 4 1-2h3"/></symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18a8 8 0 1 1 16 0"/><path d="M12 18l4.2-5.2"/><circle cx="12" cy="18" r="1.3"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 14h3M8 17h6"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 6 3.5-6 3.5z"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v18H6.5A2.5 2.5 0 0 1 4 18.5z"/><path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H20"/></symbol>
+    <symbol id="i-quiz" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.1a2.5 2.5 0 1 1 3.3 2.4c-.7.3-1 .9-1 1.6"/><path d="M12 17h.01"/></symbol>
+    <symbol id="i-note" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l5 5v13H5z"/><path d="M14 3v5h5M8.5 13h7M8.5 17h4.5"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4.5 4.5L19 7"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-3.2 7-8.5V6l-7-3-7 3v6.5C5 17.8 12 21 12 21z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></symbol>
+  </defs>
+</svg>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark"><svg><use href="#i-heart"></use></svg></div>
+      <div><strong>体衡小智</strong><span>运动健康与体能实验室</span></div>
+    </div>
+    <nav class="nav" id="nav" role="tablist" aria-label="功能页签"></nav>
+    <div class="side-foot">
+      <span class="build-tag"><i></i>v1.0 · 全部完成</span>
+      <p>教学估算，不是医疗诊断。<br>数据与公式集中在 DATA 层。</p>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="content">
+      <section class="view" id="view-home" role="tabpanel" aria-labelledby="tab-home">
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">V1.0 / 今日速览</p>
+            <h1>身体是一台<br><span class="hl">可以读懂</span>的仪器</h1>
+            <p class="lede">骨架已立，数据已归位。这一阶段先把十个页签、集中数据层与今日速览搭好；身体档案、代谢与训练模型将在后续阶段逐页接入。</p>
+          </div>
+          <div class="date-block">
+            <span class="num" id="todayDate">----.--.--</span>
+            <b id="todayWeek">--</b>
+            <span class="badge orange live">v1.0</span>
+          </div>
+        </header>
+
+        <div class="hero-grid">
+          <article class="profile-panel">
+            <div class="profile-top">
+              <span class="tag dim">PROFILE / 身体档案</span>
+              <span class="badge" id="homeProfileBadge">未建立</span>
+            </div>
+            <h2 class="profile-title" id="profileTitle">尚未建立档案</h2>
+            <p class="profile-sub" id="profileSub">档案接入后，这里会显示你的 BMI、体脂率、基础代谢与每日总消耗。</p>
+            <div class="gauge-grid">
+              <div class="gauge"><span>BMI</span><b class="num" id="homeBmi">--</b><small>kg/m²</small><em id="homeBmiTag">待接入</em></div>
+              <div class="gauge"><span>体脂率</span><b class="num hi" id="homeFat">--</b><small>%</small><em id="homeFatTag">估算</em></div>
+              <div class="gauge"><span>BMR</span><b class="num" id="homeBmr">--</b><small>kcal</small><em>Mifflin-St Jeor</em></div>
+              <div class="gauge"><span>TDEE</span><b class="num" id="homeTdee">--</b><small>kcal</small><em id="homeTdeeTag">中活动 ×1.55</em></div>
+            </div>
+            <div class="profile-foot">
+              <button class="btn ghost-light" data-goto="profile">查看身体档案 <svg><use href="#i-arrow"></use></svg></button>
+              <span class="tiny" id="homeProfileFoot">填写档案后实时计算</span>
+            </div>
+          </article>
+
+          <aside class="side-stack">
+            <div class="panel stage-card">
+              <div class="panel-head" style="margin-bottom:0">
+                <span class="tag teal">BUILD 1.0</span>
+                <span class="badge teal">v1.0</span>
+              </div>
+              <h2>十个页签全部完成</h2>
+              <ul class="checklist">
+                <li><svg><use href="#i-check"></use></svg>档案回填与 BMI / 体脂</li>
+                <li><svg><use href="#i-check"></use></svg>BMR、TDEE 与补水</li>
+                <li><svg><use href="#i-check"></use></svg>HRmax、HRR 与五区</li>
+                <li><svg><use href="#i-check"></use></svg>体能四项估算器</li>
+                <li><svg><use href="#i-check"></use></svg>知识卡 60 · 测验 50</li>
+                <li><svg><use href="#i-check"></use></svg>健康手记与导出报告</li>
+              </ul>
+            </div>
+            <div class="quick-grid">
+              <button class="quick" data-goto="energy"><span class="qk">03</span><b>能量代谢</b><span>BMR / TDEE</span></button>
+              <button class="quick" data-goto="heart"><span class="qk">04</span><b>心率实验室</b><span>Karvonen 五区</span></button>
+              <button class="quick" data-goto="cards"><span class="qk">08</span><b>知识卡</b><span>60 张已入库</span></button>
+              <button class="quick" data-goto="quiz"><span class="qk">09</span><b>知识测验</b><span>50 题已入库</span></button>
+            </div>
+          </aside>
+        </div>
+
+        <article class="panel zone-panel">
+          <div class="panel-head">
+            <h2><svg><use href="#i-heart"></use></svg>心率五区 · 实时色带</h2>
+            <span class="hint" id="zoneHint">示例：20 岁 · 静息 72 · HRmax 200</span>
+          </div>
+          <div class="zone-band" id="zoneBand"></div>
+          <div class="zone-axis" id="zoneAxis"></div>
+          <p class="panel-note">色带按 Karvonen 公式，从心率储备 50% 切到 100%；相邻区间共享端点。边界按当前档案的年龄与静息心率计算，未建立档案时显示示例参数。</p>
+        </article>
+
+        <div class="bottom-grid">
+          <article class="panel">
+            <div class="panel-head">
+              <h2><svg><use href="#i-cal"></use></svg>本周训练负荷</h2>
+              <span class="badge">占位</span>
+            </div>
+            <div class="load-hero"><b class="num">0</b><span>AU</span></div>
+            <div class="load-track"><i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i></div>
+            <div class="load-labels"><span>轻松 &lt;600</span><span>适中 600–1200</span><span>较大 1200–2000</span><span>很大 &gt;2000</span></div>
+            <p class="panel-note">健康手记接入后，本周负荷由单次 sRPE（RPE × 时长）累加，并给出分档。当前为占位，后续阶段接入。</p>
+          </article>
+          <article class="panel safety-panel">
+            <div class="panel-head">
+              <h2><svg><use href="#i-shield"></use></svg>安全底线</h2>
+            </div>
+            <p id="safetyText"></p>
+            <span class="badge teal">固定文案</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="view-profile" role="tabpanel" aria-labelledby="tab-profile" hidden>
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">02 / PROFILE</p>
+            <h1>先量清楚，<span class="hl">再谈训练</span></h1>
+            <p class="lede">BMI 看体重与身高的比例，体脂率估算脂肪占比。两者都是教学估算，不能替代体检。</p>
+          </div>
+          <div class="date-block">
+            <span class="badge saved-badge" id="profileSavedBadge">尚未保存</span>
+            <small class="tiny muted">数据只存本机</small>
+          </div>
+        </header>
+
+        <div class="profile-layout">
+          <article class="panel form-panel">
+            <div class="panel-head"><h2>基础档案</h2><span class="hint">输入后自动保存</span></div>
+            <form id="profileForm" novalidate>
+              <div class="form-grid">
+                <div class="field full">
+                  <label for="pName">称呼 <span>可选</span></label>
+                  <input type="text" id="pName" maxlength="12" placeholder="例如：阿健" autocomplete="off">
+                </div>
+                <div class="field full">
+                  <label>生理性别 <span>公式按此取常数</span></label>
+                  <div class="seg" role="radiogroup" aria-label="生理性别">
+                    <label><input type="radio" name="pSex" value="male" checked><span>男</span></label>
+                    <label><input type="radio" name="pSex" value="female"><span>女</span></label>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="pAge">年龄（岁）</label>
+                  <input type="number" id="pAge" min="14" max="60" step="1" placeholder="20" inputmode="numeric">
+                </div>
+                <div class="field">
+                  <label for="pRest">静息心率（次/分）</label>
+                  <input type="number" id="pRest" min="35" max="140" step="1" placeholder="72" inputmode="numeric">
+                  <span class="help">安静坐 5 分钟后测</span>
+                </div>
+                <div class="field">
+                  <label for="pHeight">身高（cm）</label>
+                  <input type="number" id="pHeight" min="120" max="230" step="0.1" placeholder="175" inputmode="decimal">
+                </div>
+                <div class="field">
+                  <label for="pWeight">体重（kg）</label>
+                  <input type="number" id="pWeight" min="25" max="200" step="0.1" placeholder="70" inputmode="decimal">
+                </div>
+                <div class="full" style="display:flex;gap:8px;margin-top:2px">
+                  <button type="submit" class="btn primary">保存档案</button>
+                  <button type="button" class="btn" id="profileClear">清空</button>
+                </div>
+              </div>
+            </form>
+            <div class="sample-block">
+              <span class="tag">快速载入样本</span>
+              <div class="sample-chips" id="profileSamples"></div>
+            </div>
+          </article>
+
+          <div class="result-stack">
+            <article class="panel">
+              <div class="panel-head"><h2>BMI 与分级</h2><span class="badge" id="bmiClass">等待输入</span></div>
+              <div class="big-metric"><b class="num" id="bmiValue">--</b><span>kg/m²</span></div>
+              <div class="bmi-scale" id="bmiScale">
+                <i class="s1"></i><i class="s2"></i><i class="s3"></i><i class="s4"></i>
+                <span class="bmi-pointer" id="bmiPointer"></span>
+              </div>
+              <div class="bmi-legend">
+                <span>偏瘦<b>&lt;18.5</b></span>
+                <span>正常<b>18.5–23.9</b></span>
+                <span>超重<b>24–27.9</b></span>
+                <span>肥胖<b>≥28</b></span>
+              </div>
+              <p class="panel-note">BMI = 体重kg ÷ 身高m²，保留 1 位小数。中国成人分级，仅作比例参考。</p>
+            </article>
+
+            <article class="panel">
+              <div class="panel-head"><h2>体脂率估算</h2><span class="badge orange">估算</span></div>
+              <div class="big-metric orange"><b class="num" id="fatValue">--</b><span>%</span></div>
+              <p class="formula-line">1.20×BMI + 0.23×年龄 − 10.8×性别 − 5.4</p>
+              <p class="panel-note">Deurenberg 公式估算，误差可能较大；看长期趋势比盯单次数字更有意义。</p>
+            </article>
+          </div>
+        </div>
+
+        <div class="sample-safety" id="profileSafety" hidden></div>
+
+        <div class="mini-metrics">
+          <article class="panel mini"><span>基础代谢 BMR</span><b class="num" id="profileBmr">--</b><small>kcal / Mifflin-St Jeor</small></article>
+          <article class="panel mini"><span>最大心率</span><b class="num" id="profileHrMax">--</b><small>bpm / 220 − 年龄</small></article>
+          <article class="panel mini"><span>BMI 数值</span><b class="num" id="profileBmiMini">--</b><small>kg/m²</small></article>
+        </div>
+      </section>
+
+      <section class="view" id="view-energy" role="tabpanel" aria-labelledby="tab-energy" hidden>
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">03 / ENERGY</p>
+            <h1>一天到底<span class="hl">烧掉多少</span></h1>
+            <p class="lede">BMR 是躺着也要付出的底价，TDEE 再把日常活动叠上去。活动系数是估算，不是精确计量。</p>
+          </div>
+          <div class="date-block"><span class="badge" id="energyProfileChip">未建立档案</span></div>
+        </header>
+
+        <div class="energy-layout">
+          <article class="panel">
+            <div class="panel-head"><h2>活动水平</h2><span class="hint">选择最接近的一档</span></div>
+            <div class="activity-grid" id="activityGrid"></div>
+            <div class="energy-metrics">
+              <div><span>BMR 基础代谢</span><b id="energyBmr">--</b><small>kcal</small></div>
+              <div class="orange"><span>TDEE 总消耗</span><b id="energyTdee">--</b><small>kcal</small></div>
+            </div>
+            <div class="energy-empty" id="energyEmpty">
+              先建立身体档案，才能计算 BMR 与 TDEE。
+              <div style="display:flex;justify-content:center;margin-top:9px"><button class="btn sm primary" data-goto="profile">去建立档案</button></div>
+            </div>
+            <p class="panel-note">BMR（Mifflin-St Jeor）：男 = 10×体重 + 6.25×身高cm − 5×年龄 + 5；女 = 同式 − 161。TDEE = BMR × 活动系数。</p>
+          </article>
+
+          <div class="energy-side">
+            <article class="panel">
+              <div class="panel-head"><h2>运动补水估算</h2><span class="hint">前后体重差</span></div>
+              <div class="form-grid">
+                <div class="field"><label for="preWeight">运动前（kg）</label><input type="number" id="preWeight" min="20" max="200" step="0.1" value="70" inputmode="decimal"></div>
+                <div class="field"><label for="postWeight">运动后（kg）</label><input type="number" id="postWeight" min="20" max="200" step="0.1" value="69.3" inputmode="decimal"></div>
+              </div>
+              <div class="water-result"><b class="num" id="waterLoss">0.7</b><span>kg 失水</span><strong id="waterAdvice">建议补水 1.05 L</strong></div>
+              <p class="panel-note">建议补水 = 失水 × 1.5，少量多次喝；长时间高强度运动才考虑电解质饮料。</p>
+            </article>
+
+            <article class="panel">
+              <div class="panel-head"><h2>能量拆分</h2><span class="hint">按 TDEE</span></div>
+              <div class="split-bar"><span>基础代谢 BMR</span><span class="num" id="splitBmrText">--</span></div>
+              <div class="split-track"><i id="splitBmrBar" style="width:0%"></i></div>
+              <div class="split-bar"><span>活动与运动</span><span class="num" id="splitActText">--</span></div>
+              <div class="split-track alt"><i id="splitActBar" style="width:0%"></i></div>
+              <p class="panel-note">活动部分是把 BMR 乘以活动系数后的差值，包含日常走动与训练，不含食物热效应的单独拆分。</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-heart" role="tabpanel" aria-labelledby="tab-heart" hidden>
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">04 / HEART</p>
+            <h1>把心率切成<span class="hl">五个区间</span></h1>
+            <p class="lede">最大心率用 220 − 年龄估算，再用 Karvonen 公式把心率储备切成五段。区间是路标，不是考试分数。</p>
+          </div>
+          <div class="date-block"><span class="badge" id="heartSourceBadge">示例参数</span></div>
+        </header>
+
+        <div class="heart-layout">
+          <article class="panel heart-input">
+            <div class="panel-head"><h2>输入</h2><span class="hint">Karvonen</span></div>
+            <div class="form-grid">
+              <div class="field">
+                <label for="hAge">年龄（岁）</label>
+                <input type="number" id="hAge" min="14" max="60" step="1" value="20" inputmode="numeric">
+              </div>
+              <div class="field">
+                <label for="hRest">静息心率（次/分）</label>
+                <input type="number" id="hRest" min="35" max="140" step="1" value="72" inputmode="numeric">
+                <span class="help">安静坐 5 分钟后测</span>
+              </div>
+            </div>
+            <div class="heart-metrics">
+              <div><span>HRmax</span><b id="hHrMax">200</b><small>bpm</small></div>
+              <div><span>HRR</span><b id="hHrr">128</b><small>bpm</small></div>
+            </div>
+            <div class="intensity">
+              <div class="split-bar"><span>强度模拟</span><span class="num" id="hIntensityLabel">60% HRR</span></div>
+              <input type="range" id="hIntensity" min="50" max="100" step="1" value="60" aria-label="心率储备强度百分比">
+              <div class="intensity-read"><b class="num" id="hTarget">149</b><span>次/分</span><span class="badge teal" id="hZone">Z2 燃脂</span></div>
+            </div>
+            <p class="panel-note">目标心率 = 静息 + 强度% × HRR，取整到个位。年龄与静息输入会同步到身体档案。</p>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head"><h2>五区色带</h2><span class="hint" id="hHeartHint">20 岁 · 静息 72</span></div>
+            <div class="zone-band" id="hZoneBand"></div>
+            <div class="zone-axis" id="hZoneAxis"></div>
+            <div class="zone-table-wrap">
+              <table class="zone-table">
+                <thead><tr><th>区间</th><th>%HRR</th><th>目标心率</th><th>感觉</th></tr></thead>
+                <tbody id="hZoneTable"></tbody>
+              </table>
+            </div>
+            <p class="panel-note">相邻区间共享端点，例如 Z1 的终点同时是 Z2 的起点。</p>
+          </article>
+        </div>
+
+        <article class="panel safety-panel heart-safety">
+          <div class="panel-head">
+            <h2><svg><use href="#i-shield"></use></svg>安全提示</h2>
+            <span class="badge teal" id="heartSafetyBadge">固定文案</span>
+          </div>
+          <p id="heartSafetyText"></p>
+        </article>
+      </section>
+
+      <section class="view" id="view-fitness" role="tabpanel" aria-labelledby="tab-fitness" hidden>
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">05 / FITNESS</p>
+            <h1>四个工具，<span class="hl">测四种能力</span></h1>
+            <p class="lede">12 分钟跑看心肺，Epley 估力量，肺活量体重指数看呼吸储备，跑步热量与配速看一次运动的账本。</p>
+          </div>
+          <div class="date-block"><span class="badge">教学估算</span></div>
+        </header>
+
+        <div class="tool-grid">
+          <article class="panel tool">
+            <div class="panel-head"><h2>最大摄氧量 · Cooper</h2><span class="hint">12 分钟跑</span></div>
+            <div class="field">
+              <label for="cooperDist">12 分钟跑距离（m）</label>
+              <input type="number" id="cooperDist" min="500" max="5000" step="1" value="2800" inputmode="numeric">
+              <span class="help">在操场或跑步机完成，量力而行。</span>
+            </div>
+            <div class="tool-result"><b id="vo2Value">51.3</b><span>ml/kg/min</span><small>VO2max</small></div>
+            <p class="panel-note">VO2max = (距离m − 504.9) ÷ 44.73，保留 1 位小数。</p>
+          </article>
+
+          <article class="panel tool">
+            <div class="panel-head"><h2>1RM 估算 · Epley</h2><span class="hint">重量 × (1 + 次数/30)</span></div>
+            <div class="form-grid">
+              <div class="field"><label for="rmWeight">重量（kg）</label><input type="number" id="rmWeight" min="1" max="500" step="0.5" value="60" inputmode="decimal"></div>
+              <div class="field"><label for="rmReps">完成次数</label><input type="number" id="rmReps" min="1" max="20" step="1" value="8" inputmode="numeric"></div>
+            </div>
+            <div class="tool-result"><b id="rmValue">76.0</b><span>kg</span><small>估算 1RM</small></div>
+            <p class="panel-note">只适合 1–10 次的有效组；估算值不要直接拿去冲极限。</p>
+          </article>
+
+          <article class="panel tool">
+            <div class="panel-head"><h2>肺活量体重指数</h2><span class="hint">mL / kg</span></div>
+            <div class="form-grid">
+              <div class="field"><label for="vcVolume">肺活量（mL）</label><input type="number" id="vcVolume" min="500" max="9000" step="10" value="4200" inputmode="numeric"></div>
+              <div class="field"><label for="vcWeight">体重（kg）</label><input type="number" id="vcWeight" min="20" max="200" step="0.1" value="70" inputmode="decimal"></div>
+            </div>
+            <div class="tool-result"><b id="vcValue">60.0</b><span>mL/kg</span><small>肺活量体重指数</small></div>
+            <p class="panel-note">肺活量体重指数 = 肺活量mL ÷ 体重kg，保留 1 位小数。</p>
+          </article>
+
+          <article class="panel tool">
+            <div class="panel-head"><h2>跑步热量与配速</h2><span class="hint">体重 × 距离 × 1.036</span></div>
+            <div class="form-grid">
+              <div class="field"><label for="runDist">距离（km）</label><input type="number" id="runDist" min="0.5" max="42.2" step="0.1" value="5" inputmode="decimal"></div>
+              <div class="field"><label for="runMin">用时（分钟）</label><input type="number" id="runMin" min="1" max="600" step="1" value="30" inputmode="numeric"></div>
+              <div class="field full"><label for="runWeight">体重（kg）</label><input type="number" id="runWeight" min="20" max="200" step="0.1" value="70" inputmode="decimal"></div>
+            </div>
+            <div class="tool-result"><b id="runKcal">362.6</b><span>kcal</span><small id="runPace">配速 6'00"/km</small></div>
+            <p class="panel-note">热量为估算，受配速、坡度与个体差异影响。配速 = 用时 ÷ 距离。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="view-plan" role="tabpanel" aria-labelledby="tab-plan" hidden>
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">06 / PLAN</p>
+            <h1>先把一周的<span class="hl">负荷算明白</span></h1>
+            <p class="lede">sRPE 把“有多累”和“练了多久”合成一个数。周负荷不是越高越好，能恢复才叫训练。</p>
+          </div>
+          <div class="date-block"><span class="badge">AU 为任意单位</span></div>
+        </header>
+
+        <div class="plan-layout">
+          <article class="panel">
+            <div class="panel-head"><h2>单次与每周负荷</h2><span class="hint">RPE × 分钟</span></div>
+            <div class="field">
+              <label for="planRpe">主观强度 RPE：<span id="planRpeOut">6</span> / 10</label>
+              <input type="range" id="planRpe" min="1" max="10" step="1" value="6">
+              <span class="help">6 大致是“还能说短句，但不想多说”。</span>
+            </div>
+            <div class="form-grid">
+              <div class="field"><label for="planMin">单次时长（分钟）</label><input type="number" id="planMin" min="5" max="300" step="5" value="45" inputmode="numeric"></div>
+              <div class="field"><label for="planTimes">每周次数</label><input type="number" id="planTimes" min="0" max="14" step="1" value="3" inputmode="numeric"></div>
+            </div>
+            <div class="srpe-grid">
+              <div><span>单次 sRPE</span><b id="planSrpe">270</b><small>AU</small></div>
+              <div class="orange"><span>周负荷</span><b id="planWeek">810</b><small>AU</small></div>
+            </div>
+            <div class="load-class-row"><span class="tiny muted">分档</span><span class="badge teal" id="planClass">适中</span></div>
+            <div class="load-track"><i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i></div>
+            <div class="load-labels"><span>轻松 &lt;600</span><span>适中 600–1200</span><span>较大 1200–2000</span><span>很大 &gt;2000</span></div>
+            <p class="panel-note">循序渐进，周增幅不超过约 10%。如果连续两周“很大”，先减量再谈强度。</p>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head"><h2>按目标的周结构</h2><span class="hint">固定文案模板</span></div>
+            <div class="template-tabs" id="templateTabs">
+              <button data-template="fat" aria-pressed="true">减脂</button>
+              <button data-template="muscle" aria-pressed="false">增肌</button>
+              <button data-template="endurance" aria-pressed="false">体能提升</button>
+            </div>
+            <p class="template-desc" id="templateDesc"></p>
+            <div class="template-list" id="templateList"></div>
+            <p class="panel-note">模板只给训练结构，不构成医疗处方，也不规定具体动作与负重。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="view-sim" role="tabpanel" aria-labelledby="tab-sim" hidden>
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">07 / SIMULATION</p>
+            <h1>把一周<span class="hl">先跑一遍</span></h1>
+            <p class="lede">逐日填入类型、时长与 RPE，跑步日再填距离。先看总负荷、总时长和跑步热量，会不会超出恢复能力。</p>
+          </div>
+          <div class="date-block"><button class="btn" id="simPreset">载入验收示例</button></div>
+        </header>
+
+        <article class="panel">
+          <div class="panel-head"><h2>七日训练表</h2><span class="hint" id="simWeightHint">按默认体重 70 kg</span></div>
+          <div class="sim-table-wrap">
+            <table class="sim-table">
+              <thead><tr><th>星期</th><th>类型</th><th>时长（分钟）</th><th>RPE</th><th>跑步距离（km）</th><th style="text-align:right">当日 sRPE</th></tr></thead>
+              <tbody id="simBody"></tbody>
+            </table>
+          </div>
+          <div class="sim-total">
+            <div><span>周负荷</span><b id="simSrpe">810</b><small>AU</small></div>
+            <div><span>分档</span><b id="simClass" class="small-label">适中</b></div>
+            <div><span>总时长</span><b id="simMin">135</b><small>分钟</small></div>
+            <div><span>跑步热量</span><b id="simKcal">1087.8</b><small>kcal</small></div>
+          </div>
+          <p class="panel-note">休息日不计负荷。跑步热量 ≈ 体重 × 距离 × 1.036；力量与其他项目只计 sRPE。</p>
+        </article>
+      </section>
+
+      <section class="view" id="view-cards" role="tabpanel" aria-labelledby="tab-cards" hidden>
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">08 / KNOWLEDGE</p>
+            <h1>六十张卡，<span class="hl">拆开身体的常识</span></h1>
+            <p class="lede">六个类别，每张只讲一件事。先记住能用的那一句，比背完整个系统更重要。</p>
+          </div>
+          <div class="date-block">
+            <b id="cardCount" class="num" style="font-size:30px;color:var(--orange)">60</b>
+            <span class="tiny muted">张知识卡</span>
+          </div>
+        </header>
+
+        <div class="card-toolbar">
+          <div class="chips" id="cardChips"></div>
+          <div class="search">
+            <svg><use href="#i-search"></use></svg>
+            <input type="text" id="cardSearch" placeholder="搜索关键词" aria-label="搜索知识卡">
+          </div>
+        </div>
+        <div class="card-grid" id="cardGrid"></div>
+      </section>
+
+      <section class="view" id="view-quiz" role="tabpanel" aria-labelledby="tab-quiz" hidden>
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">09 / QUIZ</p>
+            <h1>五十道题，<span class="hl">检查你的直觉</span></h1>
+            <p class="lede">35 道单选，15 道判断。每题选完立即判分，错题可在底部回顾。</p>
+          </div>
+          <div class="date-block"><span class="badge orange">50 题 · 单选 35 / 判断 15</span></div>
+        </header>
+
+        <div class="quiz-summary">
+          <div class="quiz-stat"><span>已答</span><b id="qAnswered">0</b><small>/ 50</small></div>
+          <div class="quiz-stat"><span>正确</span><b id="qRight">0</b></div>
+          <div class="quiz-stat"><span>错误</span><b id="qWrong">0</b></div>
+          <div class="quiz-stat"><span>正确率</span><b id="qAcc">--</b></div>
+          <div class="quiz-actions">
+            <button class="btn" id="quizReviewBtn">错题回顾</button>
+            <button class="btn" id="quizReset">全部重做</button>
+          </div>
+        </div>
+
+        <div class="quiz-layout">
+          <div>
+            <div class="q-list" id="quizList"></div>
+            <div class="quiz-nav">
+              <button class="btn sm" id="quizPrev">上一页</button>
+              <span class="small muted num" id="quizPageLabel">1 / 5</span>
+              <button class="btn sm" id="quizNext">下一页</button>
+            </div>
+          </div>
+          <aside class="quiz-side">
+            <div class="panel">
+              <div style="display:flex;justify-content:space-between;font-size:11.5px"><b>答题进度</b><span class="num muted" id="quizProgressText">0 / 50</span></div>
+              <div class="quiz-progress"><i id="quizBar"></i></div>
+              <div class="quiz-dots" id="quizDots"></div>
+              <p class="tiny muted" style="margin-top:10px">点击题号跳页；已答题会标记正确或错误。</p>
+            </div>
+          </aside>
+        </div>
+
+        <section class="review-panel" id="reviewPanel" hidden>
+          <div class="review-head">
+            <h2>错题回顾</h2>
+            <span class="badge orange" id="reviewCount">共 0 题</span>
+            <button class="btn sm" id="reviewClose">收起</button>
+          </div>
+          <div id="reviewList"></div>
+        </section>
+      </section>
+
+      <section class="view" id="view-log" role="tabpanel" aria-labelledby="tab-log" hidden>
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">10 / LOG</p>
+            <h1>记下来，<span class="hl">才知道练了多少</span></h1>
+            <p class="lede">每次运动记一条，自动算 sRPE。周汇总只统计本周一至今，数据只存本机。</p>
+          </div>
+          <div class="date-block"><span class="badge teal">localStorage · tihealth_logs</span></div>
+        </header>
+
+        <div class="log-layout">
+          <article class="panel">
+            <div class="panel-head"><h2>新增记录</h2><span class="hint">自动算 sRPE</span></div>
+            <form id="logForm" class="log-form">
+              <div class="field"><label for="logDate">日期</label><input type="date" id="logDate"></div>
+              <div class="field"><label for="logType">运动类型</label><select id="logType"></select></div>
+              <div class="form-grid">
+                <div class="field"><label for="logMin">时长（分钟）</label><input type="number" id="logMin" min="1" max="600" step="1" value="45" inputmode="numeric"></div>
+                <div class="field"><label for="logRpe">RPE（1–10）</label><input type="number" id="logRpe" min="1" max="10" step="1" value="6" inputmode="numeric"></div>
+              </div>
+              <div class="field"><label for="logNote">备注 <span>可选</span></label><input type="text" id="logNote" maxlength="40" placeholder="例如：操场 5 圈" autocomplete="off"></div>
+              <div class="log-srpe"><span>单次 sRPE</span><b id="logSrpe">270</b><small>AU</small></div>
+              <button type="submit" class="btn primary" style="width:100%">加入手记</button>
+            </form>
+          </article>
+
+          <div class="log-side">
+            <article class="panel">
+              <div class="panel-head"><h2>本周汇总</h2><span class="hint" id="logWeekRange">--</span></div>
+              <div class="week-hero"><b id="logWeekLoad">0</b><span>AU</span><span class="badge" id="logWeekClass">—</span></div>
+              <div class="log-stats">
+                <div><span>训练次数</span><b id="logWeekCount">0</b><small>次</small></div>
+                <div><span>总时长</span><b id="logWeekMin">0</b><small>分钟</small></div>
+              </div>
+              <div class="btn-row" style="margin-top:13px"><button class="btn" id="logExport">导出报告</button><button class="btn warn" id="logClear">清空</button></div>
+              <p class="panel-note">导出为纯文本报告，最后一行为固定句。数据只存本机。</p>
+            </article>
+
+            <article class="panel">
+              <div class="panel-head"><h2>历史记录</h2><span class="hint" id="logTotalHint">共 0 条</span></div>
+              <div class="log-list" id="logList"></div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <div id="placeholderViews"></div>
+    </div>
+
+    <footer class="global-foot">
+      <div class="foot-main">
+        <div class="foot-brand"><i></i><b>体衡小智</b><span class="foot-ver">v1.0</span></div>
+        <p id="footDisclaimer"></p>
+        <span class="foot-meta">TEACHING ESTIMATE</span>
+      </div>
+      <div class="changelog">
+        <span class="cl-tag">CHANGELOG</span>
+        <span class="cl-text">v1.0 — 10 个页签、六大模型、60 张知识卡、50 道测验与健康手记全部接入。</span>
+      </div>
+    </footer>
+  </main>
+</div>
+
+<script>
+'use strict';
+
+/* =====================================================================
+   DATA 层：所有业务数据、公式、样式色板集中在此，逻辑层只读取
+   ===================================================================== */
+const DATA = {
+  meta: {
+    name: '体衡小智',
+    subtitle: '运动健康与体能实验室',
+    stage: 'v1.0',
+    version: '1.0.0',
+    audience: '大学生运动健康自测与训练入门',
+    demoAge: 20,
+    demoRest: 72,
+    profileKey: 'tihealth_profile',
+    logKey: 'tihealth_logs',
+    demoPreWeight: 70,
+    demoPostWeight: 69.3,
+    disclaimer: '本应用数值为教学估算，不替代医疗诊断与官方体测评分。',
+    safety: '静息心率明显偏高或运动中有胸闷、头晕时，先停下来，咨询校医院或医生后再继续；新手从 Z1–Z2 开始。',
+    updated: '2026-11-02'
+  },
+
+  nav: [
+    { id:'home',     label:'首页',       en:'TODAY',      icon:'home',  group:'今日',     desc:'今日速览：档案摘要、心率五区与本周负荷。', modules:['档案摘要','心率五区色带','本周训练负荷'] },
+    { id:'profile',  label:'身体档案',   en:'PROFILE',    icon:'user',  group:'基础',     desc:'一次建立身体档案，BMI、体脂率与基础代谢全部公式现算。', modules:['BMI 与分级','Deurenberg 体脂','6 组预设样本'] },
+    { id:'energy',   label:'能量代谢',   en:'ENERGY',     icon:'bolt',  group:'实验室',   desc:'BMR 是底价，TDEE 是加上日常活动后的总消耗；补水按失水体重差估算。', modules:['Mifflin-St Jeor','活动系数 1.2–1.725','运动补水估算'] },
+    { id:'heart',    label:'心率实验室', en:'HEART',      icon:'heart', group:'实验室',   desc:'用最大心率与静息心率算出心率储备，再切成五个训练强度区。', modules:['HRmax 与 HRR','Karvonen 目标心率','Z1–Z5 边界'] },
+    { id:'fitness',  label:'体能评估',   en:'FITNESS',    icon:'gauge', group:'实验室',   desc:'四个工具分别看心肺、力量、呼吸储备与跑步能耗。', modules:['Cooper 12 分钟跑','Epley 1RM','肺活量体重指数','配速与热量'] },
+    { id:'plan',     label:'训练规划',   en:'PLAN',       icon:'cal',   group:'实验室',   desc:'把主观强度与时长合成 sRPE，再按周负荷分档并给出三套结构模板。', modules:['单次 sRPE','周负荷分档','减脂 / 增肌 / 体能'] },
+    { id:'sim',      label:'运动模拟',   en:'SIMULATION', icon:'play',  group:'实验室',   desc:'逐日填入一周训练，先看总负荷、总时长与跑步热量是否超出恢复能力。', modules:['七日训练表','日 / 周 sRPE','周热量汇总'] },
+    { id:'cards',    label:'知识卡',     en:'KNOWLEDGE',  icon:'book',  group:'学习与记录', desc:'六十张卡，六个类别，每张只讲清一个能立刻用上的常识。', modules:['身体指标 ×10','能量与营养 ×10','心肺 ×10','力量 ×10','柔韧 ×10','安全 ×10'] },
+    { id:'quiz',     label:'知识测验',   en:'QUIZ',       icon:'quiz',  group:'学习与记录', desc:'35 道单选与 15 道判断，提交后统一揭示答案与解析。', modules:['单选 35 题','判断 15 题','计分与解析'] },
+    { id:'log',      label:'健康手记',   en:'LOG',        icon:'note',  group:'学习与记录', desc:'每次运动记一条，自动算 sRPE；周汇总、导出报告，数据只存本机。', modules:['日期 / 类型 / 时长 / RPE','本周汇总','导出报告'] }
+  ],
+
+  theme: {
+    ink:'#1F2430',
+    orange:'#E4572E',
+    teal:'#2E7D6B',
+    bg:'#FAF7F2',
+    zone:['#B7D2C9','#7FAE9F','#4E8C7A','#2E7D6B','#E4572E'],
+    zoneText:['dark','dark','light','light','light']
+  },
+
+  activities: [
+    { id:'sedentary', label:'久坐',   factor:1.2,   desc:'几乎不运动，以室内学习为主' },
+    { id:'light',     label:'轻活动', factor:1.375, desc:'每周 1–3 次轻量运动' },
+    { id:'moderate',  label:'中活动', factor:1.55,  desc:'每周 3–5 次中等强度运动' },
+    { id:'high',      label:'高活动', factor:1.725, desc:'每周 6–7 次高强度运动' }
+  ],
+
+  formulas: {
+    bmi: {
+      id:'bmi', label:'BMI', expr:'体重kg ÷ 身高m²', round:1,
+      fn:(weight, height) => weight / Math.pow(height / 100, 2)
+    },
+    bmiClass: {
+      id:'bmiClass', label:'BMI 分级', expr:'<18.5 偏瘦；18.5–23.9 正常；24.0–27.9 超重；≥28 肥胖',
+      fn:(bmi) => bmi < 18.5 ? '偏瘦' : bmi < 24 ? '正常' : bmi < 28 ? '超重' : '肥胖'
+    },
+    bodyFat: {
+      id:'bodyFat', label:'体脂率（Deurenberg）', expr:'1.20×BMI + 0.23×年龄 − 10.8×性别 − 5.4（男=1，女=0）', round:1, estimate:true,
+      fn:(bmi, age, sex) => 1.20 * bmi + 0.23 * age - 10.8 * (sex === 'male' ? 1 : 0) - 5.4
+    },
+    bmr: {
+      id:'bmr', label:'基础代谢 BMR（Mifflin-St Jeor）', expr:'男 = 10×体重 + 6.25×身高cm − 5×年龄 + 5；女 = 同式 − 161', round:0,
+      fn:(weight, height, age, sex) => 10 * weight + 6.25 * height - 5 * age + (sex === 'male' ? 5 : -161)
+    },
+    tdee: {
+      id:'tdee', label:'TDEE 总消耗', expr:'BMR × 活动系数（久坐 1.2 / 轻 1.375 / 中 1.55 / 高 1.725）', round:0,
+      fn:(bmrRaw, factor) => bmrRaw * factor
+    },
+    water: {
+      id:'water', label:'建议补水', expr:'失水kg × 1.5', round:2,
+      fn:(lossKg) => lossKg * 1.5
+    },
+    hrMax: {
+      id:'hrMax', label:'最大心率', expr:'220 − 年龄', round:0,
+      fn:(age) => 220 - age
+    },
+    hrr: {
+      id:'hrr', label:'心率储备 HRR', expr:'HRmax − 静息心率', round:0,
+      fn:(hrMax, rest) => hrMax - rest
+    },
+    karvonen: {
+      id:'karvonen', label:'Karvonen 目标心率', expr:'静息 + 强度% × HRR', round:0,
+      fn:(rest, pct, hrr) => Math.round(rest + (pct / 100) * hrr)
+    },
+    zones: {
+      id:'zones', label:'心率五区', expr:'50–60–70–80–90–100% HRR',
+      fn:(rest, age) => {
+        const hrMax = 220 - age;
+        const hrr = hrMax - rest;
+        const pcts = [50, 60, 70, 80, 90, 100];
+        const bounds = pcts.map(p => Math.round(rest + p * hrr / 100));
+        const names = ['热身', '燃脂', '有氧', '阈值', '极限'];
+        const feels = ['轻松，能完整聊天', '能说完整句子', '只能说短句', '呼吸明显急促', '无法说话，只能短时'];
+        return {
+          hrMax, hrr, bounds,
+          list: names.map((name, i) => ({
+            key: 'Z' + (i + 1), name, feel: feels[i],
+            from: 50 + i * 10, to: 60 + i * 10,
+            low: bounds[i], high: bounds[i + 1]
+          }))
+        };
+      }
+    },
+    vo2max: {
+      id:'vo2max', label:'最大摄氧量（Cooper）', expr:'(距离m − 504.9) ÷ 44.73', round:1,
+      fn:(distanceM) => (distanceM - 504.9) / 44.73
+    },
+    oneRM: {
+      id:'oneRM', label:'1RM（Epley）', expr:'重量 × (1 + 次数 ÷ 30)', round:1,
+      fn:(weight, reps) => weight * (1 + reps / 30)
+    },
+    vcIndex: {
+      id:'vcIndex', label:'肺活量体重指数', expr:'肺活量mL ÷ 体重kg', round:1,
+      fn:(ml, kg) => ml / kg
+    },
+    runKcal: {
+      id:'runKcal', label:'跑步热量', expr:'体重kg × 距离km × 1.036', round:1,
+      fn:(kg, km) => kg * km * 1.036
+    },
+    pace: {
+      id:'pace', label:'配速', expr:'用时 ÷ 距离',
+      fn:(minutes, km) => minutes / km
+    },
+    srpe: {
+      id:'srpe', label:'单次训练负荷 sRPE', expr:'RPE（1–10）× 时长（分钟）', round:0,
+      fn:(rpe, minutes) => rpe * minutes
+    },
+    loadClass: {
+      id:'loadClass', label:'周负荷分档', expr:'<600 轻松；600–1200 适中；1200–2000 较大；>2000 很大',
+      fn:(au) => au < 600 ? '轻松' : au <= 1200 ? '适中' : au <= 2000 ? '较大' : '很大'
+    }
+  },
+
+  samples: [
+    { id:'A', name:'阿健', sex:'male',   age:20, height:175, weight:70, rest:72, expect:{ bmi:22.9, fat:15.8, bmr:1699, tdee:2633, hrMax:200 } },
+    { id:'B', name:'小雨', sex:'female', age:19, height:162, weight:52, rest:76, expect:{ bmi:19.8, fat:22.7, bmr:1276, tdee:1979, hrMax:201 } },
+    { id:'C', name:'大壮', sex:'male',   age:21, height:180, weight:88, rest:68, expect:{ bmi:27.2, fat:21.2, bmr:1905, tdee:2953, hrMax:199 } },
+    { id:'D', name:'静静', sex:'female', age:20, height:168, weight:64, rest:80, expect:{ bmi:22.7, fat:26.4, bmr:1429, tdee:2215, hrMax:200 } },
+    { id:'E', name:'飞鱼', sex:'male',   age:22, height:172, weight:63, rest:58, expect:{ bmi:21.3, fat:14.4, bmr:1600, tdee:2480, hrMax:198 } },
+    { id:'F', name:'圆圆', sex:'female', age:21, height:158, weight:58, rest:74, expect:{ bmi:23.2, fat:27.3, bmr:1302, tdee:2017, hrMax:199 } }
+  ],
+
+  cards: [
+  {
+    "id": "C01",
+    "category": "身体指标",
+    "title": "BMI 怎么看",
+    "point": "BMI 只比较体重与身高，不区分肌肉和脂肪；落在正常范围，也不等于体检合格。"
+  },
+  {
+    "id": "C02",
+    "category": "身体指标",
+    "title": "体脂率是什么",
+    "point": "脂肪重量占体重的比例。公式估算误差较大，看长期趋势比盯单次数字更有意义。"
+  },
+  {
+    "id": "C03",
+    "category": "身体指标",
+    "title": "腰围比 BMI 更懂内脏脂肪",
+    "point": "腰围反映腹部脂肪堆积。同样的 BMI，腰围更大的人代谢风险通常更高。"
+  },
+  {
+    "id": "C04",
+    "category": "身体指标",
+    "title": "静息心率反映什么",
+    "point": "安静时心脏每分钟跳动的次数，受睡眠、咖啡因、情绪和训练水平共同影响。"
+  },
+  {
+    "id": "C05",
+    "category": "身体指标",
+    "title": "血压的两个数",
+    "point": "收缩压是心脏泵血时的高值，舒张压是放松时的低值，两个数都要一起看。"
+  },
+  {
+    "id": "C06",
+    "category": "身体指标",
+    "title": "肺活量与体重指数",
+    "point": "肺活量除以体重，用来粗略比较不同体型者的呼吸储备，不是诊断标准。"
+  },
+  {
+    "id": "C07",
+    "category": "身体指标",
+    "title": "肌肉量为什么重要",
+    "point": "肌肉是消耗能量的活跃组织，也支撑力量、平衡与日常活动能力。"
+  },
+  {
+    "id": "C08",
+    "category": "身体指标",
+    "title": "骨量与峰值骨量",
+    "point": "骨量在青年期接近峰值。负重与抗阻训练，配合足量钙和维生素 D，有助于维持。"
+  },
+  {
+    "id": "C09",
+    "category": "身体指标",
+    "title": "体水分比例",
+    "point": "成年人体重约六成是水。出汗、饮食与激素变化，都会让这个比例短期波动。"
+  },
+  {
+    "id": "C10",
+    "category": "身体指标",
+    "title": "体重波动多是水",
+    "point": "一天内 1 kg 上下的变化，多半来自水分、食物残留和糖原，不是一天长出的脂肪。"
+  },
+  {
+    "id": "C11",
+    "category": "能量与营养",
+    "title": "BMR 是躺着也消耗的能量",
+    "point": "维持呼吸、心跳和体温的最低能量开销，通常占每日总消耗的大头。"
+  },
+  {
+    "id": "C12",
+    "category": "能量与营养",
+    "title": "TDEE 与活动系数",
+    "point": "TDEE 在 BMR 上乘以活动系数，从久坐 1.2 到高活动 1.725，是估算不是实测。"
+  },
+  {
+    "id": "C13",
+    "category": "能量与营养",
+    "title": "一大卡是什么",
+    "point": "把 1 千克水升高 1 摄氏度所需的能量。食品标签上的“千卡”就是它。"
+  },
+  {
+    "id": "C14",
+    "category": "能量与营养",
+    "title": "蛋白质每公斤体重克数",
+    "point": "普通活动约 1.0–1.2 g/kg，规律力量训练可到约 1.6 g/kg，分散到每餐更好。"
+  },
+  {
+    "id": "C15",
+    "category": "能量与营养",
+    "title": "碳水是训练的燃料",
+    "point": "高强度运动主要靠糖原供能。长期低碳，训练质量和恢复容易一起下降。"
+  },
+  {
+    "id": "C16",
+    "category": "能量与营养",
+    "title": "脂肪不是敌人",
+    "point": "脂肪参与激素合成与脂溶性维生素吸收，日常应占能量的一部分，而不是零。"
+  },
+  {
+    "id": "C17",
+    "category": "能量与营养",
+    "title": "补水与失水体重差",
+    "point": "运动前后各称一次体重，差值近似失水量，按每公斤补 1.5 L 估算。"
+  },
+  {
+    "id": "C18",
+    "category": "能量与营养",
+    "title": "运动饮料什么时候需要",
+    "point": "持续高强度运动超过约一小时、大量出汗时，才更需要补糖和电解质。"
+  },
+  {
+    "id": "C19",
+    "category": "能量与营养",
+    "title": "练后一餐怎么吃",
+    "point": "把蛋白质和碳水放在练后一到两小时内，帮助恢复，不必追求“黄金半小时”。"
+  },
+  {
+    "id": "C20",
+    "category": "能量与营养",
+    "title": "睡眠不足会变饿",
+    "point": "缺觉会扰乱饥饿与饱腹激素，让人更想吃高热量食物，也会拖累训练表现。"
+  },
+  {
+    "id": "C21",
+    "category": "心肺训练",
+    "title": "最大心率估算",
+    "point": "220 − 年龄只是群体平均估算，个体差异可达十余次，别把公式当成实测值。"
+  },
+  {
+    "id": "C22",
+    "category": "心肺训练",
+    "title": "心率储备与 Karvonen",
+    "point": "心率储备是最大心率减静息心率；Karvonen 用它把强度百分比换算成具体心率。"
+  },
+  {
+    "id": "C23",
+    "category": "心肺训练",
+    "title": "五个强度区",
+    "point": "从 Z1 热身到 Z5 极限，不同区间训练目的不同。日常多数时间应放在 Z1–Z3。"
+  },
+  {
+    "id": "C24",
+    "category": "心肺训练",
+    "title": "Z2 为什么能聊天",
+    "point": "Z2 强度下还能说完整句子，脂肪供能比例高，适合用来打有氧基础。"
+  },
+  {
+    "id": "C25",
+    "category": "心肺训练",
+    "title": "间歇训练的结构",
+    "point": "热身、若干组高强度与低强度恢复交替、冷身。组数与工作休息比决定刺激大小。"
+  },
+  {
+    "id": "C26",
+    "category": "心肺训练",
+    "title": "最大摄氧量",
+    "point": "身体每分钟每公斤体重能利用的最大氧气量，是有氧能力的核心指标。"
+  },
+  {
+    "id": "C27",
+    "category": "心肺训练",
+    "title": "12 分钟跑测什么",
+    "point": "用 12 分钟尽力跑的距离估算 VO2max，考验心肺能力与配速控制。"
+  },
+  {
+    "id": "C28",
+    "category": "心肺训练",
+    "title": "配速与步频",
+    "point": "配速是每公里用时，步频是每分钟步数。先稳住配速，再谈步频调整。"
+  },
+  {
+    "id": "C29",
+    "category": "心肺训练",
+    "title": "爬坡走的好处",
+    "point": "在较低速度下提高心率，对膝盖冲击小于跑步，适合作为有氧补充。"
+  },
+  {
+    "id": "C30",
+    "category": "心肺训练",
+    "title": "心肺进步的信号",
+    "point": "同样配速心率更低、同样心率能跑更久、运动后恢复心率下降更快。"
+  },
+  {
+    "id": "C31",
+    "category": "力量训练",
+    "title": "1RM 是什么",
+    "point": "只能完成一次的最大重量，是力量训练的基准，常用多次数成绩估算。"
+  },
+  {
+    "id": "C32",
+    "category": "力量训练",
+    "title": "RM 区间与目标",
+    "point": "1–5 次偏最大力量，6–12 次偏肌肥大，12 次以上偏肌耐力，按目标选区间。"
+  },
+  {
+    "id": "C33",
+    "category": "力量训练",
+    "title": "复合动作优先",
+    "point": "深蹲、硬拉、推举等多关节动作效率高，新手先把这些动作练稳。"
+  },
+  {
+    "id": "C34",
+    "category": "力量训练",
+    "title": "渐进超负荷",
+    "point": "逐步增加重量、次数、组数或缩短休息，让身体持续收到新的刺激。"
+  },
+  {
+    "id": "C35",
+    "category": "力量训练",
+    "title": "组间休息多久",
+    "point": "大重量复合动作休息 2–3 分钟；小肌群与肌耐力训练可缩短到 60–90 秒。"
+  },
+  {
+    "id": "C36",
+    "category": "力量训练",
+    "title": "自由重量与器械",
+    "point": "自由重量更考验稳定与协调，器械更易控制。两者互补，不必对立。"
+  },
+  {
+    "id": "C37",
+    "category": "力量训练",
+    "title": "核心不只是腹肌",
+    "point": "核心包括腹、背、髋与骨盆周围肌群，负责传递力量和保护脊柱。"
+  },
+  {
+    "id": "C38",
+    "category": "力量训练",
+    "title": "离心收缩与酸痛",
+    "point": "下放阶段肌肉被拉长发力。离心训练刺激大，也更容易带来延迟性酸痛。"
+  },
+  {
+    "id": "C39",
+    "category": "力量训练",
+    "title": "训练前后热身冷身",
+    "point": "练前动态升温激活，练后低强度冷身与静态拉伸，帮助身体平稳回到静息。"
+  },
+  {
+    "id": "C40",
+    "category": "力量训练",
+    "title": "新手先学动作模式",
+    "point": "先掌握蹲、髋铰链、推、拉、负重行走，再逐步增加重量。"
+  },
+  {
+    "id": "C41",
+    "category": "柔韧恢复",
+    "title": "静态拉伸放练后",
+    "point": "保持 20–30 秒的静态拉伸适合练后或单独安排，练前别做长时间静态拉伸。"
+  },
+  {
+    "id": "C42",
+    "category": "柔韧恢复",
+    "title": "动态热身放练前",
+    "point": "摆腿、弓步走、肩绕环等动态动作提高体温和关节活动度，更贴合训练需求。"
+  },
+  {
+    "id": "C43",
+    "category": "柔韧恢复",
+    "title": "泡沫轴怎么用",
+    "point": "在肌肉上缓慢滚动，遇到酸痛点停留 20–30 秒，避开关节和脊柱，不追求剧痛。"
+  },
+  {
+    "id": "C44",
+    "category": "柔韧恢复",
+    "title": "DOMS 延迟性酸痛",
+    "point": "多在运动后 24–72 小时出现，与离心负荷和新动作有关。轻活动与睡眠有助恢复。"
+  },
+  {
+    "id": "C45",
+    "category": "柔韧恢复",
+    "title": "睡眠是最强恢复",
+    "point": "深睡阶段生长激素分泌增加，修复肌肉与神经系统。睡不够时，训练负荷要减。"
+  },
+  {
+    "id": "C46",
+    "category": "柔韧恢复",
+    "title": "主动恢复日",
+    "point": "低强度走路、骑车或游泳促进循环，往往比完全躺着更容易缓解酸痛。"
+  },
+  {
+    "id": "C47",
+    "category": "柔韧恢复",
+    "title": "冷热水浴的证据",
+    "point": "对恢复的帮助有限且个体差异大，不如睡眠和充足营养稳定，别把它当必需品。"
+  },
+  {
+    "id": "C48",
+    "category": "柔韧恢复",
+    "title": "拉伸与受伤风险",
+    "point": "拉伸能改善活动度，但不能消除所有受伤风险，力量与负荷管理同样关键。"
+  },
+  {
+    "id": "C49",
+    "category": "柔韧恢复",
+    "title": "呼吸与放松",
+    "point": "慢而深的呼吸能降低交感兴奋。训练后做几分钟，有助于从紧张状态退出。"
+  },
+  {
+    "id": "C50",
+    "category": "柔韧恢复",
+    "title": "休息日也是训练",
+    "point": "恢复期身体才完成适应。休息不是偷懒，而是训练计划的一部分。"
+  },
+  {
+    "id": "C51",
+    "category": "运动安全",
+    "title": "先筛查再训练",
+    "point": "有心血管、呼吸系统或骨关节问题的人，先咨询医生，再决定强度与形式。"
+  },
+  {
+    "id": "C52",
+    "category": "运动安全",
+    "title": "胸闷头晕立即停",
+    "point": "运动中若出现胸闷、胸痛、明显头晕或呼吸困难，立刻停止并寻求帮助。"
+  },
+  {
+    "id": "C53",
+    "category": "运动安全",
+    "title": "热射病三联征",
+    "point": "高热、意识改变、无汗或少汗是危险信号，应立即降温并呼叫急救。"
+  },
+  {
+    "id": "C54",
+    "category": "运动安全",
+    "title": "扭伤先 PEACE 原则",
+    "point": "保护、抬高、避免抗炎药、加压、教育。急性期别急着热敷和用力揉搓。"
+  },
+  {
+    "id": "C55",
+    "category": "运动安全",
+    "title": "循序渐进 10%",
+    "point": "每周训练量增幅控制在约 10%，给肌腱和骨骼足够的适应时间。"
+  },
+  {
+    "id": "C56",
+    "category": "运动安全",
+    "title": "跑鞋与场地",
+    "point": "鞋要合脚且不过度磨损，优先平整有缓冲的场地，减少不必要的冲击。"
+  },
+  {
+    "id": "C57",
+    "category": "运动安全",
+    "title": "空气污染天改室内",
+    "point": "空气质量差时减少户外高强度运动；室内训练也要注意通风。"
+  },
+  {
+    "id": "C58",
+    "category": "运动安全",
+    "title": "女生生理期训练",
+    "point": "可以按感受调整强度；疼痛明显或出血异常时，减少负荷并咨询医生。"
+  },
+  {
+    "id": "C59",
+    "category": "运动安全",
+    "title": "晨练与空腹",
+    "point": "空腹晨练可能低血糖，尤其是较长或较高强度的训练，先少量进食更稳妥。"
+  },
+  {
+    "id": "C60",
+    "category": "运动安全",
+    "title": "校医院就在身边",
+    "point": "持续不适、异常心率或受伤不缓解时，校医院是第一站，不要靠搜索自我诊断。"
+  }
+],
+
+  quiz: [
+  {
+    "id": "Q01",
+    "type": "single",
+    "question": "BMI 22.9 属于中国成人分级的哪一档？",
+    "options": [
+      "偏瘦",
+      "正常",
+      "超重",
+      "肥胖"
+    ],
+    "answer": 1,
+    "explain": "18.5–23.9 为正常，22.9 落在正常区间。"
+  },
+  {
+    "id": "Q02",
+    "type": "single",
+    "question": "最大心率的常用估算公式是？",
+    "options": [
+      "220 − 年龄",
+      "200 − 年龄",
+      "180 − 年龄",
+      "年龄 + 100"
+    ],
+    "answer": 0,
+    "explain": "群体估算用 220 − 年龄，个体差异可能很大。"
+  },
+  {
+    "id": "Q03",
+    "type": "single",
+    "question": "Karvonen 公式的核心变量是？",
+    "options": [
+      "体重",
+      "心率储备",
+      "身高",
+      "体脂率"
+    ],
+    "answer": 1,
+    "explain": "目标心率 = 静息心率 + 强度% × 心率储备（HRmax − 静息）。"
+  },
+  {
+    "id": "Q04",
+    "type": "single",
+    "question": "Z2 燃脂区大致对应多少心率储备？",
+    "options": [
+      "50–60%",
+      "60–70%",
+      "70–80%",
+      "80–90%"
+    ],
+    "answer": 1,
+    "explain": "五区从 50% 起每 10% 一档，Z2 为 60–70% HRR。"
+  },
+  {
+    "id": "Q05",
+    "type": "single",
+    "question": "BMR 指的是？",
+    "options": [
+      "运动时的能量消耗",
+      "基础代谢率",
+      "食物热效应",
+      "每日总消耗"
+    ],
+    "answer": 1,
+    "explain": "BMR 是维持呼吸、心跳、体温等基本生命活动的能量开销。"
+  },
+  {
+    "id": "Q06",
+    "type": "single",
+    "question": "TDEE 活动系数中，“中活动”对应？",
+    "options": [
+      "1.2",
+      "1.375",
+      "1.55",
+      "1.725"
+    ],
+    "answer": 2,
+    "explain": "久坐 1.2、轻活动 1.375、中活动 1.55、高活动 1.725。"
+  },
+  {
+    "id": "Q07",
+    "type": "single",
+    "question": "Cooper 12 分钟跑测试的时长是？",
+    "options": [
+      "6 分钟",
+      "9 分钟",
+      "12 分钟",
+      "15 分钟"
+    ],
+    "answer": 2,
+    "explain": "测试要求用 12 分钟尽力跑，记录距离。"
+  },
+  {
+    "id": "Q08",
+    "type": "single",
+    "question": "VO2max 的常用单位是？",
+    "options": [
+      "ml/kg/min",
+      "kcal/min",
+      "L/min",
+      "bpm"
+    ],
+    "answer": 0,
+    "explain": "最大摄氧量按每公斤体重每分钟摄入的氧气毫升数表示。"
+  },
+  {
+    "id": "Q09",
+    "type": "single",
+    "question": "Epley 公式估算 1RM 需要哪两个变量？",
+    "options": [
+      "身高与体重",
+      "重量与次数",
+      "年龄与心率",
+      "距离与时间"
+    ],
+    "answer": 1,
+    "explain": "1RM = 重量 × (1 + 次数/30)。"
+  },
+  {
+    "id": "Q10",
+    "type": "single",
+    "question": "sRPE 由什么构成？",
+    "options": [
+      "RPE × 时长",
+      "心率 × 体重",
+      "距离 × 体重",
+      "次数 × 组数"
+    ],
+    "answer": 0,
+    "explain": "单次训练负荷 = 主观强度 RPE（1–10）× 时长（分钟），单位 AU。"
+  },
+  {
+    "id": "Q11",
+    "type": "single",
+    "question": "运动失水 1 kg，建议补水约多少？",
+    "options": [
+      "0.5 L",
+      "1.0 L",
+      "1.5 L",
+      "2.5 L"
+    ],
+    "answer": 2,
+    "explain": "建议补水 = 失水 × 1.5，即每公斤补 1.5 L。"
+  },
+  {
+    "id": "Q12",
+    "type": "single",
+    "question": "增肌期蛋白质摄入的常见参考约为？",
+    "options": [
+      "0.8 g/kg",
+      "1.6 g/kg",
+      "3 g/kg",
+      "5 g/kg"
+    ],
+    "answer": 1,
+    "explain": "规律力量训练者常参考约 1.6 g/kg，并分散到各餐。"
+  },
+  {
+    "id": "Q13",
+    "type": "single",
+    "question": "静态拉伸更适合安排在？",
+    "options": [
+      "训练前",
+      "训练后",
+      "训练中",
+      "任何时候都不做"
+    ],
+    "answer": 1,
+    "explain": "练前用动态热身，练后或单独安排静态拉伸。"
+  },
+  {
+    "id": "Q14",
+    "type": "single",
+    "question": "间歇训练的典型特征是？",
+    "options": [
+      "全程匀速",
+      "高低强度交替",
+      "只做力量",
+      "只做拉伸"
+    ],
+    "answer": 1,
+    "explain": "高强度工作段与低强度恢复段交替，组数和比例决定刺激。"
+  },
+  {
+    "id": "Q15",
+    "type": "single",
+    "question": "DOMS 延迟性酸痛通常在运动后多久出现？",
+    "options": [
+      "0–2 小时",
+      "6–12 小时",
+      "24–72 小时",
+      "一周后"
+    ],
+    "answer": 2,
+    "explain": "延迟性肌肉酸痛多在 24–72 小时内达到明显。"
+  },
+  {
+    "id": "Q16",
+    "type": "single",
+    "question": "Deurenberg 体脂估算公式需要哪些变量？",
+    "options": [
+      "BMI、年龄、性别",
+      "腰围、臀围",
+      "心率、血压",
+      "肺活量、体重"
+    ],
+    "answer": 0,
+    "explain": "公式为 1.20×BMI + 0.23×年龄 − 10.8×性别 − 5.4。"
+  },
+  {
+    "id": "Q17",
+    "type": "single",
+    "question": "肺活量体重指数的计算方式是？",
+    "options": [
+      "肺活量 × 体重",
+      "肺活量 ÷ 体重",
+      "体重 ÷ 肺活量",
+      "肺活量 + 体重"
+    ],
+    "answer": 1,
+    "explain": "肺活量（mL）除以体重（kg），保留 1 位小数。"
+  },
+  {
+    "id": "Q18",
+    "type": "single",
+    "question": "跑步热量近似公式中，每公斤每公里的系数约为？",
+    "options": [
+      "0.36",
+      "1.036",
+      "3.6",
+      "10.36"
+    ],
+    "answer": 1,
+    "explain": "热量 ≈ 体重kg × 距离km × 1.036。"
+  },
+  {
+    "id": "Q19",
+    "type": "single",
+    "question": "周训练负荷的增幅建议不超过约？",
+    "options": [
+      "5%",
+      "10%",
+      "30%",
+      "50%"
+    ],
+    "answer": 1,
+    "explain": "循序渐进，周增幅约 10%，给组织适应时间。"
+  },
+  {
+    "id": "Q20",
+    "type": "single",
+    "question": "发现静息心率明显偏高时，应该？",
+    "options": [
+      "直接冲 Z5",
+      "先咨询医生",
+      "完全忽略",
+      "只做力量训练"
+    ],
+    "answer": 1,
+    "explain": "先咨询校医院或医生，从低强度开始，不做自我诊断。"
+  },
+  {
+    "id": "Q21",
+    "type": "single",
+    "question": "热身的主要目的是？",
+    "options": [
+      "提高体温与激活身体",
+      "耗尽糖原",
+      "增加体重",
+      "替代正式训练"
+    ],
+    "answer": 0,
+    "explain": "动态热身提高体温、关节活动度与神经激活水平。"
+  },
+  {
+    "id": "Q22",
+    "type": "single",
+    "question": "平板支撑属于哪类核心训练？",
+    "options": [
+      "等长收缩",
+      "离心收缩",
+      "爆发训练",
+      "有氧训练"
+    ],
+    "answer": 0,
+    "explain": "平板支撑保持姿势不变，肌肉长度基本不变，属等长收缩。"
+  },
+  {
+    "id": "Q23",
+    "type": "single",
+    "question": "提升最大摄氧量最直接的方式是？",
+    "options": [
+      "规律有氧训练",
+      "只做拉伸",
+      "只做静态力量",
+      "减少睡眠"
+    ],
+    "answer": 0,
+    "explain": "规律的有氧与间歇训练能有效提升心肺耐力。"
+  },
+  {
+    "id": "Q24",
+    "type": "single",
+    "question": "运动中补水的原则是？",
+    "options": [
+      "一次灌满",
+      "少量多次",
+      "完全不喝",
+      "只喝冰水"
+    ],
+    "answer": 1,
+    "explain": "少量多次更利于吸收，也减少胃肠不适。"
+  },
+  {
+    "id": "Q25",
+    "type": "single",
+    "question": "空腹晨练需要特别注意？",
+    "options": [
+      "低血糖风险",
+      "一定更燃脂",
+      "无需热身",
+      "可以替代早餐"
+    ],
+    "answer": 0,
+    "explain": "空腹进行较长或较高强度训练可能低血糖，先少量进食更稳妥。"
+  },
+  {
+    "id": "Q26",
+    "type": "single",
+    "question": "大肌群力量训练的频率建议约为？",
+    "options": [
+      "每天",
+      "每周 2–3 次",
+      "每月 1 次",
+      "每年 1 次"
+    ],
+    "answer": 1,
+    "explain": "同一大肌群每周 2–3 次，留出 48 小时左右恢复。"
+  },
+  {
+    "id": "Q27",
+    "type": "single",
+    "question": "WHO 建议成年人每周有氧运动的最低量是？",
+    "options": [
+      "50 分钟",
+      "150 分钟中等强度",
+      "500 分钟",
+      "不需要有氧"
+    ],
+    "answer": 1,
+    "explain": "每周至少 150 分钟中等强度有氧，或等量高强度活动。"
+  },
+  {
+    "id": "Q28",
+    "type": "single",
+    "question": "久坐最主要的相关风险是？",
+    "options": [
+      "代谢水平下降",
+      "身高增加",
+      "VO2max 自动提高",
+      "骨密度增加"
+    ],
+    "answer": 0,
+    "explain": "长时间久坐与代谢、心血管风险上升相关，应定时起身活动。"
+  },
+  {
+    "id": "Q29",
+    "type": "single",
+    "question": "Cooper 测试跑 2800 m，估算 VO2max 约为？",
+    "options": [
+      "41.3",
+      "51.3",
+      "61.3",
+      "71.3"
+    ],
+    "answer": 1,
+    "explain": "(2800 − 504.9) ÷ 44.73 ≈ 51.3 ml/kg/min。"
+  },
+  {
+    "id": "Q30",
+    "type": "single",
+    "question": "静息 72、HRR 128 时，60% 强度点约为？",
+    "options": [
+      "136",
+      "149",
+      "162",
+      "174"
+    ],
+    "answer": 1,
+    "explain": "72 + 0.60 × 128 = 148.8，取整为 149。"
+  },
+  {
+    "id": "Q31",
+    "type": "single",
+    "question": "Mifflin-St Jeor 男性公式的常数项是？",
+    "options": [
+      "+5",
+      "−5",
+      "+161",
+      "−161"
+    ],
+    "answer": 0,
+    "explain": "男性在基础式后加 5，女性减 161。"
+  },
+  {
+    "id": "Q32",
+    "type": "single",
+    "question": "Mifflin-St Jeor 女性公式的常数项是？",
+    "options": [
+      "+5",
+      "−5",
+      "+161",
+      "−161"
+    ],
+    "answer": 3,
+    "explain": "女性为同式 − 161。"
+  },
+  {
+    "id": "Q33",
+    "type": "single",
+    "question": "60 kg 完成 8 次，Epley 估算 1RM 约为？",
+    "options": [
+      "68.0 kg",
+      "72.0 kg",
+      "76.0 kg",
+      "80.0 kg"
+    ],
+    "answer": 2,
+    "explain": "60 × (1 + 8/30) = 76.0 kg。"
+  },
+  {
+    "id": "Q34",
+    "type": "single",
+    "question": "5 km 用时 30 分钟，配速约为？",
+    "options": [
+      "5'00\"/km",
+      "6'00\"/km",
+      "7'00\"/km",
+      "8'00\"/km"
+    ],
+    "answer": 1,
+    "explain": "30 分钟 ÷ 5 km = 6 分钟/公里，即 6'00\"/km。"
+  },
+  {
+    "id": "Q35",
+    "type": "single",
+    "question": "Deurenberg 公式中，男性性别系数取？",
+    "options": [
+      "0",
+      "1",
+      "5",
+      "10.8"
+    ],
+    "answer": 1,
+    "explain": "男性取 1、女性取 0，公式中减去 10.8 × 性别。"
+  },
+  {
+    "id": "Q36",
+    "type": "judge",
+    "question": "体脂率越低越健康。",
+    "options": [
+      "正确",
+      "错误"
+    ],
+    "answer": 1,
+    "explain": "错。体脂过低会影响激素、免疫与骨健康，健康范围比“越低越好”更重要。"
+  },
+  {
+    "id": "Q37",
+    "type": "judge",
+    "question": "出汗多就等于燃脂多。",
+    "options": [
+      "正确",
+      "错误"
+    ],
+    "answer": 1,
+    "explain": "错。出汗主要是体温调节，与脂肪消耗没有直接等号。"
+  },
+  {
+    "id": "Q38",
+    "type": "judge",
+    "question": "练后拉伸能预防所有运动损伤。",
+    "options": [
+      "正确",
+      "错误"
+    ],
+    "answer": 1,
+    "explain": "错。拉伸改善活动度，但不能消除全部受伤风险。"
+  },
+  {
+    "id": "Q39",
+    "type": "judge",
+    "question": "心率越低不一定越好，需要结合个人状态判断。",
+    "options": [
+      "正确",
+      "错误"
+    ],
+    "answer": 0,
+    "explain": "对。静息心率受多种因素影响，异常偏低同样需要关注。"
+  },
+  {
+    "id": "Q40",
+    "type": "judge",
+    "question": "体重一天涨 1 kg，多半是水分变化。",
+    "options": [
+      "正确",
+      "错误"
+    ],
+    "answer": 0,
+    "explain": "对。短期体重波动主要来自水分、糖原和食物残留。"
+  },
+  {
+    "id": "Q41",
+    "type": "judge",
+    "question": "女生做力量训练很容易变成“肌肉块”。",
+    "options": [
+      "正确",
+      "错误"
+    ],
+    "answer": 1,
+    "explain": "错。激素环境不同，普通力量训练很难练出夸张肌肉。"
+  },
+  {
+    "id": "Q42",
+    "type": "judge",
+    "question": "Z5 极限区适合新手作为日常训练强度。",
+    "options": [
+      "正确",
+      "错误"
+    ],
+    "answer": 1,
+    "explain": "错。新手应从 Z1–Z2 起步，Z5 只适合短时、进阶且有恢复保障的训练。"
+  },
+  {
+    "id": "Q43",
+    "type": "judge",
+    "question": "睡眠不足会影响训练表现与恢复。",
+    "options": [
+      "正确",
+      "错误"
+    ],
+    "answer": 0,
+    "explain": "对。缺觉会降低力量、耐力与动作控制，也拖慢恢复。"
+  },
+  {
+    "id": "Q44",
+    "type": "judge",
+    "question": "只做有氧训练也能很好地保住肌肉。",
+    "options": [
+      "正确",
+      "错误"
+    ],
+    "answer": 1,
+    "explain": "错。长期只做有氧、缺少抗阻刺激，肌肉量容易下降。"
+  },
+  {
+    "id": "Q45",
+    "type": "judge",
+    "question": "训练计划里应该安排休息日。",
+    "options": [
+      "正确",
+      "错误"
+    ],
+    "answer": 0,
+    "explain": "对。适应发生在恢复期，休息日是计划的一部分。"
+  },
+  {
+    "id": "Q46",
+    "type": "judge",
+    "question": "运动补水可以一次灌满。",
+    "options": [
+      "正确",
+      "错误"
+    ],
+    "answer": 1,
+    "explain": "错。少量多次更利于吸收，一次大量饮水可能引起胃肠不适。"
+  },
+  {
+    "id": "Q47",
+    "type": "judge",
+    "question": "BMI 相同的人，体脂率可能相差很多。",
+    "options": [
+      "正确",
+      "错误"
+    ],
+    "answer": 0,
+    "explain": "对。BMI 不区分肌肉与脂肪，体型和体成分可能完全不同。"
+  },
+  {
+    "id": "Q48",
+    "type": "judge",
+    "question": "跑步必然会伤膝盖。",
+    "options": [
+      "正确",
+      "错误"
+    ],
+    "answer": 1,
+    "explain": "错。合理负荷与渐进增加通常对关节友好，关键在量与恢复。"
+  },
+  {
+    "id": "Q49",
+    "type": "judge",
+    "question": "热身可以使用动态动作。",
+    "options": [
+      "正确",
+      "错误"
+    ],
+    "answer": 0,
+    "explain": "对。动态热身提高体温与神经激活，比长时间静态拉伸更适合练前。"
+  },
+  {
+    "id": "Q50",
+    "type": "judge",
+    "question": "本工具给出的估算值可以替代体检。",
+    "options": [
+      "正确",
+      "错误"
+    ],
+    "answer": 1,
+    "explain": "错。所有数值都是教学估算，不能替代体检、体测或医疗诊断。"
+  }
+],
+
+  templates: [
+    { id:'fat', label:'减脂', desc:'以 Z2 有氧为主，配合 2 次全身力量，保留至少 1 个完全休息日。', days:[
+      ['周一','Z2 有氧','40 分钟'], ['周二','全身力量','45 分钟'], ['周三','休息 / 主动恢复','—'],
+      ['周四','Z2 有氧','40 分钟'], ['周五','全身力量','45 分钟'], ['周六','长有氧 Z2','60 分钟'], ['周日','休息','—']
+    ]},
+    { id:'muscle', label:'增肌', desc:'力量为主，每周 3 次、覆盖上下肢，另配 1 次低强度有氧。', days:[
+      ['周一','上肢力量','50 分钟'], ['周二','休息','—'], ['周三','下肢力量','50 分钟'],
+      ['周四','休息','—'], ['周五','全身力量','50 分钟'], ['周六','Z2 有氧','30 分钟'], ['周日','休息','—']
+    ]},
+    { id:'endurance', label:'体能提升', desc:'间歇、长有氧与力量各 1–2 次，强度日之间留出恢复。', days:[
+      ['周一','间歇训练','35 分钟'], ['周二','全身力量','40 分钟'], ['周三','主动恢复','30 分钟'],
+      ['周四','长有氧 Z2','60 分钟'], ['周五','全身力量','40 分钟'], ['周六','间歇 / 球类','40 分钟'], ['周日','休息','—']
+    ]}
+  ],
+
+  simTypes: ['休息', '跑步', '力量训练', '骑行', '球类', '游泳', '间歇训练', '快走', '其他'],
+
+  simPreset: [
+    { type:'跑步', min:45, rpe:6, dist:5 },
+    { type:'休息', min:0,  rpe:1, dist:0 },
+    { type:'跑步', min:45, rpe:6, dist:5 },
+    { type:'休息', min:0,  rpe:1, dist:0 },
+    { type:'跑步', min:45, rpe:6, dist:5 },
+    { type:'休息', min:0,  rpe:1, dist:0 },
+    { type:'休息', min:0,  rpe:1, dist:0 }
+  ],
+
+  logTypes: ['跑步', '力量训练', '骑行', '球类', '游泳', '间歇训练', '快走', '其他'],
+
+  copy: {
+    footer:'本应用数值为教学估算，不替代医疗诊断与官方体测评分。',
+    safety:'静息心率明显偏高或运动中有胸闷、头晕时，先停下来，咨询校医院或医生后再继续；新手从 Z1–Z2 开始。',
+    emptyProfile:'尚未建立档案',
+    emptyProfileHint:'档案接入后，这里会显示你的 BMI、体脂率、基础代谢与每日总消耗。',
+    stageNote:'v1.0 已完成全部 10 个页签、六大模型、知识卡、测验与健康手记。',
+    teaching:'教学估算，不是医疗诊断',
+    estimate:'估算',
+    exportEnd:'动起来，先从能坚持的强度开始。',
+    exportTitle:'体衡小智 · 健康手记报告'
+  }
+};
+
+/* =====================================================================
+   逻辑层：只从 DATA 读取，不重复出现业务数值
+   ===================================================================== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const WEEK_CN = ['周日','周一','周二','周三','周四','周五','周六'];
+const VIEW_IDS = DATA.nav.map(n => n.id);
+
+function renderNav() {
+  let lastGroup = '';
+  $('#nav').innerHTML = DATA.nav.map((n, i) => {
+    const group = n.group !== lastGroup ? `<p class="nav-group">${n.group}</p>` : '';
+    lastGroup = n.group;
+    return `${group}<button class="tab" role="tab" id="tab-${n.id}" data-view="${n.id}" aria-selected="${n.id === 'home' ? 'true' : 'false'}" aria-controls="view-${n.id}">
+      <svg><use href="#i-${n.icon}"></use></svg><span>${n.label}</span><span class="idx">${String(i + 1).padStart(2, '0')}</span>
+    </button>`;
+  }).join('');
+}
+
+function renderPlaceholders() {
+  const body = DATA.nav.filter(n => !['home', 'profile', 'energy', 'heart', 'fitness', 'plan', 'sim', 'cards', 'quiz', 'log'].includes(n.id)).map(n => {
+    const index = DATA.nav.findIndex(x => x.id === n.id) + 1;
+    return `<section class="view" id="view-${n.id}" role="tabpanel" aria-labelledby="tab-${n.id}" hidden>
+      <div class="placeholder">
+        <div class="ph-index num">${String(index).padStart(2, '0')}</div>
+        <div class="ph-body">
+          <p class="eyebrow">${n.en} / ${n.label}</p>
+          <h1>${n.label}</h1>
+          <p class="lede">${n.desc}</p>
+          <div class="ph-modules">${n.modules.map(m => `<span>${m}</span>`).join('')}</div>
+          <div class="ph-note">${DATA.copy.stageNote}</div>
+          <div class="ph-foot"><button class="btn" data-goto="home">返回今日速览 <svg><use href="#i-arrow"></use></svg></button></div>
+        </div>
+      </div>
+    </section>`;
+  }).join('');
+  $('#placeholderViews').innerHTML = body;
+}
+
+/* ================= 状态与工具 ================= */
+const heartState = { age: DATA.meta.demoAge, rest: DATA.meta.demoRest };
+const state = {
+  profile: null,
+  activity: (DATA.activities.find(a => a.id === 'moderate') || DATA.activities[2]).factor
+};
+const simState = DATA.simPreset.map(r => ({ ...r }));
+let planTemplate = DATA.templates[0].id;
+const cardState = { cat: '全部', query: '' };
+const quizState = { answers: {}, page: 0 };
+let logState = [];
+const fmt1 = v => Number.isFinite(v) ? v.toFixed(1) : '--';
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function isoDate(d) {
+  const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
+}
+function startOfWeek(d) {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const day = (x.getDay() + 6) % 7;
+  x.setDate(x.getDate() - day);
+  return x;
+}
+function roundHalfEven(x) {
+  const f = Math.floor(x);
+  const d = x - f;
+  if (Math.abs(d - 0.5) < 1e-9) return f % 2 === 0 ? f : f + 1;
+  return d > 0.5 ? f + 1 : f;
+}
+function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+function sexCN(sex) { return sex === 'male' ? '男' : '女'; }
+
+/* ================= 档案：读写与存储 ================= */
+function loadStoredProfile() {
+  try {
+    const raw = localStorage.getItem(DATA.meta.profileKey);
+    if (!raw) return null;
+    const p = JSON.parse(raw);
+    if (!p || !p.sex) return null;
+    const out = {
+      name: String(p.name || '').slice(0, 12),
+      sex: p.sex === 'female' ? 'female' : 'male',
+      age: Number(p.age),
+      height: Number(p.height),
+      weight: Number(p.weight),
+      rest: Number(p.rest)
+    };
+    if (!(out.age >= 14 && out.age <= 60)) return null;
+    if (!(out.height >= 120 && out.height <= 230)) return null;
+    if (!(out.weight >= 25 && out.weight <= 200)) return null;
+    if (!(out.rest >= 35 && out.rest <= 140)) return null;
+    return out;
+  } catch (e) { return null; }
+}
+function saveProfile(p) {
+  try { localStorage.setItem(DATA.meta.profileKey, JSON.stringify(p)); } catch (e) { }
+}
+function readProfileForm() {
+  const sexEl = $('input[name="pSex"]:checked');
+  const name = $('#pName').value.trim().slice(0, 12);
+  const sex = sexEl ? sexEl.value : 'male';
+  const age = parseFloat($('#pAge').value);
+  const height = parseFloat($('#pHeight').value);
+  const weight = parseFloat($('#pWeight').value);
+  const rest = parseFloat($('#pRest').value);
+  if (!(age >= 14 && age <= 60)) return null;
+  if (!(height >= 120 && height <= 230)) return null;
+  if (!(weight >= 25 && weight <= 200)) return null;
+  if (!(rest >= 35 && rest <= 140)) return null;
+  return { name, sex, age, height, weight, rest };
+}
+function fillProfileForm(p) {
+  $('#pName').value = p.name || '';
+  const radio = document.querySelector(`input[name="pSex"][value="${p.sex}"]`);
+  if (radio) radio.checked = true;
+  $('#pAge').value = p.age;
+  $('#pHeight').value = p.height;
+  $('#pWeight').value = p.weight;
+  $('#pRest').value = p.rest;
+}
+function setSavedBadge(text, cls) {
+  const b = $('#profileSavedBadge');
+  b.textContent = text;
+  b.className = 'badge saved-badge' + (cls ? ' ' + cls : '');
+}
+function applyProfile(p, opts = {}) {
+  state.profile = { ...p };
+  if (opts.save !== false) saveProfile(state.profile);
+  heartState.age = state.profile.age;
+  heartState.rest = state.profile.rest;
+  if ($('#hAge')) $('#hAge').value = heartState.age;
+  if ($('#hRest')) $('#hRest').value = heartState.rest;
+  renderProfileResult(state.profile);
+  renderHeart();
+  renderHome();
+  renderEnergy();
+  renderSimSummary();
+}
+
+/* ================= 档案：结果渲染 ================= */
+function renderProfileResult(p) {
+  renderSafety();
+  const pointer = $('#bmiPointer');
+  if (!p) {
+    $('#bmiValue').textContent = '--';
+    $('#fatValue').textContent = '--';
+    $('#profileBmr').textContent = '--';
+    $('#profileHrMax').textContent = '--';
+    $('#profileBmiMini').textContent = '--';
+    const b = $('#bmiClass');
+    b.textContent = '等待输入';
+    b.className = 'badge';
+    pointer.style.display = 'none';
+    return;
+  }
+  pointer.style.display = '';
+  const bmi = DATA.formulas.bmi.fn(p.weight, p.height);
+  const bmiShown = Math.round(bmi * 10) / 10;
+  const grade = DATA.formulas.bmiClass.fn(bmiShown);
+  const gradeCls = grade === '正常' ? 'teal' : grade === '肥胖' ? 'orange' : 'amber';
+  $('#bmiValue').textContent = fmt1(bmiShown);
+  const g = $('#bmiClass');
+  g.textContent = grade;
+  g.className = 'badge ' + gradeCls;
+  pointer.style.left = clamp((bmiShown - 15) / (32 - 15) * 100, 0, 100).toFixed(1) + '%';
+  const fat = DATA.formulas.bodyFat.fn(bmi, p.age, p.sex);
+  $('#fatValue').textContent = fmt1(fat);
+  const bmrRaw = DATA.formulas.bmr.fn(p.weight, p.height, p.age, p.sex);
+  $('#profileBmr').textContent = roundHalfEven(bmrRaw);
+  $('#profileHrMax').textContent = DATA.formulas.hrMax.fn(p.age);
+  $('#profileBmiMini').textContent = fmt1(bmiShown);
+}
+
+function renderProfileSamples() {
+  $('#profileSamples').innerHTML = DATA.samples.map((s, i) =>
+    `<button class="sample-chip" data-sample="${i}">${s.name} · ${sexCN(s.sex)} ${s.age}</button>`
+  ).join('');
+  $('#profileSamples').addEventListener('click', e => {
+    const b = e.target.closest('[data-sample]');
+    if (!b) return;
+    const s = DATA.samples[parseInt(b.dataset.sample, 10)];
+    const p = { name: s.name, sex: s.sex, age: s.age, height: s.height, weight: s.weight, rest: s.rest };
+    fillProfileForm(p);
+    applyProfile(p);
+    setSavedBadge('已载入样本 · 本机', 'teal');
+  });
+}
+
+/* ================= 能量代谢 ================= */
+function renderActivities() {
+  $('#activityGrid').innerHTML = DATA.activities.map(a =>
+    `<button class="activity" data-factor="${a.factor}" aria-pressed="${a.factor === state.activity}">
+      <b>${a.label}</b><span class="f">×${a.factor}</span><em>${a.desc}</em>
+    </button>`
+  ).join('');
+}
+
+function renderEnergy() {
+  const p = state.profile;
+  const chip = $('#energyProfileChip');
+  if (!p) {
+    chip.textContent = '未建立档案';
+    chip.className = 'badge';
+    $('#energyBmr').textContent = '--';
+    $('#energyTdee').textContent = '--';
+    $('#energyEmpty').classList.add('show');
+    $('#splitBmrText').textContent = '--';
+    $('#splitActText').textContent = '--';
+    $('#splitBmrBar').style.width = '0%';
+    $('#splitActBar').style.width = '0%';
+    return;
+  }
+  chip.textContent = `${p.name || '同学'} · ${sexCN(p.sex)} ${p.age} 岁`;
+  chip.className = 'badge teal';
+  const bmrRaw = DATA.formulas.bmr.fn(p.weight, p.height, p.age, p.sex);
+  const bmr = roundHalfEven(bmrRaw);
+  const tdee = Math.round(DATA.formulas.tdee.fn(bmrRaw, state.activity));
+  $('#energyBmr').textContent = bmr;
+  $('#energyTdee').textContent = tdee;
+  $('#energyEmpty').classList.remove('show');
+  const pct = clamp(bmr / tdee * 100, 0, 100);
+  $('#splitBmrText').textContent = `${bmr} kcal · ${Math.round(pct)}%`;
+  $('#splitActText').textContent = `${tdee - bmr} kcal · ${Math.round(100 - pct)}%`;
+  $('#splitBmrBar').style.width = pct.toFixed(1) + '%';
+  $('#splitActBar').style.width = (100 - pct).toFixed(1) + '%';
+}
+
+function renderWater() {
+  const pre = parseFloat($('#preWeight').value);
+  const post = parseFloat($('#postWeight').value);
+  if (!(pre > 0 && post > 0)) {
+    $('#waterLoss').textContent = '--';
+    $('#waterAdvice').textContent = '请输入有效体重';
+    return;
+  }
+  const loss = pre - post;
+  if (loss <= 0) {
+    $('#waterLoss').textContent = '0.0';
+    $('#waterAdvice').textContent = '运动后体重未下降';
+    return;
+  }
+  const advice = DATA.formulas.water.fn(loss);
+  $('#waterLoss').textContent = loss.toFixed(1);
+  $('#waterAdvice').textContent = `建议补水 ${Number(advice.toFixed(2))} L`;
+}
+
+/* ================= 首页 ================= */
+/* ================= 体能评估 ================= */
+function paceText(minPerKm) {
+  if (!(minPerKm > 0)) return '--';
+  const sec = Math.round(minPerKm * 60);
+  return `${Math.floor(sec / 60)}'${String(sec % 60).padStart(2, '0')}"`;
+}
+
+function renderFitness() {
+  const d = parseFloat($('#cooperDist').value);
+  $('#vo2Value').textContent = d > 0 ? fmt1(DATA.formulas.vo2max.fn(d)) : '--';
+
+  const w = parseFloat($('#rmWeight').value);
+  const reps = parseFloat($('#rmReps').value);
+  $('#rmValue').textContent = w > 0 && reps > 0 ? fmt1(DATA.formulas.oneRM.fn(w, reps)) : '--';
+
+  const vc = parseFloat($('#vcVolume').value);
+  const vw = parseFloat($('#vcWeight').value);
+  $('#vcValue').textContent = vc > 0 && vw > 0 ? fmt1(DATA.formulas.vcIndex.fn(vc, vw)) : '--';
+
+  const rd = parseFloat($('#runDist').value);
+  const rmin = parseFloat($('#runMin').value);
+  const rw = parseFloat($('#runWeight').value);
+  $('#runKcal').textContent = rd > 0 && rw > 0 ? fmt1(DATA.formulas.runKcal.fn(rw, rd)) : '--';
+  $('#runPace').textContent = rd > 0 && rmin > 0
+    ? `配速 ${paceText(DATA.formulas.pace.fn(rmin, rd))}/km`
+    : '配速 --';
+}
+
+/* ================= 训练规划 ================= */
+function loadBadge(label) {
+  return label === '很大' ? 'orange' : label === '较大' ? 'amber' : 'teal';
+}
+
+function renderTemplate() {
+  const t = DATA.templates.find(x => x.id === planTemplate) || DATA.templates[0];
+  $('#templateDesc').textContent = t.desc;
+  $('#templateList').innerHTML = t.days.map(d =>
+    `<div class="tday${d[1].includes('休息') ? ' rest' : ''}"><span class="d">${d[0]}</span><span class="t">${d[1]}</span><span class="len">${d[2]}</span></div>`
+  ).join('');
+  $$('#templateTabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.template === planTemplate)));
+}
+
+function renderPlan() {
+  const rpe = parseFloat($('#planRpe').value);
+  const min = parseFloat($('#planMin').value);
+  const times = parseFloat($('#planTimes').value);
+  $('#planRpeOut').textContent = rpe;
+  const srpe = Number.isFinite(rpe) && Number.isFinite(min) ? DATA.formulas.srpe.fn(rpe, min) : 0;
+  const week = srpe * (Number.isFinite(times) ? times : 0);
+  $('#planSrpe').textContent = Math.round(srpe);
+  $('#planWeek').textContent = Math.round(week);
+  const label = DATA.formulas.loadClass.fn(week);
+  const badge = $('#planClass');
+  badge.textContent = week > 0 ? label : '—';
+  badge.className = 'badge ' + loadBadge(label);
+  renderTemplate();
+}
+
+/* ================= 运动模拟 ================= */
+function renderSimTable() {
+  $('#simBody').innerHTML = simState.map((row, i) => {
+    const rest = row.type === '休息';
+    const srpe = rest ? 0 : DATA.formulas.srpe.fn(row.rpe, row.min);
+    return `<tr data-i="${i}">
+      <td class="day">${WEEK_CN[(i + 1) % 7]}</td>
+      <td><select data-k="type" aria-label="${WEEK_CN[(i + 1) % 7]}类型">${DATA.simTypes.map(t => `<option ${t === row.type ? 'selected' : ''}>${t}</option>`).join('')}</select></td>
+      <td><input type="number" data-k="min" min="0" max="300" step="5" value="${rest ? 0 : row.min}" ${rest ? 'disabled' : ''} aria-label="时长"></td>
+      <td><input type="number" data-k="rpe" min="1" max="10" step="1" value="${rest ? 1 : row.rpe}" ${rest ? 'disabled' : ''} aria-label="RPE"></td>
+      <td><input type="number" data-k="dist" min="0" max="42.2" step="0.1" value="${rest ? 0 : (row.type === '跑步' ? row.dist : 0)}" ${rest || row.type !== '跑步' ? 'disabled' : ''} aria-label="跑步距离"></td>
+      <td class="srpe">${Math.round(srpe)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderSimSummary() {
+  const weight = state.profile ? state.profile.weight : 70;
+  let total = 0, minutes = 0, kcal = 0;
+  simState.forEach(row => {
+    if (row.type === '休息') return;
+    total += DATA.formulas.srpe.fn(row.rpe, row.min);
+    minutes += row.min;
+    if (row.type === '跑步') kcal += DATA.formulas.runKcal.fn(weight, row.dist);
+  });
+  const label = DATA.formulas.loadClass.fn(total);
+  $('#simSrpe').textContent = Math.round(total);
+  $('#simClass').textContent = total > 0 ? label : '—';
+  $('#simClass').className = 'small-label badge ' + loadBadge(label);
+  $('#simMin').textContent = Math.round(minutes);
+  $('#simKcal').textContent = fmt1(kcal);
+  $('#simWeightHint').textContent = `按${state.profile ? '档案' : '默认'}体重 ${weight} kg`;
+}
+
+function renderSim() {
+  renderSimTable();
+  renderSimSummary();
+}
+
+/* ================= 知识卡 ================= */
+const CARD_CATS = ['全部', ...new Set(DATA.cards.map(c => c.category))];
+
+function renderCardChips() {
+  $('#cardChips').innerHTML = CARD_CATS.map(c =>
+    `<button class="chip" data-cat="${esc(c)}" aria-pressed="${c === cardState.cat}">${esc(c)}</button>`
+  ).join('');
+}
+
+function renderCards() {
+  const q = cardState.query.trim().toLowerCase();
+  const list = DATA.cards.filter(c =>
+    (cardState.cat === '全部' || c.category === cardState.cat) &&
+    (!q || (c.title + c.point).toLowerCase().includes(q))
+  );
+  $('#cardGrid').innerHTML = list.length
+    ? list.map(c => `<article class="kcard" data-cat="${esc(c.category)}">
+        <div class="cat">${esc(c.category)}</div>
+        <h3>${esc(c.title)}</h3>
+        <p>${esc(c.point)}</p>
+        <span class="idx">${esc(c.id.replace('C', ''))}</span>
+      </article>`).join('')
+    : '<div class="empty-state" style="grid-column:1/-1">没有匹配的卡片。换个关键词，或切回“全部”。</div>';
+  $('#cardCount').textContent = (cardState.cat === '全部' && !q) ? '60' : `${list.length} / 60`;
+  $$('#cardChips .chip').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.cat === cardState.cat)));
+}
+
+/* ================= 知识测验 ================= */
+function quizLabel(i) { return String.fromCharCode(65 + i); }
+
+function updateQuizStats() {
+  const answered = Object.keys(quizState.answers).map(Number);
+  let right = 0, wrong = 0;
+  answered.forEach(i => {
+    if (quizState.answers[i] === DATA.quiz[i].answer) right++; else wrong++;
+  });
+  $('#qAnswered').textContent = answered.length;
+  $('#qRight').textContent = right;
+  $('#qWrong').textContent = wrong;
+  $('#qAcc').textContent = answered.length ? Math.round(right / answered.length * 100) + '%' : '--';
+  $('#quizProgressText').textContent = `${answered.length} / 50`;
+  $('#quizBar').style.width = `${answered.length / DATA.quiz.length * 100}%`;
+  $('#quizReviewBtn').textContent = `错题回顾${wrong ? ` (${wrong})` : ''}`;
+}
+
+function renderQuizDots() {
+  $('#quizDots').innerHTML = DATA.quiz.map((q, i) => {
+    const chosen = quizState.answers[i];
+    const answered = chosen !== undefined;
+    const correct = answered && chosen === q.answer;
+    const current = Math.floor(i / 10) === quizState.page;
+    const cls = [answered ? (correct ? 'dot-correct' : 'dot-wrong') : '', current ? 'current' : ''].filter(Boolean).join(' ');
+    return `<button data-page="${Math.floor(i / 10)}" class="${cls}" aria-label="第 ${i + 1} 题">${i + 1}</button>`;
+  }).join('');
+}
+
+function renderQuizPage() {
+  const start = quizState.page * 10;
+  const items = DATA.quiz.slice(start, start + 10);
+  $('#quizList').innerHTML = items.map((q, k) => {
+    const i = start + k;
+    const chosen = quizState.answers[i];
+    const revealed = chosen !== undefined;
+    return `<div class="q${revealed ? ' revealed' : ''}" data-i="${i}">
+      <div class="q-head"><span class="q-no">${String(i + 1).padStart(2, '0')}</span><div class="q-text">${esc(q.question)}<span class="q-type">${q.type === 'judge' ? '判断' : '单选'}</span></div></div>
+      <div class="opts">${q.options.map((o, oi) => {
+        let cls = 'opt';
+        if (revealed) {
+          if (oi === q.answer) cls += ' correct';
+          else if (chosen === oi) cls += ' wrong';
+        }
+        return `<label class="${cls}" data-opt="${oi}"><input type="radio" name="q${i}" value="${oi}" ${chosen === oi ? 'checked' : ''} ${revealed ? 'disabled' : ''}><span class="key">${quizLabel(oi)}</span><span>${esc(o)}</span></label>`;
+      }).join('')}</div>
+      <div class="q-explanation"><b>${chosen === q.answer ? '答对了' : '答错了'} · 正确答案 ${quizLabel(q.answer)}。</b> ${esc(q.explain)}</div>
+    </div>`;
+  }).join('');
+  $('#quizPageLabel').textContent = `${quizState.page + 1} / 5`;
+  $('#quizPrev').disabled = quizState.page === 0;
+  $('#quizNext').disabled = quizState.page === 4;
+  renderQuizDots();
+  updateQuizStats();
+}
+
+function renderReview() {
+  const wrongs = Object.keys(quizState.answers).map(Number)
+    .filter(i => quizState.answers[i] !== DATA.quiz[i].answer)
+    .sort((a, b) => a - b);
+  $('#reviewCount').textContent = `共 ${wrongs.length} 题`;
+  $('#reviewList').innerHTML = wrongs.length
+    ? wrongs.map(i => {
+      const q = DATA.quiz[i];
+      const chosen = quizState.answers[i];
+      return `<div class="review-item">
+        <div class="rq">Q${String(i + 1).padStart(2, '0')} · ${q.type === 'judge' ? '判断' : '单选'}</div>
+        <p>${esc(q.question)}</p>
+        <p>你的答案：<b>${esc(q.options[chosen])}</b> · 正确答案：<b>${esc(q.options[q.answer])}</b></p>
+        <p>${esc(q.explain)}</p>
+      </div>`;
+    }).join('')
+    : '<div class="empty-state">目前没有错题。继续保持，或去做几道还没答的题。</div>';
+}
+
+/* ================= 健康手记 ================= */
+function loadLogs() {
+  try {
+    const raw = localStorage.getItem(DATA.meta.logKey);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return [];
+    return arr.filter(x => x && x.date && x.type).map(x => ({
+      id: String(x.id || Date.now() + Math.random()),
+      date: String(x.date),
+      type: String(x.type),
+      min: Math.max(0, Number(x.min) || 0),
+      rpe: clamp(Number(x.rpe) || 1, 1, 10),
+      note: String(x.note || '').slice(0, 40),
+      createdAt: Number(x.createdAt) || Date.now()
+    }));
+  } catch (e) { return []; }
+}
+
+function saveLogs() {
+  try { localStorage.setItem(DATA.meta.logKey, JSON.stringify(logState)); } catch (e) { }
+}
+
+function weekLogs() {
+  const start = isoDate(startOfWeek(new Date()));
+  const today = isoDate(new Date());
+  return logState.filter(x => x.date >= start && x.date <= today);
+}
+
+function updateLogSrpe() {
+  const min = parseFloat($('#logMin').value);
+  const rpe = parseFloat($('#logRpe').value);
+  $('#logSrpe').textContent = Number.isFinite(min) && Number.isFinite(rpe)
+    ? Math.round(DATA.formulas.srpe.fn(rpe, min))
+    : 0;
+}
+
+function renderLog() {
+  const list = logState.slice().sort((a, b) =>
+    a.date === b.date ? b.createdAt - a.createdAt : b.date.localeCompare(a.date)
+  );
+  $('#logList').innerHTML = list.length
+    ? list.map(x => `<div class="log-item" data-id="${esc(x.id)}">
+        <div>
+          <div class="what"><span class="kind">${esc(x.type)}</span>${esc(x.date)}</div>
+          <div class="meta">${x.min} 分钟 · RPE ${x.rpe}</div>
+          ${x.note ? `<div class="note">${esc(x.note)}</div>` : ''}
+        </div>
+        <div class="right"><b>${Math.round(DATA.formulas.srpe.fn(x.rpe, x.min))}</b><span>AU</span><button class="del" data-del="${esc(x.id)}">删除</button></div>
+      </div>`).join('')
+    : '<div class="log-empty">还没有记录。练完随手记一笔，周汇总才有意义。</div>';
+  $('#logTotalHint').textContent = `共 ${logState.length} 条`;
+
+  const wk = weekLogs();
+  let total = 0, minutes = 0;
+  wk.forEach(x => { total += DATA.formulas.srpe.fn(x.rpe, x.min); minutes += x.min; });
+  const label = total > 0 ? DATA.formulas.loadClass.fn(total) : '—';
+  $('#logWeekLoad').textContent = Math.round(total);
+  $('#logWeekCount').textContent = wk.length;
+  $('#logWeekMin').textContent = Math.round(minutes);
+  const badge = $('#logWeekClass');
+  badge.textContent = label;
+  badge.className = 'badge ' + (total > 0 ? loadBadge(label) : '');
+
+  const start = startOfWeek(new Date());
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  $('#logWeekRange').textContent = `${start.getMonth() + 1}.${String(start.getDate()).padStart(2, '0')}–${end.getMonth() + 1}.${String(end.getDate()).padStart(2, '0')}`;
+}
+
+function initLog() {
+  logState = loadLogs();
+  $('#logDate').value = isoDate(new Date());
+  $('#logType').innerHTML = DATA.logTypes.map(t => `<option>${esc(t)}</option>`).join('');
+  updateLogSrpe();
+  renderLog();
+}
+
+function exportReport() {
+  const p = state.profile;
+  const now = new Date();
+  const lines = [];
+  lines.push(DATA.copy.exportTitle);
+  lines.push(`生成时间：${isoDate(now)} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
+  lines.push('');
+  if (p) {
+    const bmi = DATA.formulas.bmi.fn(p.weight, p.height);
+    const grade = DATA.formulas.bmiClass.fn(Math.round(bmi * 10) / 10);
+    const fat = DATA.formulas.bodyFat.fn(bmi, p.age, p.sex);
+    const bmr = roundHalfEven(DATA.formulas.bmr.fn(p.weight, p.height, p.age, p.sex));
+    lines.push(`档案：${p.name || '同学'} / ${sexCN(p.sex)} / ${p.age} 岁 / ${p.height} cm / ${p.weight} kg / 静息 ${p.rest} bpm`);
+    lines.push(`BMI ${fmt1(bmi)}（${grade}） · 体脂 ${fmt1(fat)}%（估算） · BMR ${bmr} kcal`);
+  } else {
+    lines.push('档案：未建立');
+  }
+  lines.push('');
+  const wk = weekLogs();
+  let total = 0, minutes = 0;
+  wk.forEach(x => { total += DATA.formulas.srpe.fn(x.rpe, x.min); minutes += x.min; });
+  const start = startOfWeek(new Date());
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  lines.push(`本周汇总（${start.getMonth() + 1}.${String(start.getDate()).padStart(2, '0')}–${end.getMonth() + 1}.${String(end.getDate()).padStart(2, '0')}）`);
+  lines.push(`周负荷 ${Math.round(total)} AU（${total > 0 ? DATA.formulas.loadClass.fn(total) : '无记录'}） · 训练 ${wk.length} 次 · 总时长 ${Math.round(minutes)} 分钟`);
+  lines.push('');
+  lines.push('记录：');
+  if (!logState.length) {
+    lines.push('（暂无记录）');
+  } else {
+    logState.slice().sort((a, b) => a.date.localeCompare(b.date)).forEach(x => {
+      lines.push(`${x.date}  ${x.type}  ${x.min} 分钟  RPE ${x.rpe}  →  ${Math.round(DATA.formulas.srpe.fn(x.rpe, x.min))} AU${x.note ? '  备注：' + x.note : ''}`);
+    });
+  }
+  lines.push('');
+  lines.push('说明：以上数值为教学估算，不构成医疗诊断或官方体测评分。');
+  lines.push(DATA.copy.exportEnd);
+
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `体衡小智_健康报告_${isoDate(now)}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+}
+
+/* ================= 安全提示 ================= */
+function renderSafety() {
+  const p = state.profile;
+  const high = !!p && p.rest >= 80;
+  const box = $('#profileSafety');
+  if (box) {
+    if (high) {
+      box.hidden = false;
+      box.innerHTML = `<svg><use href="#i-warn"></use></svg><div><b>你的静息心率 ${p.rest} 次/分，偏高。</b><br>${DATA.copy.safety}</div>`;
+    } else {
+      box.hidden = true;
+      box.innerHTML = '';
+    }
+  }
+  const homeText = $('#safetyText');
+  if (homeText) {
+    const panel = homeText.closest('.safety-panel');
+    if (panel) panel.classList.toggle('warn', high);
+    homeText.textContent = high ? `你的静息心率 ${p.rest} 次/分，偏高。${DATA.copy.safety}` : DATA.copy.safety;
+  }
+  const heartText = $('#heartSafetyText');
+  if (heartText) {
+    const panel = heartText.closest('.heart-safety');
+    if (panel) panel.classList.toggle('warn', high);
+    heartText.textContent = DATA.copy.safety;
+  }
+  const hb = $('#heartSafetyBadge');
+  if (hb) {
+    hb.textContent = high ? `静息 ${p.rest} · 偏高` : '固定文案';
+    hb.className = 'badge ' + (high ? 'orange' : 'teal');
+  }
+}
+
+/* ================= 心率实验室 ================= */
+function renderHeart() {
+  const age = heartState.age;
+  const rest = heartState.rest;
+  const z = DATA.formulas.zones.fn(rest, age);
+  $('#hHrMax').textContent = z.hrMax;
+  $('#hHrr').textContent = z.hrr;
+  $('#hHeartHint').textContent = `${age} 岁 · 静息 ${rest}`;
+  const badge = $('#heartSourceBadge');
+  if (state.profile) {
+    badge.textContent = `档案 · ${state.profile.name || '同学'}`;
+    badge.className = 'badge teal';
+  } else {
+    badge.textContent = '示例参数';
+    badge.className = 'badge';
+  }
+  $('#hZoneBand').innerHTML = z.list.map((x, i) => {
+    const light = DATA.theme.zoneText[i] === 'dark' ? ' light' : '';
+    return `<div class="zone${light}" style="background:${DATA.theme.zone[i]}">
+      <span class="key">${x.key}</span>
+      <span class="range">${x.low}–${x.high}</span>
+      <span class="name">${x.name}</span>
+    </div>`;
+  }).join('');
+  $('#hZoneAxis').innerHTML = z.bounds.map(b => `<span>${b}</span>`).join('');
+  $('#hZoneTable').innerHTML = z.list.map((x, i) =>
+    `<tr data-zone="${i}">
+      <td><span class="swatch" style="background:${DATA.theme.zone[i]}"></span>${x.key}</td>
+      <td>${x.from}–${x.to}%</td>
+      <td>${x.low}–${x.high}</td>
+      <td>${x.name} · ${x.feel}</td>
+    </tr>`
+  ).join('');
+  renderHeartTarget();
+}
+
+function renderHeartTarget() {
+  const pct = parseFloat($('#hIntensity').value);
+  const z = DATA.formulas.zones.fn(heartState.rest, heartState.age);
+  const target = DATA.formulas.karvonen.fn(heartState.rest, pct, z.hrr);
+  const idx = pct < 60 ? 0 : pct < 70 ? 1 : pct < 80 ? 2 : pct < 90 ? 3 : 4;
+  const cur = z.list[idx];
+  $('#hIntensityLabel').textContent = `${pct}% HRR`;
+  $('#hTarget').textContent = target;
+  const badge = $('#hZone');
+  badge.textContent = `${cur.key} ${cur.name}`;
+  badge.className = 'badge teal';
+  $$('#hZoneTable tr').forEach(tr => tr.classList.toggle('current', parseInt(tr.dataset.zone, 10) === idx));
+}
+
+function renderHome() {
+  const now = new Date();
+  $('#todayDate').textContent = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
+  $('#todayWeek').textContent = WEEK_CN[now.getDay()];
+
+  const p = state.profile;
+  const age = p ? p.age : heartState.age;
+  const rest = p ? p.rest : heartState.rest;
+  const z = DATA.formulas.zones.fn(rest, age);
+  $('#zoneBand').innerHTML = z.list.map((x, i) => {
+    const light = DATA.theme.zoneText[i] === 'dark' ? ' light' : '';
+    return `<div class="zone${light}" style="background:${DATA.theme.zone[i]}">
+      <span class="key">${x.key}</span>
+      <span class="range">${x.low}–${x.high}</span>
+      <span class="name">${x.name}</span>
+    </div>`;
+  }).join('');
+  $('#zoneAxis').innerHTML = z.bounds.map(b => `<span>${b}</span>`).join('');
+  $('#zoneHint').textContent = p
+    ? `${p.name || '同学'} · 静息 ${rest} · HRmax ${z.hrMax}`
+    : `示例：${age} 岁 · 静息 ${rest} · HRmax ${z.hrMax}`;
+  $('#footDisclaimer').textContent = DATA.copy.footer;
+
+  if (!p) {
+    ['homeBmi', 'homeFat', 'homeBmr', 'homeTdee'].forEach(id => { $('#' + id).textContent = '--'; });
+    $('#homeBmiTag').textContent = '待接入';
+    $('#homeFatTag').textContent = '估算';
+    $('#homeTdeeTag').textContent = '中活动 ×1.55';
+    $('#homeProfileBadge').textContent = '未建立';
+    $('#homeProfileBadge').className = 'badge dim';
+    $('#profileTitle').textContent = DATA.copy.emptyProfile;
+    $('#profileSub').textContent = DATA.copy.emptyProfileHint;
+    $('#homeProfileFoot').textContent = '填写档案后实时计算';
+    return;
+  }
+
+  const bmi = DATA.formulas.bmi.fn(p.weight, p.height);
+  const bmiShown = Math.round(bmi * 10) / 10;
+  const grade = DATA.formulas.bmiClass.fn(bmiShown);
+  const fat = DATA.formulas.bodyFat.fn(bmi, p.age, p.sex);
+  const bmrRaw = DATA.formulas.bmr.fn(p.weight, p.height, p.age, p.sex);
+  const bmr = roundHalfEven(bmrRaw);
+  const act = DATA.activities.find(a => a.factor === state.activity) || DATA.activities[2];
+  const tdee = Math.round(DATA.formulas.tdee.fn(bmrRaw, act.factor));
+  $('#homeBmi').textContent = fmt1(bmiShown);
+  $('#homeBmiTag').textContent = grade;
+  $('#homeFat').textContent = fmt1(fat);
+  $('#homeFatTag').textContent = '公式估算';
+  $('#homeBmr').textContent = bmr;
+  $('#homeTdee').textContent = tdee;
+  $('#homeTdeeTag').textContent = `${act.label} ×${act.factor}`;
+  $('#homeProfileBadge').textContent = '已建立';
+  $('#homeProfileBadge').className = 'badge teal';
+  $('#profileTitle').textContent = `${p.name || '同学'}的身体底数`;
+  $('#profileSub').textContent = `${sexCN(p.sex)} · ${p.age} 岁 · ${p.height} cm · ${p.weight} kg · 静息 ${p.rest} bpm`;
+  $('#homeProfileFoot').textContent = '数据已存本机';
+}
+
+function showView(name) {
+  if (!VIEW_IDS.includes(name)) name = 'home';
+  $$('.tab').forEach(t => t.setAttribute('aria-selected', String(t.dataset.view === name)));
+  $$('.view').forEach(v => { v.hidden = v.id !== 'view-' + name; });
+  try { history.replaceState(null, '', '#' + name); } catch (e) { }
+  window.scrollTo({ top: 0, behavior: 'auto' });
+}
+
+function initEvents() {
+  document.addEventListener('click', e => {
+    const tab = e.target.closest('.tab');
+    if (tab && tab.dataset.view) { showView(tab.dataset.view); return; }
+    const go = e.target.closest('[data-goto]');
+    if (go) showView(go.dataset.goto);
+  });
+
+  const onProfileInput = () => {
+    const p = readProfileForm();
+    if (!p) {
+      renderProfileResult(null);
+      setSavedBadge('检查输入', 'amber');
+      return;
+    }
+    applyProfile(p);
+    setSavedBadge('已自动保存', 'teal');
+  };
+  $('#profileForm').addEventListener('input', onProfileInput);
+  $('#profileForm').addEventListener('change', onProfileInput);
+  $('#profileForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const p = readProfileForm();
+    if (!p) { setSavedBadge('检查输入范围', 'amber'); return; }
+    applyProfile(p);
+    setSavedBadge('已保存 · 本机', 'teal');
+  });
+  $('#profileClear').addEventListener('click', () => {
+    if (!confirm('清空档案并删除本机保存的数据？')) return;
+    state.profile = null;
+    try { localStorage.removeItem(DATA.meta.profileKey); } catch (e) { }
+    $('#profileForm').reset();
+    renderProfileResult(null);
+    renderHome();
+    renderEnergy();
+    setSavedBadge('尚未保存', '');
+  });
+  $('#activityGrid').addEventListener('click', e => {
+    const b = e.target.closest('[data-factor]');
+    if (!b) return;
+    state.activity = parseFloat(b.dataset.factor);
+    renderActivities();
+    renderEnergy();
+    renderHome();
+  });
+  $('#preWeight').addEventListener('input', renderWater);
+  $('#postWeight').addEventListener('input', renderWater);
+
+  const onHeartInput = () => {
+    const age = parseFloat($('#hAge').value);
+    const rest = parseFloat($('#hRest').value);
+    if (!(age >= 14 && age <= 60) || !(rest >= 35 && rest <= 140)) return;
+    heartState.age = age;
+    heartState.rest = rest;
+    if (state.profile) {
+      state.profile.age = age;
+      state.profile.rest = rest;
+      saveProfile(state.profile);
+      $('#pAge').value = age;
+      $('#pRest').value = rest;
+      renderProfileResult(state.profile);
+    }
+    renderHome();
+    renderHeart();
+  };
+  $('#hAge').addEventListener('input', onHeartInput);
+  $('#hRest').addEventListener('input', onHeartInput);
+  $('#hIntensity').addEventListener('input', renderHeartTarget);
+
+  ['#cooperDist', '#rmWeight', '#rmReps', '#vcVolume', '#vcWeight', '#runDist', '#runMin', '#runWeight'].forEach(sel => {
+    $(sel).addEventListener('input', renderFitness);
+  });
+
+  $('#planRpe').addEventListener('input', renderPlan);
+  ['#planMin', '#planTimes'].forEach(sel => $(sel).addEventListener('input', renderPlan));
+  $('#templateTabs').addEventListener('click', e => {
+    const b = e.target.closest('button[data-template]');
+    if (!b) return;
+    planTemplate = b.dataset.template;
+    renderTemplate();
+  });
+  $('#simPreset').addEventListener('click', () => {
+    simState.forEach((row, i) => Object.assign(row, DATA.simPreset[i]));
+    renderSim();
+  });
+  const onSimEdit = e => {
+    const inp = e.target.closest('[data-k]');
+    if (!inp) return;
+    const tr = inp.closest('tr');
+    const i = parseInt(tr.dataset.i, 10);
+    const k = inp.dataset.k;
+    if (k === 'type') {
+      simState[i].type = inp.value;
+      if (inp.value === '休息') { simState[i].min = 0; simState[i].rpe = 1; simState[i].dist = 0; }
+      if (inp.value === '跑步' && simState[i].dist === 0) simState[i].dist = 5;
+      renderSim();
+      return;
+    }
+    const v = parseFloat(inp.value);
+    simState[i][k] = Number.isFinite(v) ? v : 0;
+    if (k === 'min' || k === 'rpe') {
+      const srpe = DATA.formulas.srpe.fn(simState[i].rpe, simState[i].min);
+      tr.querySelector('.srpe').textContent = Math.round(srpe);
+    }
+    renderSimSummary();
+  };
+  $('#simBody').addEventListener('input', onSimEdit);
+  $('#simBody').addEventListener('change', onSimEdit);
+
+  $('#cardChips').addEventListener('click', e => {
+    const b = e.target.closest('[data-cat]');
+    if (!b) return;
+    cardState.cat = b.dataset.cat;
+    renderCards();
+  });
+  $('#cardSearch').addEventListener('input', e => {
+    cardState.query = e.target.value;
+    renderCards();
+  });
+
+  $('#quizList').addEventListener('change', e => {
+    if (!e.target.matches('input[type="radio"]')) return;
+    const qEl = e.target.closest('.q');
+    const i = parseInt(qEl.dataset.i, 10);
+    if (quizState.answers[i] !== undefined) return;
+    quizState.answers[i] = parseInt(e.target.value, 10);
+    renderQuizPage();
+  });
+  $('#quizPrev').addEventListener('click', () => {
+    if (quizState.page > 0) { quizState.page--; renderQuizPage(); }
+  });
+  $('#quizNext').addEventListener('click', () => {
+    if (quizState.page < 4) { quizState.page++; renderQuizPage(); }
+  });
+  $('#quizDots').addEventListener('click', e => {
+    const b = e.target.closest('button[data-page]');
+    if (!b) return;
+    quizState.page = parseInt(b.dataset.page, 10);
+    renderQuizPage();
+  });
+  $('#quizReviewBtn').addEventListener('click', () => {
+    renderReview();
+    $('#reviewPanel').hidden = false;
+    $('#reviewPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+  $('#reviewClose').addEventListener('click', () => { $('#reviewPanel').hidden = true; });
+  $('#quizReset').addEventListener('click', () => {
+    quizState.answers = {};
+    quizState.page = 0;
+    $('#reviewPanel').hidden = true;
+    renderQuizPage();
+  });
+
+  $('#logMin').addEventListener('input', updateLogSrpe);
+  $('#logRpe').addEventListener('input', updateLogSrpe);
+  $('#logForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const date = $('#logDate').value;
+    const type = $('#logType').value;
+    const min = parseFloat($('#logMin').value);
+    const rpe = parseFloat($('#logRpe').value);
+    if (!date || !(min > 0) || !(rpe >= 1 && rpe <= 10)) return;
+    logState.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      date, type, min,
+      rpe: clamp(rpe, 1, 10),
+      note: $('#logNote').value.trim().slice(0, 40),
+      createdAt: Date.now()
+    });
+    saveLogs();
+    renderLog();
+    $('#logNote').value = '';
+  });
+  $('#logList').addEventListener('click', e => {
+    const b = e.target.closest('[data-del]');
+    if (!b) return;
+    logState = logState.filter(x => x.id !== b.dataset.del);
+    saveLogs();
+    renderLog();
+  });
+  $('#logExport').addEventListener('click', exportReport);
+  $('#logClear').addEventListener('click', () => {
+    if (!logState.length) return;
+    if (!confirm('确定清空全部健康手记？此操作不可撤销。')) return;
+    logState = [];
+    saveLogs();
+    renderLog();
+  });
+}
+
+/* 构建自检：页签数、DATA 条目数、外链、图片文件、档案存储 */
+window.__audit = () => {
+  const breakdown = {
+    nav: DATA.nav.length,
+    formulas: Object.keys(DATA.formulas).length,
+    activities: DATA.activities.length,
+    samples: DATA.samples.length,
+    cards: DATA.cards.length,
+    quiz: DATA.quiz.length,
+    templates: DATA.templates.length,
+    simTypes: DATA.simTypes.length,
+    simPreset: DATA.simPreset.length,
+    logTypes: DATA.logTypes.length,
+    copy: Object.keys(DATA.copy).length
+  };
+  const dataEntries = Object.values(breakdown).reduce((a, b) => a + b, 0);
+  const assets = $$('[src],[href]').map(el => el.getAttribute('src') || el.getAttribute('href'))
+    .filter(v => v && !v.startsWith('#') && !v.startsWith('data:'));
+  return {
+    tabs: $$('.tab').length,
+    views: $$('.view').length,
+    dataSections: Object.keys(DATA).length,
+    dataEntries,
+    breakdown,
+    externalAssets: assets,
+    imageFiles: $$('img').length,
+    footer: $('#footDisclaimer').textContent,
+    storedProfile: !!state.profile
+  };
+};
+
+function init() {
+  renderNav();
+  renderPlaceholders();
+  renderProfileSamples();
+  renderActivities();
+  const stored = loadStoredProfile();
+  if (stored) {
+    state.profile = stored;
+    fillProfileForm(stored);
+    heartState.age = stored.age;
+    heartState.rest = stored.rest;
+  }
+  $('#hAge').value = heartState.age;
+  $('#hRest').value = heartState.rest;
+  renderProfileResult(state.profile);
+  renderEnergy();
+  renderWater();
+  renderHeart();
+  renderFitness();
+  renderPlan();
+  renderSim();
+  renderCardChips();
+  renderCards();
+  renderQuizPage();
+  initLog();
+  renderHome();
+  initEvents();
+  const hash = (location.hash || '').replace('#', '');
+  showView(VIEW_IDS.includes(hash) ? hash : 'home');
+}
+
+init();
+</script>
+</body>
+</html>
