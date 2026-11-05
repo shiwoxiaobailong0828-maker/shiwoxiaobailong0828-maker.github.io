@@ -826,7 +826,7 @@
     </div>
 
     <div class="stamp">
-      <b>8 件作品</b>
+      <b id="stampWorkCount">8 件作品</b>
       全部实机可玩<br>全站 0 元
     </div>
 
@@ -837,8 +837,8 @@
         <a class="btn btn-g" href="#cinema">去放映厅看片 ▶</a>
       </div>
       <div class="stats">
-        <div class="stat"><b><span class="count" data-n="8">8</span></b><span>件可交互作品</span></div>
-        <div class="stat"><b><span class="count" data-n="6">6</span></b><span>部 AI 科普短片</span></div>
+        <div class="stat"><b><span class="count" id="statWorkCount" data-n="8">8</span></b><span>件可交互作品</span></div>
+        <div class="stat"><b><span class="count" id="statVideoCount" data-n="6">6</span></b><span>部 AI 科普短片</span></div>
         <div class="stat"><b><span class="count" data-n="0">0</span> 元</b><span>全站免费打开</span></div>
       </div>
     </div>
@@ -867,7 +867,7 @@
     </div>
     <p class="sec-desc">每一件作品都可以直接在浏览器里打开互动。点击任意一行或按钮，即可直接进入作品或观看讲解视频。</p>
     <div class="tabs">
-      <button class="tab act" data-f="all">全部作品 (8)</button>
+      <button class="tab act" data-f="all" id="tabAllCount">全部作品 (8)</button>
       <button class="tab" data-f="live">已发布 / 已上线</button>
       <button class="tab" data-f="score">评分中</button>
       <button class="tab" data-f="wip">制作中</button>
@@ -1001,10 +1001,16 @@ const VIDEOS = [
   { title: "37%法则", file: "film-37rule", dur: "2:54", line: "前 37% 用来长见识，后 63% 用来下决心——看房、找工作、找对象，都该懂的最优停止。" }
 ];
 
-/* 01 渲染杂志风作品画册（每张封面均为真实页面截图 posters/<slug>-shot.jpg） */
+/* 01 渲染杂志风作品画册（自动计算作品与短片数量，每张封面均为真实页面截图 posters/<slug>-shot.jpg） */
+document.getElementById('stampWorkCount').textContent = `${WORKS.length} 件作品`;
+document.getElementById('statWorkCount').textContent = WORKS.length;
+document.getElementById('statVideoCount').textContent = VIDEOS.length;
+document.getElementById('tabAllCount').textContent = `全部作品 (${WORKS.length})`;
+
 const grid = document.getElementById('workGrid');
 WORKS.forEach((w, i) => {
   const no = String(i + 1).padStart(2, '0');
+  const workUrl = w.url || `works/${w.slug}/`;
   const el = document.createElement('article');
   el.className = 'work-item' + (i % 2 === 1 ? ' alt' : '');
   el.dataset.status = w.status;
@@ -1020,13 +1026,13 @@ WORKS.forEach((w, i) => {
       <p>${w.desc}</p>
       <ul class="w-feats">${w.feats.map(f => `<li>${f}</li>`).join('')}</ul>
       <div class="w-actions">
-        <a class="w-btn pri" href="works/${w.slug}/" target="_blank" rel="noopener" onclick="event.stopPropagation()">直接打开 →</a>
+        <a class="w-btn pri" href="${workUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()">直接打开 →</a>
         <button class="w-btn" type="button" data-vid="${i}">看讲解视频 ▶</button>
       </div>
     </div>
     <div class="w-shot">
       <div class="w-shot-bar"><i></i><i></i><i></i><span>shiwoxiaobailong.me/works/${w.slug}</span></div>
-      <div class="w-shot-img" style="background-image:url('posters/${w.slug}-shot.jpg')"></div>
+      <div class="w-shot-img" style="background-image:url('posters/${w.slug}-shot.jpg'),url('posters/${w.slug}-intro.jpg')"></div>
     </div>
   `;
   el.addEventListener('click', () => openWork(i));
