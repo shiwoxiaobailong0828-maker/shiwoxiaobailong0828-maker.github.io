@@ -4240,22 +4240,13 @@ float puff(vec2 uv, vec2 center, vec2 rad, float height) {
   return height * w * sqrt(w);
 }
 
+// 仅用于计算柔和的 3D 表面法线光照，不产生破坏五官比例的高低起伏网格拉扯
 float computeRelief(vec2 uv) {
   float z = 0.0;
-  // 男孩 3D 体积
-  z = max(z, puff(uv, vec2(0.32, 0.64), vec2(0.21, 0.25), 0.48));
-  z += puff(uv, vec2(0.36, 0.56), vec2(0.11, 0.11), 0.12);
-  z = max(z, puff(uv, vec2(0.30, 0.24), vec2(0.16, 0.28), 0.38));
-  float armInteract = puff(uv, vec2(0.46, 0.44), vec2(0.13, 0.14), 0.40);
-  float armThumb = puff(uv, vec2(0.19, 0.40), vec2(0.08, 0.11), 0.42);
-  z = max(z, mix(armInteract, armThumb, uMode));
-
-  // 小白龙 3D 体积
-  z = max(z, puff(uv, vec2(0.67, 0.48), vec2(0.18, 0.21), 0.50));
-  z += puff(uv, vec2(0.62, 0.45), vec2(0.09, 0.08), 0.14);
-  z = max(z, puff(uv, vec2(0.68, 0.18), vec2(0.17, 0.22), 0.42));
-  z = max(z, puff(uv, vec2(0.62, 0.72), vec2(0.12, 0.12), 0.25));
-  z = max(z, puff(uv, vec2(0.82, 0.50), vec2(0.09, 0.11), 0.22));
+  z = max(z, puff(uv, vec2(0.32, 0.60), vec2(0.22, 0.28), 0.35));
+  z = max(z, puff(uv, vec2(0.30, 0.24), vec2(0.18, 0.28), 0.30));
+  z = max(z, puff(uv, vec2(0.67, 0.48), vec2(0.20, 0.24), 0.35));
+  z = max(z, puff(uv, vec2(0.68, 0.18), vec2(0.18, 0.22), 0.30));
   return z;
 }
 
@@ -4264,59 +4255,36 @@ void main() {
   float z = computeRelief(uv);
   vRelief = z;
 
-  float eps = 0.008;
+  float eps = 0.01;
   float zx = computeRelief(uv + vec2(eps, 0.0)) - z;
   float zy = computeRelief(uv + vec2(0.0, eps)) - z;
-  vec3 n = normalize(vec3(-zx * 18.0, -zy * 18.0, 1.0));
+  vec3 n = normalize(vec3(-zx * 12.0, -zy * 12.0, 1.0));
 
   vec3 p = position;
-  p.z += z;
 
   float isBoy = smoothstep(0.52, 0.45, uv.x);
   float isDragon = smoothstep(0.47, 0.54, uv.x);
 
-  // 1. 双人独立胸腔呼吸与听歌摇摆律动
-  float boyBreath = sin(uTime * 2.2) * 0.022 * smoothstep(0.05, 0.55, uv.y) * isBoy;
-  float drgBounce = sin(uTime * 3.1 - 0.6) * 0.028 * smoothstep(0.05, 0.55, uv.y) * isDragon;
+  // 1. 整体柔和呼吸律动（纯垂直整体起伏，五官与眼镜框保持 100% 刚性不变形）
+  float boyBreath = sin(uTime * 2.2) * 0.015 * smoothstep(0.05, 0.30, uv.y) * isBoy;
+  float drgBounce = sin(uTime * 2.8 - 0.6) * 0.018 * smoothstep(0.05, 0.30, uv.y) * isDragon;
   p.y += boyBreath + drgBounce;
 
-  // 2. 男孩温柔转头凝视 + 小白龙开心仰头回应
-  float boyHeadMask = smoothstep(0.40, 0.55, uv.y) * isBoy;
-  p.x += sin(uTime * 1.6) * 0.018 * (uv.y - 0.45) * boyHeadMask;
+  // 2. 模式 0：仅让搭在小白龙额头上的手掌与右侧龙鳍耳做轻柔微动，绝不拉扯脸部或眼睛
+  float patWave = sin(uTime * 4.0);
+  float patHandMask = exp(-dot((uv - vec2(0.50, 0.49)) / vec2(0.055, 0.065), (uv - vec2(0.50, 0.49)) / vec2(0.055, 0.065)));
+  float earFinMask = exp(-dot((uv - vec2(0.84, 0.50)) / vec2(0.065, 0.075), (uv - vec2(0.84, 0.50)) / vec2(0.065, 0.075)));
+  p.y += (1.0 - uMode) * patWave * 0.016 * patHandMask;
+  p.y += sin(uTime * 5.2) * 0.018 * earFinMask;
 
-  float drgHeadMask = smoothstep(0.32, 0.48, uv.y) * isDragon;
-  p.x += cos(uTime * 2.4) * 0.024 * (uv.y - 0.36) * drgHeadMask;
+  // 模式 1：仅让左侧竖起的大拇指轻微上下律动
+  float thumbMask = exp(-dot((uv - vec2(0.18, 0.40)) / vec2(0.065, 0.080), (uv - vec2(0.18, 0.40)) / vec2(0.065, 0.080)));
+  p.y += uMode * abs(sin(uTime * 4.4)) * 0.022 * thumbMask;
 
-  // 3. 模式 0（摸摸头互动）：男孩手掌轻柔上下抚摸小白龙额头，小白龙脑袋随之享受地微倾、龙鳍耳轻颤
-  float patWave = sin(uTime * 4.4);
-  float patHandMask = exp(-dot((uv - vec2(0.49, 0.48)) / vec2(0.10, 0.12), (uv - vec2(0.49, 0.48)) / vec2(0.10, 0.12)));
-  float drgCrownMask = exp(-dot((uv - vec2(0.66, 0.56)) / vec2(0.16, 0.18), (uv - vec2(0.66, 0.56)) / vec2(0.16, 0.18)));
-  float earFinMask = exp(-dot((uv - vec2(0.83, 0.50)) / vec2(0.08, 0.09), (uv - vec2(0.83, 0.50)) / vec2(0.08, 0.09)));
-
-  p.y += (1.0 - uMode) * patWave * 0.032 * patHandMask;
-  p.z += (1.0 - uMode) * cos(uTime * 4.4) * 0.025 * patHandMask;
-  p.y += (1.0 - uMode) * patWave * 0.022 * drgCrownMask;
-  p.x -= (1.0 - uMode) * patWave * 0.016 * drgCrownMask;
-  p.y += sin(uTime * 6.2) * 0.026 * earFinMask;
-  p.z += cos(uTime * 6.2) * 0.030 * earFinMask;
-
-  // 模式 1（戴墨镜比赞互动）：男孩大拇指活力点赞，小白龙叉腰酷炫左右摇摆
-  float thumbMask = exp(-dot((uv - vec2(0.19, 0.41)) / vec2(0.08, 0.10), (uv - vec2(0.19, 0.41)) / vec2(0.08, 0.10)));
-  p.y += uMode * abs(sin(uTime * 4.8)) * 0.038 * thumbMask;
-  p.z += uMode * abs(sin(uTime * 4.8)) * 0.030 * thumbMask;
-  p.x += uMode * sin(uTime * 4.8) * 0.026 * isDragon * smoothstep(0.15, 0.60, uv.y);
-
-  // 4. 鼠标 3D 视差转头
-  p.x += uPointer.x * z * 0.28;
-  p.y += uPointer.y * z * 0.20;
-
-  // 5. 点击双人欢快 Q 弹跳跃
+  // 3. 点击时的整体 Q 弹跳跃
   if (uHop > 0.001) {
     float jumpArc = sin(uHop * 3.14159265);
-    float squash = sin(uHop * 6.2831853) * 0.05;
-    p.y += jumpArc * 0.22 * smoothstep(0.02, 0.25, uv.y);
-    p.x *= 1.0 - squash * 0.4;
-    p.y *= 1.0 + squash * 0.5;
+    p.y += jumpArc * 0.20;
   }
 
   vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
@@ -4338,6 +4306,7 @@ varying vec2 vUv;
 varying vec3 vNormal;
 varying float vRelief;
 
+// 精准瞳孔视线追踪：仅对眼珠内部区域做平滑位移，不拉扯眼眶边缘或黑框眼镜
 void shiftEyeGaze(
   inout vec2 sampleUv,
   vec2 uv,
@@ -4349,10 +4318,12 @@ void shiftEyeGaze(
   vec2 d = (uv - eyeCenter) / eyeRadius;
   float r2 = dot(d, d);
   if (r2 < 1.0) {
-    float falloff = (1.0 - r2) * (1.0 - r2);
+    // 三次平滑衰减，确保在眼珠边界处位移严格归零，绝不波及眼周皮肤与镜框
+    float w = 1.0 - r2;
+    float falloff = w * w * w;
     sampleUv -= gazeShift * falloff;
-    if (blinkAmount > 0.01 && d.y > -0.6) {
-      sampleUv.y += blinkAmount * 0.026 * falloff;
+    if (blinkAmount > 0.01 && d.y > -0.5) {
+      sampleUv.y += blinkAmount * 0.018 * falloff;
     }
   }
 }
@@ -4361,18 +4332,18 @@ void main() {
   vec2 uvI = vUv;
   vec2 uvS = vUv;
 
-  vec2 boyGaze = clamp(uPointer, -1.0, 1.0) * vec2(0.0085, 0.0065);
-  vec2 drgGaze = clamp(uPointer, -1.0, 1.0) * vec2(0.0110, 0.0085);
+  vec2 boyGaze = clamp(uPointer, -1.0, 1.0) * vec2(0.0065, 0.0050);
+  vec2 drgGaze = clamp(uPointer, -1.0, 1.0) * vec2(0.0085, 0.0065);
 
-  // 模式 0（摸摸头）4 只眼睛的精准坐标
-  shiftEyeGaze(uvI, vUv, vec2(0.3017, 0.5759), vec2(0.032, 0.040), boyGaze, uBlinkBoy);
-  shiftEyeGaze(uvI, vUv, vec2(0.4150, 0.5920), vec2(0.030, 0.038), boyGaze, uBlinkBoy);
-  shiftEyeGaze(uvI, vUv, vec2(0.5733, 0.5022), vec2(0.026, 0.044), drgGaze, uBlinkDragon);
-  shiftEyeGaze(uvI, vUv, vec2(0.6917, 0.4542), vec2(0.042, 0.046), drgGaze, uBlinkDragon);
+  // 模式 0（摸摸头）4 只眼睛的精准内瞳孔半径（严格限制在眼珠内部，绝不触碰眼镜框）
+  shiftEyeGaze(uvI, vUv, vec2(0.3017, 0.5759), vec2(0.023, 0.030), boyGaze, uBlinkBoy);
+  shiftEyeGaze(uvI, vUv, vec2(0.4150, 0.5920), vec2(0.022, 0.029), boyGaze, uBlinkBoy);
+  shiftEyeGaze(uvI, vUv, vec2(0.5733, 0.5022), vec2(0.020, 0.035), drgGaze, uBlinkDragon);
+  shiftEyeGaze(uvI, vUv, vec2(0.6917, 0.4542), vec2(0.032, 0.036), drgGaze, uBlinkDragon);
 
   // 模式 1（墨镜比赞）男孩双眼坐标
-  shiftEyeGaze(uvS, vUv, vec2(0.2917, 0.5871), vec2(0.032, 0.040), boyGaze, uBlinkBoy);
-  shiftEyeGaze(uvS, vUv, vec2(0.4033, 0.5938), vec2(0.030, 0.038), boyGaze, uBlinkBoy);
+  shiftEyeGaze(uvS, vUv, vec2(0.2917, 0.5871), vec2(0.023, 0.030), boyGaze, uBlinkBoy);
+  shiftEyeGaze(uvS, vUv, vec2(0.4033, 0.5938), vec2(0.022, 0.029), boyGaze, uBlinkBoy);
 
   vec4 colI = texture2D(uTexInteract, uvI);
   vec4 colS = texture2D(uTexSunglasses, uvS);
@@ -4386,19 +4357,19 @@ void main() {
   vec4 base = mix(colI, colS, uMode);
   if (base.a < 0.01) discard;
 
-  // 3D 羊毛毡动态体积光影
+  // 3D 羊毛毡动态光影跟随鼠标移动（颜色与高光追踪鼠标，人物几何形状完全不扭曲）
   vec3 N = normalize(vNormal);
-  vec3 L = normalize(vec3(uPointer.x * 0.65 - 0.25, uPointer.y * 0.55 + 0.45, 1.0));
+  vec3 L = normalize(vec3(uPointer.x * 0.70 - 0.20, uPointer.y * 0.60 + 0.45, 1.0));
   vec3 V = normalize(vec3(0.0, 0.0, 1.0));
   float diff = dot(N, L) * 0.5 + 0.5;
-  float rim = pow(1.0 - max(0.0, dot(N, V)), 2.2) * smoothstep(0.05, 0.35, vRelief);
-  float lightWeight = smoothstep(0.12, 0.35, vRelief);
+  float rim = pow(1.0 - max(0.0, dot(N, V)), 2.2) * smoothstep(0.05, 0.30, vRelief);
+  float lightWeight = smoothstep(0.08, 0.28, vRelief);
 
-  vec3 litColor = base.rgb * (1.0 + (diff - 0.5) * 0.08 * lightWeight) + vec3(1.0, 0.95, 0.86) * rim * 0.12;
+  vec3 litColor = base.rgb * (1.0 + (diff - 0.5) * 0.09 * lightWeight) + vec3(1.0, 0.95, 0.86) * rim * 0.12;
   gl_FragColor = vec4(litColor, base.a);
 }
 `;function Hl(e,t={}){if(!e)return null;let n=new Fl({canvas:e,alpha:!0,antialias:!0,powerPreference:`high-performance`,premultipliedAlpha:!1});n.setPixelRatio(Math.min(window.devicePixelRatio||1,2)),n.outputColorSpace=Pe,n.setClearColor(16052714,0);let r=new fn,i=new no(28,4/3,.1,30);i.position.set(0,0,6.2),i.lookAt(0,0,0);let a=new Wa(16775406,14207928,1.35);r.add(a);let o=new ao(16773853,1.2);o.position.set(-2.2,3,4),r.add(o);let s=new rn;r.add(s);let c=new Ar(new la(3.5,.55),new va({transparent:!0,depthWrite:!1,vertexShader:`varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,fragmentShader:`varying vec2 vUv; void main(){
       vec2 d = (vUv - 0.5) * 2.0;
       float a = smoothstep(1.0, 0.1, dot(d, d)) * 0.13;
       gl_FragColor = vec4(0.18, 0.14, 0.10, a);
-    }`}));c.position.set(.02,-1.36,-.1),s.add(c);let l=document.createElement(`canvas`);l.width=2,l.height=2;let u=new Vr(l),d={uTexInteract:{value:u},uTexSunglasses:{value:u},uTime:{value:0},uMode:{value:0},uPointer:{value:new q(0,0)},uHop:{value:0},uBlinkBoy:{value:0},uBlinkDragon:{value:0}},f=new Ar(new la(4,2.98,180,135),new va({uniforms:d,vertexShader:Bl,fragmentShader:Vl,transparent:!0}));f.position.set(0,.04,0),s.add(f);let p=Il(16732728,3344388),m=Il(16764723,3351040),h=Il(6084252,534552),g=[],_=Ll(p);_.position.set(.05,.56,.52),_.scale.setScalar(.62),s.add(_),g.push({mesh:_,basePos:_.position.clone(),baseScale:.62,speed:2.6,phase:0});let v=Rl(m);v.position.set(1.42,.72,.42),v.scale.setScalar(.58),s.add(v),g.push({mesh:v,basePos:v.position.clone(),baseScale:.58,speed:2.1,phase:1.5});let y=Rl(h);y.position.set(-1.46,.68,.38),y.scale.setScalar(.5),s.add(y),g.push({mesh:y,basePos:y.position.clone(),baseScale:.5,speed:2.4,phase:3.1});let b=t.assetBase||`assets/`,x=e=>new Promise((t,n)=>{let r=new Image;r.crossOrigin=`anonymous`,r.onload=()=>t(r),r.onerror=n,r.src=e});Promise.all([x(`${b}duo_interact.jpg`),x(`${b}duo_sunglasses.jpg`)]).then(([e,n])=>{d.uTexInteract.value=zl(e,[[.46,.82],[.55,.88]],!1),d.uTexSunglasses.value=zl(n,[[.49,.8],[.5,.96]],!0),typeof t.onReady==`function`&&t.onReady()}).catch(()=>{Promise.all([x(`/assets/duo_interact.jpg`),x(`/assets/duo_sunglasses.jpg`)]).then(([e,n])=>{d.uTexInteract.value=zl(e,[[.46,.82],[.55,.88]],!1),d.uTexSunglasses.value=zl(n,[[.49,.8],[.5,.96]],!0),typeof t.onReady==`function`&&t.onReady()})});function S(){let t=e.getBoundingClientRect(),r=Math.max(1,t.width||560),a=Math.max(1,t.height||420);n.setSize(r,a,!1),i.aspect=r/a,i.updateProjectionMatrix()}S(),window.addEventListener(`resize`,S,{passive:!0});let C=new q(0,0),w=new q(0,0),T=0,E=0,D=-1,O=2,k=-1,A=2.8,j=-1;function M(t,n){let r=e.getBoundingClientRect(),i=r.left+r.width*.5,a=r.top+r.height*.48,o=Math.max(-1,Math.min(1,(t-i)/(window.innerWidth*.42))),s=Math.max(-1,Math.min(1,(a-n)/(window.innerHeight*.42)));C.set(o,s)}window.addEventListener(`mousemove`,e=>M(e.clientX,e.clientY),{passive:!0}),window.addEventListener(`touchmove`,e=>{e.touches&&e.touches[0]&&M(e.touches[0].clientX,e.touches[0].clientY)},{passive:!0});function N(e=!0){return D=.001,e&&(T=+(T===0)),T}let P=new Co,F=0;function I(){F=requestAnimationFrame(I);let e=Math.min(P.getDelta(),.05),t=P.elapsedTime;if(d.uTime.value=t,w.lerp(C,Math.min(1,e*7.5)),d.uPointer.value.copy(w),E+=(T-E)*Math.min(1,e*8),d.uMode.value=E,s.rotation.y=w.x*.16,s.rotation.x=-w.y*.1,D>=0&&(D+=e*1.9,D>=1?(D=-1,d.uHop.value=0,s.rotation.z=0):(d.uHop.value=D,s.rotation.z=Math.sin(D*Math.PI*2)*.045)),t>O&&k<0&&(k=t,O=t+2.6+Math.random()*2.4),k>=0){let e=(t-k)/.16;e>=1?(k=-1,d.uBlinkBoy.value=0):d.uBlinkBoy.value=Math.sin(e*Math.PI)}if(t>A&&j<0&&(j=t,A=t+2.2+Math.random()*2.5),j>=0){let e=(t-j)/.15;e>=1?(j=-1,d.uBlinkDragon.value=0):d.uBlinkDragon.value=Math.sin(e*Math.PI)}let a=D>0?Math.sin(D*Math.PI)*.35:0;for(let e of g){e.mesh.position.y=e.basePos.y+Math.sin(t*e.speed+e.phase)*.08+a,e.mesh.rotation.y=Math.sin(t*1.5+e.phase)*.38+w.x*.3,e.mesh.rotation.z=Math.cos(t*1.8+e.phase)*.16;let n=1+Math.sin(t*3.2+e.phase)*.08+a*.8;e.mesh.scale.setScalar(e.baseScale*n)}n.render(r,i)}return I(),{triggerHappy:N,setPointer(e,t){C.set(e,t),w.set(e,t)},setMode(e){T=+!!e},dispose(){cancelAnimationFrame(F),n.dispose()}}}if(typeof window<`u`){window.mountMascot3D=Hl;let e=document.getElementById(`mascot3d`);e&&!window.__mascot&&(window.__mascot=Hl(e,{onReady(){document.body.classList.add(`mascot-ready`)}}))}return e.mountMascot3D=Hl,e})({});
+    }`}));c.position.set(.02,-1.36,-.1),s.add(c);let l=document.createElement(`canvas`);l.width=2,l.height=2;let u=new Vr(l),d={uTexInteract:{value:u},uTexSunglasses:{value:u},uTime:{value:0},uMode:{value:0},uPointer:{value:new q(0,0)},uHop:{value:0},uBlinkBoy:{value:0},uBlinkDragon:{value:0}},f=new Ar(new la(4.25,3.16,120,90),new va({uniforms:d,vertexShader:Bl,fragmentShader:Vl,transparent:!0}));f.position.set(0,.04,0),s.add(f);let p=Il(16732728,3344388),m=Il(16764723,3351040),h=Il(6084252,534552),g=[],_=Ll(p);_.position.set(.05,.56,.25),_.scale.setScalar(.62),s.add(_),g.push({mesh:_,basePos:_.position.clone(),baseScale:.62,speed:2.6,phase:0});let v=Rl(m);v.position.set(1.42,.72,.2),v.scale.setScalar(.58),s.add(v),g.push({mesh:v,basePos:v.position.clone(),baseScale:.58,speed:2.1,phase:1.5});let y=Rl(h);y.position.set(-1.46,.68,.2),y.scale.setScalar(.5),s.add(y),g.push({mesh:y,basePos:y.position.clone(),baseScale:.5,speed:2.4,phase:3.1});let b=t.assetBase||`assets/`,x=e=>new Promise((t,n)=>{let r=new Image;r.crossOrigin=`anonymous`,r.onload=()=>t(r),r.onerror=n,r.src=e});Promise.all([x(`${b}duo_interact.jpg`),x(`${b}duo_sunglasses.jpg`)]).then(([e,n])=>{d.uTexInteract.value=zl(e,[[.46,.82],[.55,.88]],!1),d.uTexSunglasses.value=zl(n,[[.49,.8],[.5,.96]],!0),typeof t.onReady==`function`&&t.onReady()}).catch(()=>{Promise.all([x(`/assets/duo_interact.jpg`),x(`/assets/duo_sunglasses.jpg`)]).then(([e,n])=>{d.uTexInteract.value=zl(e,[[.46,.82],[.55,.88]],!1),d.uTexSunglasses.value=zl(n,[[.49,.8],[.5,.96]],!0),typeof t.onReady==`function`&&t.onReady()})});function S(){let t=e.getBoundingClientRect(),r=Math.max(1,t.width||560),a=Math.max(1,t.height||420);n.setSize(r,a,!1),i.aspect=r/a,i.updateProjectionMatrix()}S(),window.addEventListener(`resize`,S,{passive:!0});let C=new q(0,0),w=new q(0,0),T=0,E=0,D=-1,O=2,k=-1,A=2.8,j=-1;function M(t,n){let r=e.getBoundingClientRect(),i=r.left+r.width*.5,a=r.top+r.height*.48,o=Math.max(-1,Math.min(1,(t-i)/(window.innerWidth*.42))),s=Math.max(-1,Math.min(1,(a-n)/(window.innerHeight*.42)));C.set(o,s)}window.addEventListener(`mousemove`,e=>M(e.clientX,e.clientY),{passive:!0}),window.addEventListener(`touchmove`,e=>{e.touches&&e.touches[0]&&M(e.touches[0].clientX,e.touches[0].clientY)},{passive:!0});function N(e=!0){return D=.001,e&&(T=+(T===0)),T}let P=new Co,F=0;function I(){F=requestAnimationFrame(I);let e=Math.min(P.getDelta(),.05),t=P.elapsedTime;if(d.uTime.value=t,w.lerp(C,Math.min(1,e*7.5)),d.uPointer.value.copy(w),E+=(T-E)*Math.min(1,e*8),d.uMode.value=E,s.rotation.y=0,s.rotation.x=0,D>=0&&(D+=e*1.9,D>=1?(D=-1,d.uHop.value=0,s.rotation.z=0):(d.uHop.value=D,s.rotation.z=Math.sin(D*Math.PI*2)*.03)),t>O&&k<0&&(k=t,O=t+2.6+Math.random()*2.4),k>=0){let e=(t-k)/.16;e>=1?(k=-1,d.uBlinkBoy.value=0):d.uBlinkBoy.value=Math.sin(e*Math.PI)}if(t>A&&j<0&&(j=t,A=t+2.2+Math.random()*2.5),j>=0){let e=(t-j)/.15;e>=1?(j=-1,d.uBlinkDragon.value=0):d.uBlinkDragon.value=Math.sin(e*Math.PI)}let a=D>0?Math.sin(D*Math.PI)*.35:0;for(let e of g){e.mesh.position.y=e.basePos.y+Math.sin(t*e.speed+e.phase)*.08+a,e.mesh.position.x=e.basePos.x+w.x*.06,e.mesh.rotation.y=Math.sin(t*1.5+e.phase)*.38+w.x*.35,e.mesh.rotation.z=Math.cos(t*1.8+e.phase)*.16;let n=1+Math.sin(t*3.2+e.phase)*.08+a*.8;e.mesh.scale.setScalar(e.baseScale*n)}n.render(r,i)}return I(),{triggerHappy:N,setPointer(e,t){C.set(e,t),w.set(e,t)},setMode(e){T=+!!e},dispose(){cancelAnimationFrame(F),n.dispose()}}}if(typeof window<`u`){window.mountMascot3D=Hl;let e=document.getElementById(`mascot3d`);e&&!window.__mascot&&(window.__mascot=Hl(e,{onReady(){document.body.classList.add(`mascot-ready`)}}))}return e.mountMascot3D=Hl,e})({});
