@@ -911,6 +911,7 @@ var _hmt = _hmt || [];
       <button class="tab" data-rcat="tool">💼 秋招求职与旅行工具 (2)</button>
     </div>
     <div class="repos" id="repoGrid">
+      <a class="repo" data-rcat="3d" href="https://github.com/shiwoxiaobailong0828-maker/sakura-isle" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div style="margin-bottom:8px"><span class="tag-pill">3D微缩世界</span></div><div class="rn">sakura-isle</div><p>樱花树下 · 3D 微缩公园樱花岛（抓地盘根、簇生草坪、波浪花海与程序化日式筝曲 BGM）</p><div class="lang"><i style="background:#e34c26"></i>HTML</div></a>
       <a class="repo" data-rcat="3d" href="https://github.com/shiwoxiaobailong0828-maker/rainy-night-konbini-diorama" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div style="margin-bottom:8px"><span class="tag-pill">3D微缩世界</span></div><div class="rn">rainy-night-konbini-diorama</div><p>雨夜便利店街角 · 三渲二微缩三维场景（从下往上零穿模搭建、WebAudio 程序化音效与动态天气）</p><div class="lang"><i style="background:#f1e05a"></i>JavaScript</div></a>
       <a class="repo" data-rcat="3d" href="https://github.com/shiwoxiaobailong0828-maker/editorial-felt-portfolio-template" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div style="margin-bottom:8px"><span class="tag-pill">网站模板</span></div><div class="rn">editorial-felt-portfolio-template</div><p>杂志大字画册风 × 3D 羊毛毡实时互动个人作品集网站模板（含 Three.js 源码与自动截图脚本）</p><div class="lang"><i style="background:#e34c26"></i>HTML</div></a>
       <a class="repo" data-rcat="tool" href="https://github.com/shiwoxiaobailong0828-maker/yiyeqiuzhao-" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div style="margin-bottom:8px"><span class="tag-pill">求职工作台</span></div><div class="rn">yiyeqiuzhao-</div><p>一页秋招 · 秋招投递进度看板、面试日程与多 Offer 并排对比工作台</p><div class="lang"><i style="background:#e34c26"></i>HTML</div></a>
@@ -955,9 +956,9 @@ var _hmt = _hmt || [];
 const WORKS = [
   {
     slug: "sakura-isle", name: "樱花树下", cat: "3D / WEBGL DIORAMA", status: "live", badge: "已发布", bcls: "b-live",
-    desc: "黄昏火烧云下的垂枝樱花树，长在铺满落花的小岛上：五个时段、三种天气，可 360° 转着看。",
-    long: "一座漂在花瓣海上的圆形小岛，岛上长着一棵垂枝樱花树：主干分三级往上撑开，末梢一绺一绺垂到长椅边上。夕阳把云染成橘红，远处三层山脊被雾一层层推远；树下有长椅、野餐垫和九盏小灯笼，夜里还有萤火虫绕着树飞。起风时整棵树一起摆，花瓣顺着风往下飘。整座岛没有一张模型文件、没有一张图片素材，全是代码现算的，装在一个 HTML 里，断网也能打开。",
-    feats: ["清晨 / 正午 / 午后 / 黄昏 / 夜晚五套光色，晴 / 雨 / 雪三种天气", "点灯笼会亮、点树冠会摇下一阵花瓣雨", "帧率不够自动降画质，老显卡也能转得动"]
+    desc: "黄昏火烧云下的垂枝樱花岛：抓地盘根、簇生草坪、倒角木长椅与随浪起伏的花瓣海，五个时段、三种天气，可 360° 转着看。",
+    long: "一座漂在花瓣海上的微缩公园圆岛，岛上长着一棵盛放的巨型垂枝樱花树：粗壮树根自然抓地，草叶成簇长在松软泥土上，树下有倒角木长椅、格纹野餐垫与九盏暖光灯笼，四周是成对振翅的凤蝶、3D 剪影飞鸟与随波浪起伏的落樱花海。起风时整棵树与立体丝带一起摆动，夜里 260 只萤火虫绕树升起，还能聆听代码实时合成的日式筝曲与海浪风铃声。整座岛零外部模型、零图片贴图，装在一个 HTML 里，断网也能打开。",
+    feats: ["抓地盘根、成簇草坪、倒角长椅与花海波浪耦合，细节拉满", "清晨 / 正午 / 午后 / 黄昏 / 夜晚五套光色，晴 / 雨 / 雪三种天气", "3D 祈愿丝带、点灯笼、摇树冠落花雨，内置程序化日式筝曲与海浪风声 BGM"]
   },
   {
     slug: "glass-diorama", name: "玻璃微景观", cat: "3D / WEBGL DIORAMA", status: "live", badge: "已发布", bcls: "b-live",
@@ -1156,12 +1157,12 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModals(
 const LINES_MODE0 = [
   "乖～摸摸小白龙的羊毛毡小脑袋！",
   "小白龙：呜哇，摸头好舒服呀～✦",
-  "新作品《玻璃微景观》就在第一行，快去逛逛！"
+  "新作品《樱花树下》就在第一行，快去逛逛！"
 ];
 const LINES_MODE1 = [
   "墨镜一戴！给你的到来点个大大的赞 👍",
   "小白龙：花店同款酷炫黑超，帅不帅？🕶️",
-  "全站 11 件作品都能直接在浏览器里玩哦！"
+  "全站 12 件作品都能直接在浏览器里玩哦！"
 ];
 const dragon = document.getElementById('dragon');
 const bubble = document.getElementById('bubble');
