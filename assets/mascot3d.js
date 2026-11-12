@@ -4368,7 +4368,7 @@ void main() {
   vec3 litColor = base.rgb * (1.0 + (diff - 0.5) * 0.09 * lightWeight) + vec3(1.0, 0.95, 0.86) * rim * 0.12;
   gl_FragColor = vec4(litColor, base.a);
 }
-`;function Hl(e,t={}){if(!e)return null;let n=new Fl({canvas:e,alpha:!0,antialias:!0,powerPreference:`high-performance`,premultipliedAlpha:!1});n.setPixelRatio(Math.min(window.devicePixelRatio||1,2)),n.outputColorSpace=Pe,n.setClearColor(16052714,0);let r=new fn,i=new no(28,4/3,.1,30);i.position.set(0,0,6.2),i.lookAt(0,0,0);let a=new Wa(16775406,14207928,1.35);r.add(a);let o=new ao(16773853,1.2);o.position.set(-2.2,3,4),r.add(o);let s=new rn;r.add(s);let c=new Ar(new la(3.5,.55),new va({transparent:!0,depthWrite:!1,vertexShader:`varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,fragmentShader:`varying vec2 vUv; void main(){
+`;function Hl(e,t={}){if(!e)return null;let n=new Fl({canvas:e,alpha:!0,antialias:!0,powerPreference:`high-performance`,premultipliedAlpha:!0});n.setPixelRatio(Math.min(window.devicePixelRatio||1,2)),n.outputColorSpace=Pe,n.setClearColor(16052714,0);let r=new fn,i=new no(28,4/3,.1,30);i.position.set(0,0,6.2),i.lookAt(0,0,0);let a=new Wa(16775406,14207928,1.35);r.add(a);let o=new ao(16773853,1.2);o.position.set(-2.2,3,4),r.add(o);let s=new rn;r.add(s);let c=new Ar(new la(3.5,.55),new va({transparent:!0,depthWrite:!1,vertexShader:`varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,fragmentShader:`varying vec2 vUv; void main(){
       vec2 d = (vUv - 0.5) * 2.0;
       float a = smoothstep(1.0, 0.1, dot(d, d)) * 0.13;
       gl_FragColor = vec4(0.18, 0.14, 0.10, a);
