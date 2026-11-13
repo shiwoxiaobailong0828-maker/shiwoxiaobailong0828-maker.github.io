@@ -955,7 +955,7 @@ var _hmt = _hmt || [];
 <script>
 const WORKS = [
   {
-    slug: "sakura-isle", name: "樱花树下", cat: "3D / WEBGL DIORAMA", status: "live", badge: "已发布", bcls: "b-live",
+    slug: "sakura-isle", name: "樱花树下", cat: "3D / WEBGL DIORAMA", status: "live", badge: "已发布", bcls: "b-live", vlabel: "1080P 宣传片",
     desc: "黄昏火烧云下的垂枝樱花岛：抓地盘根、簇生草坪、倒角木长椅与随浪起伏的花瓣海，五个时段、三种天气，可 360° 转着看。",
     long: "一座漂在花瓣海上的微缩公园圆岛，岛上长着一棵盛放的巨型垂枝樱花树：粗壮树根自然抓地，草叶成簇长在松软泥土上，树下有倒角木长椅、格纹野餐垫与九盏暖光灯笼，四周是成对振翅的凤蝶、3D 剪影飞鸟与随波浪起伏的落樱花海。起风时整棵树与立体丝带一起摆动，夜里 260 只萤火虫绕树升起，还能聆听代码实时合成的日式筝曲与海浪风铃声。整座岛零外部模型、零图片贴图，装在一个 HTML 里，断网也能打开。",
     feats: ["抓地盘根、成簇草坪、倒角长椅与花海波浪耦合，细节拉满", "清晨 / 正午 / 午后 / 黄昏 / 夜晚五套光色，晴 / 雨 / 雪三种天气", "3D 祈愿丝带、点灯笼、摇树冠落花雨，内置程序化日式筝曲与海浪风声 BGM"]
@@ -1068,7 +1068,7 @@ WORKS.forEach((w, i) => {
   el.addEventListener('click', () => openWork(i));
   el.querySelector('[data-vid]').addEventListener('click', (e) => {
     e.stopPropagation();
-    playVideo('videos/' + w.slug + '-intro.mp4', w.name + ' · 讲解视频', w.desc);
+    playVideo('videos/' + w.slug + '-intro.mp4', w.name + ' · ' + (w.vlabel || '讲解视频'), w.desc);
   });
   grid.appendChild(el);
 });
@@ -1148,7 +1148,7 @@ function openWork(i) {
 document.getElementById('mVideo').addEventListener('click', e => {
   e.preventDefault();
   const w = WORKS[curWork];
-  playVideo('videos/' + w.slug + '-intro.mp4', w.name + ' · 讲解视频', w.desc);
+  playVideo('videos/' + w.slug + '-intro.mp4', w.name + ' · ' + (w.vlabel || '讲解视频'), w.desc);
 });
 document.querySelectorAll('[data-close]').forEach(el => el.addEventListener('click', closeModals));
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModals(); });
